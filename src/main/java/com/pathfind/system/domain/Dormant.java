@@ -1,16 +1,19 @@
 /*
  * 클래스 기능 : 휴먼계정정보 엔티티
- * 최근 수정 일자 : 2024.01.03(수)
+ * 최근 수정 일자 : 2024.01.05(금)
  */
 package com.pathfind.system.domain;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
-@Entity
+/*@Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Dormant {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,10 +24,23 @@ public class Dormant {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @Column(nullable = false)
     private LocalDate dormantStartDate; //휴먼계정 시작일 -> member.lastConnect와 연관
 
-    @Column(nullable = false)
-    private LocalDate expireDate; //휴먼계정 만료일자 -> member.joinDate와 연관
+    //==정적 팩토리 메서드==//
+    public static Dormant createDormant(Member member) {
+        Dormant dormant = new Dormant();
+        dormant.initialMember(member);
+        dormant.changeDormantStartDate(LocalDate.now());
 
-}
+        return dormant;
+    }
+
+    private void initialMember(Member member) {
+        this.member = member;
+    }
+
+    public void changeDormantStartDate(LocalDate date) {
+        this.dormantStartDate = date;
+    }
+
+}*/
