@@ -1,15 +1,18 @@
 /*
  * 클래스 기능 : 동의 여부 체크 엔티티
- * 최근 수정 일자 : 2024.01.05
+ * 최근 수정 일자 : 2024.01.05(금)
  */
 package com.pathfind.system.domain;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
 @Table(name = "checks")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Check {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,7 +28,17 @@ public class Check {
     @Column(nullable = false, columnDefinition = "TINYINT(1)")
     private boolean dormant; //휴먼계정 여부확인
 
-    //==setter 방지 메서드==//
+    //==정적 팩토리 메서드==//
+    public static Check createCheck() {
+        Check check = new Check();
+        check.changeEmailAuth(false);
+        check.changeInformationAgree(false);
+        check.changeDormant(false);
+
+        return check;
+    }
+
+    //==비지니스 로직==//
     public void changeEmailAuth(boolean emailAuth) {
         this.emailAuth = emailAuth;
     }
@@ -36,13 +49,5 @@ public class Check {
 
     public void changeDormant(boolean dormant) {
         this.dormant = dormant;
-    }
-
-    public static Check createCheck() {
-        Check check = new Check();
-        check.changeEmailAuth(false);
-        check.changeInformationAgree(false);
-        check.changeDormant(false);
-        return check;
     }
 }
