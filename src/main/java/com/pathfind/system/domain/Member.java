@@ -23,13 +23,13 @@ public class Member {
     @Column(length = 12, nullable = false)
     private String userId; //아이디
 
-    @Column(length = 20, nullable = false)
+    @Column(length = 20, nullable = false, unique = true)
     private String password; //비밀번호 // 변경 가능
 
-    @Column(length = 12, nullable = false)
+    @Column(length = 12, nullable = false, unique = true)
     private String nickname; //닉네임 // 변경 가능
 
-    @Column(length = 45, nullable = false)
+    @Column(length = 45, nullable = false, unique = true)
     private String email; //이메일
 
     @Column(nullable = false)
@@ -39,7 +39,7 @@ public class Member {
     private LocalDate lastConnect; //최근접속일 // 변경 가능
 
     @OneToOne(fetch = FetchType.LAZY) //OneToOne은 기본 Eager
-    @JoinColumn(name = "check_id")
+    @JoinColumn(name = "check_id", unique = true)
     private Check check; //일대일 연관관계 매핑
 
     //==정적 팩토리 메서드==//
