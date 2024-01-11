@@ -2,6 +2,7 @@ package com.pathfind.system.entity;
 
 import com.pathfind.system.domain.Check;
 import com.pathfind.system.domain.Member;
+import com.pathfind.system.service.RedisUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.assertj.core.api.Assertions;
@@ -21,6 +22,9 @@ public class EntityCreate {
 
     @Autowired
     EntityManager em;
+
+    @Autowired
+    private RedisUtil redisUtil;
 
     @Test
     @DisplayName("회원엔티티생성")
@@ -42,6 +46,20 @@ public class EntityCreate {
 
         //then
         Assertions.assertThat(member.getUserId()).isEqualTo(findMember.getUserId());
+    }
+
+    @Test
+    public void redisTest() throws Exception
+    {
+        //given
+        String email = "test@test.com";
+        String code = "aaa111";
+
+        //when
+        redisUtil.setDataExpire(email, code, 60 * 60L);
+
+        //then
+        Assertions.assertThat(redisUtil.getData(email)).isEqualTo("aaa111");
     }
 
 }

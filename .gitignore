@@ -39,4 +39,6 @@ out/
 ### application.yml ###
 application.yml
 
-TestGitIgnore.java
+EmailConfig.java
+
+MailSendServiceImpl.java
