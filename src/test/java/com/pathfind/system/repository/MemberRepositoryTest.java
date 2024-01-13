@@ -94,14 +94,13 @@ public class MemberRepositoryTest {
     {
         //given
         Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
-        String findId = "userID1";
 
         //when
         memberRepository.register(member);
-        List<Member> findMember = memberRepository.findByUserID(findId);
+        Member findMember = memberRepository.findByID(member.getId());
 
         //then
-        Assert.assertEquals(findMember.get(0), member);
+        Assert.assertEquals(findMember, member);
     }
 
 }

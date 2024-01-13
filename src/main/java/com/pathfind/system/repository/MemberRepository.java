@@ -17,6 +17,7 @@ public interface MemberRepository {
 
     public void register(Member member);
 
-    public List<Member> findByUserID(String userId);
+    public Member findByID(Long id); //Long id로 교체
+
 
 }

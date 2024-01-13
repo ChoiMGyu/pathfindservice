@@ -44,9 +44,7 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public List<Member> findByUserID(String userId) {
-        return em.createQuery("select m from Member m where m.userId = :userId", Member.class)
-                .setParameter("userId", userId)
-                .getResultList();
+    public Member findByID(Long id) {
+        return em.find(Member.class, id);
     }
 }
