@@ -22,4 +22,14 @@ public interface MemberService {
     public void updatePassword(String userId, String oldPassword, String newPassword);
 
     public void recoverMember(String userId);
+
+    public Member login(String userId, String password);
+
+    public String findUserIdByEmail(String email);
+
+    public void idEmailChk(String userId, String email);
+
+    public void findPassword(String userId, String email);
+
+    public String updateToTemporaryPassword(String userId);
 }

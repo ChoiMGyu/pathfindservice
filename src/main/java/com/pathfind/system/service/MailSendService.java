@@ -11,6 +11,8 @@ public interface MailSendService {
     public String joinEmail(String email);
     //mail을 어디서 보내는지, 어디로 보내는지 , 인증 번호를 html 형식으로 어떻게 보내는지 작성
 
+    public void findPasswordEmail(String email, String TemporaryPassword);
+
     public void mailSend(String setFrom, String toMail, String title, String content);
     //이메일을 생성(setFrom)하여 사용자에게 전송(toMail)
 

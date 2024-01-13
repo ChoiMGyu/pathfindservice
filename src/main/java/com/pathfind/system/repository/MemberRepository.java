@@ -19,4 +19,9 @@ public interface MemberRepository {
 
     public List<Member> findByUserID(String userId);
 
+    public List<Member> login(String userId, String password);
+
+    public boolean idEmailChk(String userId, String email);
+
+    public List<String> findUserIdByEmail(String email);
 }

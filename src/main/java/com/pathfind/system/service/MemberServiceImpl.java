@@ -18,6 +18,7 @@ import java.util.List;
 public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
+    private final MailSendService mailSendService;
 
     @Override
     public List<Member> idChk(Member member) {
@@ -76,5 +77,42 @@ public class MemberServiceImpl implements MemberService {
         else {
             throw new IllegalStateException("이메일 인증이 완료되지 않았습니다.");
         }
+    }
+
+    public Member login(String userId, String password) {
+        List<Member> result = memberRepository.login(userId, password);
+
+        if(result.isEmpty())
+            throw new IllegalStateException("아이디 혹은 비밀번호가 틀렸습니다.");
+
+        return result.get(0);
+    }
+
+    public String findUserIdByEmail(String email) {
+        List<String> result = memberRepository.findUserIdByEmail(email);
+
+        if(result.isEmpty())
+            throw new IllegalStateException("유효하지 않은 이메일입니다.");
+
+        return result.get(0);
+    }
+
+    public void idEmailChk(String userId, String email) {
+        boolean result = memberRepository.idEmailChk(userId, email);
+
+        if(!result)
+            throw new IllegalStateException("아이디 혹은 이메일이 일치하는 계정이 없습니다.");
+
+        //return true;
+    }
+
+    public void findPassword(String userId, String email) {
+        String temporaryPassword = updateToTemporaryPassword(userId);
+        mailSendService.findPasswordEmail(email, temporaryPassword);
+    }
+
+    public String updateToTemporaryPassword(String userId) {
+        Member result = memberRepository.findByUserID(userId).get(0);
+        return result.updateToTemporaryPassword();
     }
 }

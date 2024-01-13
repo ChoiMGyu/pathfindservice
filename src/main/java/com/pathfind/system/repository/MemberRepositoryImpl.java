@@ -49,4 +49,33 @@ public class MemberRepositoryImpl implements MemberRepository {
                 .setParameter("userId", userId)
                 .getResultList();
     }
+
+    @Override
+    public List<Member> login(String userId, String password) {
+        return em.createQuery("select m from Member m" +
+                        " join fetch Check" +
+                        " where m.userId = :userId and m.password = :password", Member.class)
+                .setParameter("userId", userId)
+                .setParameter("password", password)
+                .getResultList();
+    }
+
+    @Override
+    public boolean idEmailChk(String userId, String email) {
+        Long result = em.createQuery("select count(m) from Member m" +
+                        " where m.userId = :userId and m.password = :email", Long.class)
+                .setParameter("userId", userId)
+                .setParameter("email", email)
+                .setMaxResults(1)
+                .getSingleResult();
+        return result > 0;
+    }
+
+    @Override
+    public List<String> findUserIdByEmail(String email) {
+        return em.createQuery("select m.userId from Member m" +
+                        " where m.email = :email", String.class)
+                .setParameter("email", email)
+                .getResultList();
+    }
 }
