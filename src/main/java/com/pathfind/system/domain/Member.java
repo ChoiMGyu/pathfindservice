@@ -85,4 +85,21 @@ public class Member {
     public void changeLastConnect(LocalDate date) {
         this.lastConnect = date;
     }
+
+    public String updateToTemporaryPassword() {
+        String temporaryPassword = getRandomPassword();
+        this.changePassword(temporaryPassword);
+        return temporaryPassword;
+    }
+
+    private String getRandomPassword() {
+        StringBuilder randomPassword = new StringBuilder();
+        for (int i = 0; i < 14; i++) {
+            int nextType = (int) (Math.random() * 3);
+            if (nextType == 0) randomPassword.append(48 + (int) (Math.random() * 10));
+            else if (nextType == 1) randomPassword.append(65 + (int) (Math.random() * 26));
+            else randomPassword.append(97 + (int) (Math.random() * 26));
+        }
+        return randomPassword.toString();
+    }
 }
