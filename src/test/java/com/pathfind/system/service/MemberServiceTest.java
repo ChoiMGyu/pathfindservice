@@ -119,7 +119,7 @@ public class MemberServiceTest {
 
         //when
         memberRepository.register(member);
-        memberService.updatePassword(member.getUserId(), oldPassword, newPassword);
+        memberService.updatePassword(member.getId(), oldPassword, newPassword);
 
         //then
         Assert.assertEquals(member.getPassword(), "5678");
@@ -136,7 +136,7 @@ public class MemberServiceTest {
         //when
         try {
             memberRepository.register(member);
-            memberService.updatePassword(member.getUserId(), oldPassword, newPassword);
+            memberService.updatePassword(member.getId(), oldPassword, newPassword);
         } catch (IllegalStateException e) {
             System.out.println("===============================");
             System.out.println(e.getMessage());
@@ -156,12 +156,11 @@ public class MemberServiceTest {
         check.changeEmailAuth(true);
         check.changeDormant(true);
         Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", check);
-        String userId = "userID1";
 
         //when
         em.persist(check);
         em.persist(member);
-        memberService.recoverMember(userId);
+        memberService.recoverMember(member.getId());
 
         //then
         Assert.assertFalse(member.getCheck().isDormant());
@@ -175,13 +174,12 @@ public class MemberServiceTest {
         check.changeEmailAuth(false);
         check.changeDormant(true);
         Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", check);
-        String userId = "userID1";
 
         //when
         try {
             em.persist(check);
             em.persist(member);
-            memberService.recoverMember(userId);
+            memberService.recoverMember(member.getId());
         } catch (IllegalStateException e) {
             System.out.println("===============================");
             System.out.println(e.getMessage());

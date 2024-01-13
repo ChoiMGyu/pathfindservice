@@ -19,9 +19,7 @@ public interface MemberService {
 
     public void validateDuplicateInfo(Member member);
 
-    public void updatePassword(String userId, String oldPassword, String newPassword);
-
-    public void recoverMember(String userId);
+    public void updatePassword(Long id, String oldPassword, String newPassword);
 
     public Member login(String userId, String password);
 
@@ -32,4 +30,6 @@ public interface MemberService {
     public void findPassword(String userId, String email);
 
     public String updateToTemporaryPassword(String userId);
+
+    public void recoverMember(Long id);
 }
