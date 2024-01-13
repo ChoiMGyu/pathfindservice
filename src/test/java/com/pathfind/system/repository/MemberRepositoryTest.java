@@ -88,4 +88,20 @@ public class MemberRepositoryTest {
         //then
         Assert.assertEquals(member, result.get(0));
     }
+
+    @Test
+    public void 아이디_회원찾기() throws Exception
+    {
+        //given
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
+        String findId = "userID1";
+
+        //when
+        memberRepository.register(member);
+        List<Member> findMember = memberRepository.findByUserID(findId);
+
+        //then
+        Assert.assertEquals(findMember.get(0), member);
+    }
+
 }

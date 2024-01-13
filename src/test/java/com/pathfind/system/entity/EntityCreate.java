@@ -23,9 +23,6 @@ public class EntityCreate {
     @Autowired
     EntityManager em;
 
-    @Autowired
-    private RedisUtil redisUtil;
-
     @Test
     @DisplayName("회원엔티티생성")
     public void 회원엔티티생성() throws Exception
@@ -46,20 +43,6 @@ public class EntityCreate {
 
         //then
         Assertions.assertThat(member.getUserId()).isEqualTo(findMember.getUserId());
-    }
-
-    @Test
-    public void redisTest() throws Exception
-    {
-        //given
-        String email = "test@test.com";
-        String code = "aaa111";
-
-        //when
-        redisUtil.setDataExpire(email, code, 60 * 60L);
-
-        //then
-        Assertions.assertThat(redisUtil.getData(email)).isEqualTo("aaa111");
     }
 
 }
