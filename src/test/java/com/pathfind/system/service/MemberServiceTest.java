@@ -13,7 +13,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,7 +40,7 @@ public class MemberServiceTest {
         Long result = memberService.register(member);
 
         //then
-        Assert.assertEquals(member, memberRepository.idChk("userID1").get(0));
+        Assert.assertEquals(member, memberRepository.findByUserID("userID1").get(0));
     }
 
     @Test(expected = IllegalStateException.class)
@@ -119,7 +118,7 @@ public class MemberServiceTest {
 
         //when
         memberRepository.register(member);
-        memberService.updatePassword(member.getId(), oldPassword, newPassword);
+        memberService.updatePassword(member.getId(), oldPassword, newPassword, newPassword);
 
         //then
         Assert.assertEquals(member.getPassword(), "5678");
@@ -136,7 +135,7 @@ public class MemberServiceTest {
         //when
         try {
             memberRepository.register(member);
-            memberService.updatePassword(member.getId(), oldPassword, newPassword);
+            memberService.updatePassword(member.getId(), oldPassword, newPassword, newPassword);
         } catch (IllegalStateException e) {
             System.out.println("===============================");
             System.out.println(e.getMessage());
