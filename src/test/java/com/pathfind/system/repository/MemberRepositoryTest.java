@@ -10,16 +10,11 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -69,7 +64,7 @@ public class MemberRepositoryTest {
         em.persist(member);
 
         //when
-        List<Member> result = memberRepository.nicknameChk(member.getNickname());
+        List<Member> result = memberRepository.findByNickname(member.getNickname());
 
 
         //then
@@ -83,7 +78,7 @@ public class MemberRepositoryTest {
         em.persist(member);
 
         //when
-        List<Member> result = memberRepository.emailChk(member.getEmail());
+        List<Member> result = memberRepository.findByEmail(member.getEmail());
 
         //then
         Assert.assertEquals(member, result.get(0));

@@ -21,18 +21,18 @@ public class MemberServiceImpl implements MemberService {
     private final MailSendService mailSendService;
 
     @Override
-    public List<Member> idChk(Member member) {
-        return memberRepository.idChk(member.getUserId());
+    public List<Member> findByUserID(Member member) {
+        return memberRepository.findByUserID(member.getUserId());
     }
 
     @Override
-    public List<Member> nicknameChk(Member member) {
-        return memberRepository.nicknameChk(member.getNickname());
+    public List<Member> findByNickname(Member member) {
+        return memberRepository.findByNickname(member.getNickname());
     }
 
     @Override
-    public List<Member> emailChk(Member member) {
-        return memberRepository.emailChk(member.getEmail());
+    public List<Member> findByEmail(Member member) {
+        return memberRepository.findByEmail(member.getEmail());
     }
 
     @Override
@@ -44,24 +44,27 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public void validateDuplicateInfo(Member member) {
-            if(!this.idChk(member).isEmpty())
-                throw new IllegalStateException("이미 존재하는 아이디입니다.");
-            if(!this.nicknameChk(member).isEmpty())
-                throw new IllegalStateException("이미 존재하는 닉네임입니다.");
-            if(!this.emailChk(member).isEmpty())
-                throw new IllegalStateException("이미 존재하는 이메일입니다.");
+        if (!this.findByUserID(member).isEmpty())
+            throw new IllegalStateException("이미 존재하는 아이디입니다.");
+        if (!this.findByNickname(member).isEmpty())
+            throw new IllegalStateException("이미 존재하는 닉네임입니다.");
+        if (!this.findByEmail(member).isEmpty())
+            throw new IllegalStateException("이미 존재하는 이메일입니다.");
     }
 
     @Override
     @Transactional
-    public void updatePassword(Long id, String oldPassword, String newPassword) {
+    public void updatePassword(Long id, String oldPassword, String newPassword1, String newPassword2) {
         Member findMember = memberRepository.findByID(id);
         //패스워드 변경을 하는 시점에는 로그인되어 있는 상태이므로 findMember는 무조건 값을 가짐
-        if(findMember.getPassword().equals(oldPassword)) {
-            findMember.changePassword(newPassword);
-        }
-        else {
-            throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
+        if (findMember.getPassword().equals(oldPassword)) {
+            if (newPassword1.equals(newPassword2)) {
+                findMember.changePassword(newPassword1);
+            } else {
+                throw new IllegalStateException("새 비밀번호 확인이 올바르지 않습니다.");
+            }
+        } else {
+            throw new IllegalStateException("기존 비밀번호가 일치하지 않습니다.");
         }
     }
 
@@ -69,50 +72,47 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public void recoverMember(Long id) {
         Member findMember = memberRepository.findByID(id);
-        if(findMember.getCheck().isEmailAuth()) {
-            if(findMember.getCheck().isDormant()) {
-                findMember.getCheck().changeDormant(false);
-            }
-        }
-        else {
-            throw new IllegalStateException("이메일 인증이 완료되지 않았습니다.");
-        }
+        findMember.getCheck().changeDormant(false);
     }
 
+    @Override
     public Member login(String userId, String password) {
         List<Member> result = memberRepository.login(userId, password);
 
-        if(result.isEmpty())
+        if (result.isEmpty())
             throw new IllegalStateException("아이디 혹은 비밀번호가 틀렸습니다.");
 
         return result.get(0);
     }
 
+    @Override
     public String findUserIdByEmail(String email) {
         List<String> result = memberRepository.findUserIdByEmail(email);
 
-        if(result.isEmpty())
+        if (result.isEmpty())
             throw new IllegalStateException("유효하지 않은 이메일입니다.");
 
         return result.get(0);
     }
 
+    @Override
     public void idEmailChk(String userId, String email) {
-        boolean result = memberRepository.idEmailChk(userId, email);
+        List<Member> findByUserID = memberRepository.findByUserID(userId);
+        List<Member> findByEmail = memberRepository.findByEmail(email);
 
-        if(!result)
-            throw new IllegalStateException("아이디 혹은 이메일이 일치하는 계정이 없습니다.");
-
-        //return true;
+        if (findByUserID.isEmpty() || findByEmail.isEmpty() || !findByUserID.get(0).equals(findByEmail.get(0)))
+            throw new IllegalStateException("회원 정보가 일치하지 않습니다.");
     }
 
+    @Override
     public void findPassword(String userId, String email) {
         String temporaryPassword = updateToTemporaryPassword(userId);
         mailSendService.findPasswordEmail(email, temporaryPassword);
     }
 
-    public String updateToTemporaryPassword(String userId) {
+    private String updateToTemporaryPassword(String userId) {
         Member result = memberRepository.findByUserID(userId).get(0);
         return result.updateToTemporaryPassword();
     }
+
 }
