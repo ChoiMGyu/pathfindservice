@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 서비스 클래스
- * 최근 수정 일자 : 2024.01.09(화)
+ * 최근 수정 일자 : 2024.01.13(토)
  */
 package com.pathfind.system.service;
 
@@ -49,5 +49,32 @@ public class MemberServiceImpl implements MemberService {
                 throw new IllegalStateException("이미 존재하는 닉네임입니다.");
             if(!this.emailChk(member).isEmpty())
                 throw new IllegalStateException("이미 존재하는 이메일입니다.");
+    }
+
+    @Override
+    @Transactional
+    public void updatePassword(String userId, String oldPassword, String newPassword) {
+        List<Member> findMember = memberRepository.findByUserID(userId);
+        //패스워드 변경을 하는 시점에는 로그인되어 있는 상태이므로 findMember는 무조건 값을 가짐
+        if(findMember.get(0).getPassword().equals(oldPassword)) {
+            findMember.get(0).changePassword(newPassword);
+        }
+        else {
+            throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void recoverMember(String userId) {
+        List<Member> findMember = memberRepository.findByUserID(userId);
+        if(findMember.get(0).getCheck().isEmailAuth()) {
+            if(findMember.get(0).getCheck().isDormant()) {
+                findMember.get(0).getCheck().changeDormant(false);
+            }
+        }
+        else {
+            throw new IllegalStateException("이메일 인증이 완료되지 않았습니다.");
+        }
     }
 }

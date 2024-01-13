@@ -20,10 +20,10 @@ public class Member {
     @Column(name = "member_id")
     private Long id; //Member 테이블 PK
 
-    @Column(length = 12, nullable = false)
+    @Column(length = 12, nullable = false, unique = true)
     private String userId; //아이디
 
-    @Column(length = 20, nullable = false, unique = true)
+    @Column(length = 20, nullable = false)
     private String password; //비밀번호 // 변경 가능
 
     @Column(length = 12, nullable = false, unique = true)

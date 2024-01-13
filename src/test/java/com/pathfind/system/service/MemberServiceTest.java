@@ -4,6 +4,7 @@
  */
 package com.pathfind.system.service;
 
+import com.pathfind.system.domain.Check;
 import com.pathfind.system.domain.Member;
 import com.pathfind.system.repository.MemberRepository;
 import jakarta.persistence.EntityManager;
@@ -107,4 +108,89 @@ public class MemberServiceTest {
         //then
         fail("예외가 발생해야 한다.");
     }
+
+    @Test
+    public void 비밀번호_변경() throws Exception
+    {
+        //given
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
+        String oldPassword = "1234";
+        String newPassword = "5678";
+
+        //when
+        memberRepository.register(member);
+        memberService.updatePassword(member.getUserId(), oldPassword, newPassword);
+
+        //then
+        Assert.assertEquals(member.getPassword(), "5678");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void 옛비밀번호불일치_변경() throws Exception
+    {
+        //given
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
+        String oldPassword = "1111";
+        String newPassword = "5678";
+
+        //when
+        try {
+            memberRepository.register(member);
+            memberService.updatePassword(member.getUserId(), oldPassword, newPassword);
+        } catch (IllegalStateException e) {
+            System.out.println("===============================");
+            System.out.println(e.getMessage());
+            System.out.println("===============================");
+            throw e;
+        }
+
+        //then
+        fail("예외가 발생해야 한다.");
+    }
+
+    @Test
+    public void 휴면계정복구() throws Exception
+    {
+        //given
+        Check check = Check.createCheck();
+        check.changeEmailAuth(true);
+        check.changeDormant(true);
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", check);
+        String userId = "userID1";
+
+        //when
+        em.persist(check);
+        em.persist(member);
+        memberService.recoverMember(userId);
+
+        //then
+        Assert.assertFalse(member.getCheck().isDormant());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void 이메일인증X_휴면계정복구() throws Exception
+    {
+        //given
+        Check check = Check.createCheck();
+        check.changeEmailAuth(false);
+        check.changeDormant(true);
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", check);
+        String userId = "userID1";
+
+        //when
+        try {
+            em.persist(check);
+            em.persist(member);
+            memberService.recoverMember(userId);
+        } catch (IllegalStateException e) {
+            System.out.println("===============================");
+            System.out.println(e.getMessage());
+            System.out.println("===============================");
+            throw e;
+        }
+
+        //then
+        fail("예외가 발생해야 한다.");
+    }
+
 }
