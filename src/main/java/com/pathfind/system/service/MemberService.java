@@ -9,17 +9,17 @@ import com.pathfind.system.domain.Member;
 import java.util.List;
 
 public interface MemberService {
-    public List<Member> idChk(Member member);
+    public List<Member> findByUserID(Member member);
 
-    public List<Member> nicknameChk(Member member);
+    public List<Member> findByNickname(Member member);
 
-    public List<Member> emailChk(Member member);
+    public List<Member> findByEmail(Member member);
 
     public Long register(Member member);
 
     public void validateDuplicateInfo(Member member);
 
-    public void updatePassword(Long id, String oldPassword, String newPassword);
+    public void updatePassword(Long id, String oldPassword, String newPassword1, String newPassword2);
 
     public Member login(String userId, String password);
 
@@ -28,8 +28,6 @@ public interface MemberService {
     public void idEmailChk(String userId, String email);
 
     public void findPassword(String userId, String email);
-
-    public String updateToTemporaryPassword(String userId);
 
     public void recoverMember(Long id);
 }

@@ -18,21 +18,21 @@ public class MemberRepositoryImpl implements MemberRepository {
     private final EntityManager em;
 
     @Override
-    public List<Member> idChk(String userId) {
+    public List<Member> findByUserID(String userId) {
         return em.createQuery("select m from Member m where m.userId = :userId", Member.class)
                 .setParameter("userId", userId)
                 .getResultList();
     }
 
     @Override
-    public List<Member> nicknameChk(String nickname) {
+    public List<Member> findByNickname(String nickname) {
         return em.createQuery("select m from Member m where m.nickname = :nickname", Member.class)
                 .setParameter("nickname", nickname)
                 .getResultList();
     }
 
     @Override
-    public List<Member> emailChk(String email) {
+    public List<Member> findByEmail(String email) {
         return em.createQuery("select m from Member m where m.email = :email", Member.class)
                 .setParameter("email", email)
                 .getResultList();
@@ -59,28 +59,10 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public boolean idEmailChk(String userId, String email) {
-        Long result = em.createQuery("select count(m) from Member m" +
-                        " where m.userId = :userId and m.password = :email", Long.class)
-                .setParameter("userId", userId)
-                .setParameter("email", email)
-                .setMaxResults(1)
-                .getSingleResult();
-        return result > 0;
-    }
-
-    @Override
     public List<String> findUserIdByEmail(String email) {
         return em.createQuery("select m.userId from Member m" +
                         " where m.email = :email", String.class)
                 .setParameter("email", email)
-                .getResultList();
-    }
-
-    @Override
-    public List<Member> findByUserID(String userId) {
-        return em.createQuery("select m from Member m where m.userId = :userId", Member.class)
-                .setParameter("userId", userId)
                 .getResultList();
     }
 }

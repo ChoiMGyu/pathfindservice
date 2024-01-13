@@ -7,25 +7,20 @@ package com.pathfind.system.repository;
 import com.pathfind.system.domain.Member;
 
 import java.util.List;
-import java.util.Map;
 
 public interface MemberRepository {
-    public List<Member> idChk(String userId);
+    public List<Member> findByUserID(String userId);
 
-    public List<Member> nicknameChk(String nickname);
+    public List<Member> findByNickname(String nickname);
 
-    public List<Member> emailChk(String email);
+    public List<Member> findByEmail(String email);
 
     public void register(Member member);
 
     public Member findByID(Long id); //Long id로 교체
 
-
     public List<Member> login(String userId, String password);
-
-    public boolean idEmailChk(String userId, String email);
 
     public List<String> findUserIdByEmail(String email);
 
-    public List<Member> findByUserID(String userId);
 }
