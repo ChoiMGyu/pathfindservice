@@ -53,11 +53,11 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public void updatePassword(String userId, String oldPassword, String newPassword) {
-        List<Member> findMember = memberRepository.findByUserID(userId);
+    public void updatePassword(Long id, String oldPassword, String newPassword) {
+        Member findMember = memberRepository.findByID(id);
         //패스워드 변경을 하는 시점에는 로그인되어 있는 상태이므로 findMember는 무조건 값을 가짐
-        if(findMember.get(0).getPassword().equals(oldPassword)) {
-            findMember.get(0).changePassword(newPassword);
+        if(findMember.getPassword().equals(oldPassword)) {
+            findMember.changePassword(newPassword);
         }
         else {
             throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
@@ -66,11 +66,11 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public void recoverMember(String userId) {
-        List<Member> findMember = memberRepository.findByUserID(userId);
-        if(findMember.get(0).getCheck().isEmailAuth()) {
-            if(findMember.get(0).getCheck().isDormant()) {
-                findMember.get(0).getCheck().changeDormant(false);
+    public void recoverMember(Long id) {
+        Member findMember = memberRepository.findByID(id);
+        if(findMember.getCheck().isEmailAuth()) {
+            if(findMember.getCheck().isDormant()) {
+                findMember.getCheck().changeDormant(false);
             }
         }
         else {
