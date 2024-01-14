@@ -24,7 +24,7 @@ public class RoadVertex {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "is_destination")
-    private Object object; // 일대일 연관관계 매핑
+    private Objects object; // 일대일 연관관계 매핑
 
     /*@OneToMany(mappedBy = "roadVertex1", cascade = CascadeType.ALL)
     private List<RoadEdge> roadEdges = new ArrayList<>();*/
