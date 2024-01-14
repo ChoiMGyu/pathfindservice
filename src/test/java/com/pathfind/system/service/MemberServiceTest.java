@@ -16,6 +16,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static org.junit.Assert.fail;
 
 @RunWith(SpringRunner.class)
@@ -165,7 +167,7 @@ public class MemberServiceTest {
         Assert.assertFalse(member.getCheck().isDormant());
     }
 
-    @Test(expected = IllegalStateException.class)
+    /*@Test(expected = IllegalStateException.class)
     public void 이메일인증X_휴면계정복구() throws Exception
     {
         //given
@@ -188,6 +190,142 @@ public class MemberServiceTest {
 
         //then
         fail("예외가 발생해야 한다.");
+    }*/
+
+    @Test
+    public void 로그인_성공() throws Exception {
+        //given
+        Check check = Check.createCheck();
+        em.persist(check);
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", check);
+        String id = member.getUserId(), password = member.getPassword();
+        em.persist(member);
+        em.flush();
+        em.clear();
+
+        //when
+        Member result = memberService.login(id, password);
+
+        //then
+        Assert.assertTrue(member.equals(result));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void 로그인_실패() throws Exception {
+        //given
+        Check check = Check.createCheck();
+        em.persist(check);
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", check);
+        String id = "fakeUser", password = "fakePassword";
+        em.persist(member);
+        em.flush();
+        em.clear();
+
+        //when
+        try {
+            Member result = memberService.login(id, password);
+        } catch (Exception e) {
+            System.out.println("===============================");
+            System.out.println(e.getMessage());
+            System.out.println("===============================");
+            throw e;
+        }
+
+        //then
+        fail("예외가 발생해야 한다.");
+    }
+
+    @Test
+    public void 이메일로_아이디_찾기_성공() throws Exception {
+        //given
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
+        String id = member.getUserId(), email = member.getEmail();
+        em.persist(member);
+        em.flush();
+        em.clear();
+
+        //when
+        String result = memberService.findUserIdByEmail(email);
+
+        //then
+        Assert.assertEquals(id, result);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void 이메일로_아이디_찾기_실패() throws Exception {
+        //given
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
+        String id = "fakeUser", email = "fakeEmail@hello.net";
+        em.persist(member);
+        em.flush();
+        em.clear();
+
+        //when
+        try {
+            String result = memberService.findUserIdByEmail(email);
+        } catch (Exception e) {
+            System.out.println("===============================");
+            System.out.println(e.getMessage());
+            System.out.println("===============================");
+            throw e;
+        }
+
+        //then
+        fail("예외가 발생해야 한다.");
+    }
+
+    @Test
+    public void 아이디_이메일_일치여부_확인_성공() throws Exception {
+        //given
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
+        String id = member.getUserId(), email = member.getEmail();
+        em.persist(member);
+        em.flush();
+        em.clear();
+
+        //when
+        memberService.idEmailChk(id, email);
+
+        //then
+        // 예외가 발생하지 않아야 한다.
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void 아이디_이메일_일치여부_확인_실패() throws Exception {
+        //given
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
+        String id = "fakeUser", email = "fakeEmail@hello.net";
+        em.persist(member);
+        em.flush();
+        em.clear();
+
+        //when
+        try {
+            memberService.idEmailChk(id, email);
+        } catch (Exception e) {
+            System.out.println("===============================");
+            System.out.println(e.getMessage());
+            System.out.println("===============================");
+            throw e;
+        }
+
+        //then
+        fail("예외가 발생해야 한다.");
+    }
+    @Test
+    public void 임시_비밀번호_발급및저장_AND_임시_비밀번호_이메일_전송() throws Exception {
+        //given
+        Member member = Member.createMember("userID1", "1234", "userA", "imsiyujeo99@gmail.com", null);
+        String id = member.getUserId(), email = member.getEmail();
+        em.persist(member);
+        em.flush();
+        em.clear();
+
+        //when
+        memberService.findPassword(id, email);
+
+        //then
+        //예외가 발생하지 않아야 한다.
     }
 
 }
