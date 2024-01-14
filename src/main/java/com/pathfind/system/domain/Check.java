@@ -6,11 +6,13 @@ package com.pathfind.system.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@EqualsAndHashCode
 @Table(name = "checks")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Check {

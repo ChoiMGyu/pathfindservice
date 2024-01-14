@@ -4,6 +4,7 @@
  */
 package com.pathfind.system.repository;
 
+import com.pathfind.system.domain.Check;
 import com.pathfind.system.domain.Member;
 import jakarta.persistence.EntityManager;
 import org.junit.Assert;
@@ -96,6 +97,74 @@ public class MemberRepositoryTest {
 
         //then
         Assert.assertEquals(findMember, member);
+    }
+
+    @Test
+    public void 로그인_성공() throws Exception {
+        //given
+        Check check = Check.createCheck();
+        em.persist(check);
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", check);
+        String id = member.getUserId(), password = member.getPassword();
+        em.persist(member);
+        em.flush();
+        em.clear();
+
+        //when
+        List<Member> result = memberRepository.login(id, password);
+
+        //then
+        Assert.assertTrue(member.equals(result.get(0)));
+    }
+
+    @Test
+    public void 로그인_실패() throws Exception {
+        //given
+        Check check = Check.createCheck();
+        em.persist(check);
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", check);
+        String id = "fakeUser", password = "fakePassword";
+        em.persist(member);
+        em.flush();
+        em.clear();
+
+        //when
+        List<Member> result = memberRepository.login(id, password);
+
+        //then
+        Assert.assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void 이메일로_아이디_찾기_성공() throws Exception {
+        //given
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
+        String id = member.getUserId(), email = member.getEmail();
+        em.persist(member);
+        em.flush();
+        em.clear();
+
+        //when
+        List<String> result = memberRepository.findUserIdByEmail(email);
+
+        //then
+        Assert.assertEquals(id, result.get(0));
+    }
+
+    @Test
+    public void 이메일로_아이디_찾기_실패() throws Exception {
+        //given
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
+        String email = "fakeEmail@hello.net";
+        em.persist(member);
+        em.flush();
+        em.clear();
+
+        //when
+        List<String> result = memberRepository.findUserIdByEmail(email);
+
+        //then
+        Assert.assertTrue(result.isEmpty());
     }
 
 }
