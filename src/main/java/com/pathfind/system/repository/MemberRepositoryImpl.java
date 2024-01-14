@@ -51,7 +51,7 @@ public class MemberRepositoryImpl implements MemberRepository {
     @Override
     public List<Member> login(String userId, String password) {
         return em.createQuery("select m from Member m" +
-                        " join fetch Check" +
+                        " join fetch m.check" +
                         " where m.userId = :userId and m.password = :password", Member.class)
                 .setParameter("userId", userId)
                 .setParameter("password", password)

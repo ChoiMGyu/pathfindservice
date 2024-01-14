@@ -6,13 +6,16 @@ package com.pathfind.system.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 @Getter
+@EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member {
 
@@ -96,9 +99,9 @@ public class Member {
         StringBuilder randomPassword = new StringBuilder();
         for (int i = 0; i < 14; i++) {
             int nextType = (int) (Math.random() * 3);
-            if (nextType == 0) randomPassword.append(48 + (int) (Math.random() * 10));
-            else if (nextType == 1) randomPassword.append(65 + (int) (Math.random() * 26));
-            else randomPassword.append(97 + (int) (Math.random() * 26));
+            if (nextType == 0) randomPassword.append((char) (48 + (int) (Math.random() * 10)));
+            else if (nextType == 1) randomPassword.append((char) (65 + (int) (Math.random() * 26)));
+            else randomPassword.append((char) (97 + (int) (Math.random() * 26)));
         }
         return randomPassword.toString();
     }

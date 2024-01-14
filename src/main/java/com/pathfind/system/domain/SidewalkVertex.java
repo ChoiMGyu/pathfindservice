@@ -24,7 +24,7 @@ public class SidewalkVertex {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "is_destination")
-    private Object object; // 일대일 연관관계 매핑
+    private Objects object; // 일대일 연관관계 매핑
 
     /*@OneToMany(mappedBy = "sidewalkVertex1", cascade = CascadeType.ALL)
     private List<SidewalkEdge> sidewalkEdges = new ArrayList<>();*/

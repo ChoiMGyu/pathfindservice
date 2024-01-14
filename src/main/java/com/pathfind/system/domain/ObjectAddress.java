@@ -21,5 +21,5 @@ public class ObjectAddress {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "object_id", nullable = false)
-    private Object object; // 일대일 연관관계 매핑
+    private Objects object; // 일대일 연관관계 매핑
 }
