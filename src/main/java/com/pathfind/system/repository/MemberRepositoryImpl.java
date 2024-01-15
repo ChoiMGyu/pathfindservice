@@ -40,6 +40,7 @@ public class MemberRepositoryImpl implements MemberRepository {
 
     @Override
     public void register(Member member) {
+        em.persist(member.getCheck());
         em.persist(member);
     }
 
