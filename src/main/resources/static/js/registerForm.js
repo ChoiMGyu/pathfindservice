@@ -101,8 +101,11 @@ function validationChk() {
     input3.value = document.getElementById("email").value;
     input3.name = "email"
     form.appendChild(input3);
+    let input4 = document.createElement("input");
+    input4.value = "dummyPassword!234";
+    input4.name = "password"
+    form.appendChild(input4);
     document.body.appendChild(form);
-    $("#Chk").attr("value", 'Y');
     form.submit();
 }
 

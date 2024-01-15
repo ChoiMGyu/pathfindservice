@@ -58,6 +58,10 @@ public class MemberController {
 
     @PostMapping("/register")
     public String postRegister(@Valid MemberForm form, BindingResult result) {
+        if(result.hasErrors()) {
+            logger.info("error: {}", result);
+            return "members/registerForm";
+        }
         Check check = Check.createCheck();
         check.changeEmailAuth(true);
         check.changeInformationAgree(true);
