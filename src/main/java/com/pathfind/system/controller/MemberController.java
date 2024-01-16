@@ -36,6 +36,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequiredArgsConstructor
@@ -63,6 +64,7 @@ public class MemberController {
     @PostMapping(value = "/validationChk")
     public String validationChk(@Valid MemberForm form, BindingResult result) {
         logger.info("member id check");
+        logger.info("error: {}", result);
         Member member = Member.createMember(form.getUserId(), null, form.getNickname(), form.getEmail(), null);
         if (form.getUserId() != null && !memberService.findByUserID(member).isEmpty()) {
             result.addError(new FieldError("memberForm", "userId", "이미 존재하는 아이디입니다"));
@@ -74,7 +76,7 @@ public class MemberController {
             result.addError(new FieldError("memberForm", "email", "이미 존재하는 이메일입니다"));
         }
         logger.info("error: {}", result);
-        return "members/registerForm";
+        return "redirect:/members/new";
     }
 
     @PostMapping("/register")
@@ -115,7 +117,7 @@ public class MemberController {
         return "members/findUserId";
     }
 
-    @PostMapping("returnId")
+    @PostMapping("/returnId")
     public String returnId(EmailRequestDto form, Model model) {
         String userId = memberService.findUserIdByEmail(form.getEmail());
         model.addAttribute("userId", userId);
