@@ -2,6 +2,8 @@ package com.pathfind.system.controller;
 
 import com.pathfind.system.domain.Check;
 import com.pathfind.system.domain.Member;
+import com.pathfind.system.dto.EmailRequestDto;
+import com.pathfind.system.dto.FindPasswordForm;
 import com.pathfind.system.dto.MemberForm;
 import com.pathfind.system.service.MemberService;
 import jakarta.validation.Valid;
@@ -69,5 +71,67 @@ public class MemberController {
         memberService.register(newMember);
 
         return "members/registerComplete";
+    }
+
+    @GetMapping("/findUserId")
+    public String findUserId(Model model) {
+        logger.info("find userId");
+        model.addAttribute("emailRequestDto", new EmailRequestDto());
+
+        return "members/findUserId";
+    }
+
+    @PostMapping("/isValidEmail")
+    public String isValidEmail(@Valid EmailRequestDto form, BindingResult result) {
+        if(result.hasErrors()) {
+            logger.info("error: {}", result);
+            return "members/findUserId";
+        }
+        Member member = Member.createMember(null, null, null, form.getEmail(), null);
+        if(memberService.findByEmail(member).isEmpty()) {
+            result.addError(new FieldError("emailRequestDto", "email", "존재하지 않는 이메일입니다"));
+        }
+        logger.info("email validation error: {}", result);
+
+        return "members/findUserId";
+    }
+
+    @PostMapping("returnId")
+    public String returnId(EmailRequestDto form, Model model) {
+        String userId = memberService.findUserIdByEmail(form.getEmail());
+        model.addAttribute("userId", userId);
+
+        return "members/yourUserId";
+    }
+
+    @GetMapping("/findPassword")
+    public String findPassword(Model model) {
+        logger.info("find password");
+        model.addAttribute("findPasswordForm", new FindPasswordForm());
+
+        return "members/findPassword";
+    }
+
+    @PostMapping("/isValidIdEmail")
+    public String isValidIdEmail(@Valid FindPasswordForm form, BindingResult result) {
+        if(result.hasErrors()) {
+            logger.info("error: {}", result);
+            return "members/findPassword";
+        }
+        try {
+            memberService.idEmailChk(form.getUserId(), form.getEmail());
+        } catch (Exception e) {
+            result.addError(new FieldError("findPasswordForm", "userId", e.getMessage()));
+            result.addError(new FieldError("findPasswordForm", "email", e.getMessage()));
+        }
+
+        return "members/findPassword";
+    }
+
+    @PostMapping("/returnPassword")
+    public String returnPassword(FindPasswordForm form) {
+        memberService.findPassword(form.getUserId(), form.getEmail());
+
+        return "members/yourPassword";
     }
 }
