@@ -105,6 +105,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
     public void findPassword(String userId, String email) {
         String temporaryPassword = updateToTemporaryPassword(userId);
         mailSendService.findPasswordEmail(email, temporaryPassword);

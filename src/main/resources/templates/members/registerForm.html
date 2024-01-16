@@ -1,14 +1,6 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="fragments/header :: header"/>
-<style>
-    .fieldError {
-        border-color: #bd2130;
-    }
-    .passwordConfirmError {
-        border-color: #bd2130;
-    }
-</style>
 <body>
 <div class="container">
     <div th:replace="fragments/bodyHeader :: bodyHeader"/>
@@ -16,7 +8,7 @@
         <div class="form-group">
             <div class="input-group">
                 <label class="input-group-text w-25" th:for="userId">아이디</label>
-                <input id="userId" th:field="*{userId}" type="text" class="form-control" placeholder="아이디를 입력하세요"
+                <input id="userId" th:field="*{userId}" type="text" class="form-control" placeholder="아이디를 입력하세요."
                        aria-label="아이디를 입력하세요" aria-describedby="id check"
                        th:class="${#fields.hasErrors('userId')}? 'form-control fieldError' : 'form-control'">
             </div>
@@ -25,7 +17,7 @@
         <div class="form-group">
             <div class="input-group">
                 <label class="input-group-text w-25" th:for="nickname">닉네임</label>
-                <input id="nickname" type="text" th:field="*{nickname}" class="form-control" placeholder="닉네임을 입력하세요"
+                <input id="nickname" type="text" th:field="*{nickname}" class="form-control" placeholder="닉네임을 입력하세요."
                        aria-label="닉네임을 입력하세요" aria-describedby="nickname check"
                        th:class="${#fields.hasErrors('nickname')}? 'form-control fieldError' : 'form-control'">
             </div>
@@ -35,7 +27,7 @@
         <div class="form-group mb-1">
             <div class="input-group">
                 <label class="input-group-text w-25" th:for="email">이메일</label>
-                <input id="email" type="text" th:field="*{email}" class="form-control" placeholder="이메일을 입력하세요"
+                <input id="email" type="text" th:field="*{email}" class="form-control" placeholder="이메일을 입력하세요."
                        aria-label="이메일을 입력하세요" aria-describedby="email check"
                        th:class="${#fields.hasErrors('email')}? 'form-control fieldError' : 'form-control'">
             </div>
@@ -46,31 +38,32 @@
         </button>
         <div class="form-group last mb-4 check_input input-group">
             <label class="input-group-text w-25" for="emailconfirm" id="emailconfirmTxt">인증번호</label>
-            <input type="text" class="form-control" id="emailconfirm" placeholder="인증번호를 입력하세요">
+            <input type="text" class="form-control" id="emailconfirm" placeholder="인증번호를 입력하세요.">
             <span class="input-group-text" id="time"></span>
             <button id="numberCheck" class="btn btn-outline-primary" type="button">인증번호 확인</button>
-            <button id="numberSend" class="btn btn-outline-primary" type="button" onclick="checkEmail();">인증번호 발급
+            <button id="numberSend" class="btn btn-outline-primary" type="button" onclick="checkEmail('아이디, 닉네임, 이메일 중복 확인을 해주세요.');" value="N">인증번호 발급
             </button>
 
         </div>
         <div class="form-group input-group">
             <label class="input-group-text w-25" th:for="password">비밀번호</label>
-            <input id="password" type="password" th:field="*{password}" class="form-control" placeholder="비밀번호를 입력하세요"
+            <input id="password" type="password" th:field="*{password}" class="form-control" placeholder="비밀번호를 입력하세요."
                    aria-label="비밀번호를 입력하세요" aria-describedby="password check"
             th:class="${#fields.hasErrors('password')}? 'form-control fieldError' : 'form-control'">
         </div>
         <p style="margin: 0" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Incorrect date</p>
         <div class="form-group input-group mb-5">
             <label id="passwordConfirmTxt" class="input-group-text w-25" th:for="passwordConfirm">비밀번호 확인</label>
-            <input id="passwordConfirm" type="password" class="form-control" placeholder="비밀번호를 다시 입력하세요">
+            <input id="passwordConfirm" type="password" class="form-control" placeholder="비밀번호를 다시 입력하세요.">
         </div>
         <div class="d-flex justify-content-end">
-        <button type="submit" class="btn btn-primary" id="submit">회원 가입</button>
+        <button type="submit" class="btn btn-primary" id="registerSubmit">회원 가입</button>
         </div>
     </form>
     <br/>
     <div th:replace="fragments/footer :: footer"/>
 </div> <!-- /container -->
 </body>
+<script type="text/javascript" src="/js/members.js"></script>
 <script type="text/javascript" src="/js/registerForm.js"></script>
 </html>
