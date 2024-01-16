@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원정보 엔티티
- * 최근 수정 일자 : 2024.01.05(금)
+ * 최근 수정 일자 : 2024.01.15(월)
  */
 package com.pathfind.system.domain;
 
@@ -104,5 +104,9 @@ public class Member {
             else randomPassword.append((char) (97 + (int) (Math.random() * 26)));
         }
         return randomPassword.toString();
+    }
+
+    public boolean checkPassword(String password) {
+        return this.password.equals(password);
     }
 }

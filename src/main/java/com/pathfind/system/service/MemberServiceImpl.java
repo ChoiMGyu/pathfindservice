@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 서비스 클래스
- * 최근 수정 일자 : 2024.01.13(토)
+ * 최근 수정 일자 : 2024.01.15(월)
  */
 package com.pathfind.system.service;
 
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -80,7 +81,10 @@ public class MemberServiceImpl implements MemberService {
         List<Member> result = memberRepository.login(userId, password);
 
         if (result.isEmpty())
-            throw new IllegalStateException("아이디 혹은 비밀번호가 틀렸습니다.");
+        {
+            //throw new IllegalStateException("아이디 혹은 비밀번호가 틀렸습니다.");
+            return null;
+        }
 
         return result.get(0);
     }
