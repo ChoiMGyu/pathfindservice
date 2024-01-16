@@ -16,7 +16,6 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-package com.pathfind.system.controller;
 
 import com.pathfind.system.domain.Check;
 import com.pathfind.system.domain.Member;
@@ -153,6 +152,8 @@ public class MemberController {
         memberService.findPassword(form.getUserId(), form.getEmail());
 
         return "members/yourPassword";
+    }
+
     @GetMapping("/updatePassword")
     public String updatePasswordForm(Model model) {
         model.addAttribute("passwordForm", new PasswordForm());
