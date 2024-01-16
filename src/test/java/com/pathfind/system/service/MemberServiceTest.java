@@ -36,7 +36,7 @@ public class MemberServiceTest {
     @Test
     public void 회원_등록() throws Exception {
         //given
-        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", Check.createCheck());
 
         //when
         Long result = memberService.register(member);
@@ -48,7 +48,7 @@ public class MemberServiceTest {
     @Test(expected = IllegalStateException.class)
     public void 아이디_중복_확인_예외() throws Exception {
         //given
-        Member member1 = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
+        Member member1 = Member.createMember("userID1", "1234", "userA", "hello@hello.net", Check.createCheck());
         Member member2 = Member.createMember("userID1", "5678", "userB", "bye@hello.net", null);
 
         //when
@@ -70,7 +70,7 @@ public class MemberServiceTest {
     @Test(expected = IllegalStateException.class)
     public void 닉네임_중복_확인_예외() throws Exception {
         //given
-        Member member1 = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
+        Member member1 = Member.createMember("userID1", "1234", "userA", "hello@hello.net", Check.createCheck());
         Member member2 = Member.createMember("userID2", "5678", "userA", "bye@hello.net", null);
 
 
@@ -92,7 +92,7 @@ public class MemberServiceTest {
     @Test(expected = IllegalStateException.class)
     public void 이메일_중복_확인_예외() throws Exception {
         //given
-        Member member1 = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
+        Member member1 = Member.createMember("userID1", "1234", "userA", "hello@hello.net", Check.createCheck());
         Member member2 = Member.createMember("userID2", "5678", "userB", "hello@hello.net", null);
 
         //when
@@ -114,7 +114,7 @@ public class MemberServiceTest {
     public void 비밀번호_변경() throws Exception
     {
         //given
-        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", Check.createCheck());
         String oldPassword = "1234";
         String newPassword = "5678";
 
@@ -130,7 +130,7 @@ public class MemberServiceTest {
     public void 옛비밀번호불일치_변경() throws Exception
     {
         //given
-        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", Check.createCheck());
         String oldPassword = "1111";
         String newPassword = "5678";
 
@@ -316,7 +316,7 @@ public class MemberServiceTest {
     public void 임시_비밀번호_발급및저장_AND_임시_비밀번호_이메일_전송() throws Exception {
         //given
         Member member = Member.createMember("userID1", "1234", "userA", "imsiyujeo99@gmail.com", null);
-        String id = member.getUserId(), email = member.getEmail();
+        String id = member.getUserId(), email = member.getEmail(), password = member.getPassword();
         em.persist(member);
         em.flush();
         em.clear();
@@ -325,7 +325,10 @@ public class MemberServiceTest {
         memberService.findPassword(id, email);
 
         //then
-        //예외가 발생하지 않아야 한다.
+        Assert.assertNotEquals(password, memberService.findByUserID(member).get(0).getPassword());
+/*        System.out.println("==========================");
+        System.out.println(memberService.findByUserID(member).get(0).getPassword());
+        System.out.println("==========================");*/
     }
 
 }

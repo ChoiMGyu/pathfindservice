@@ -41,6 +41,27 @@
 <div class="container" style="max-width: 600px">
     <div class="py-5 text-center">
         <h2>홈 화면</h2>
+<div class="container">
+    <div th:replace="fragments/bodyHeader :: bodyHeader" />
+    <div class="jumbotron">
+        <h1>MAP Application</h1>
+        <p class="lead">회원 기능</p>
+        <p>
+            <a class="btn btn-lg btn-secondary" href="/members/agree">회원 가입</a>
+            <a class="btn btn-lg btn-secondary" href="/">아이디</a>
+            <a class="btn btn-lg btn-secondary" href="/members/findUserId">아이디 찾기</a>
+            <a class="btn btn-lg btn-secondary" href="/members/findPassword">비밀번호 초기화</a>
+        </p>
+        <p class="lead">상품 기능</p>
+        <p>
+            <a class="btn btn-lg btn-dark" href="/items/new">상품 등록</a>
+            <a class="btn btn-lg btn-dark" href="/items">상품 목록</a>
+        </p>
+        <p class="lead">주문 기능</p>
+        <p>
+            <a class="btn btn-lg btn-info" href="/order">상품 주문</a>
+            <a class="btn btn-lg btn-info" href="/orders">주문 내역</a>
+        </p>
     </div>
     <div class="row">
         <div class="col">

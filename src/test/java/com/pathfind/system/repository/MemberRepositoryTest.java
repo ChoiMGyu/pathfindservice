@@ -32,7 +32,7 @@ public class MemberRepositoryTest {
     @Test
     public void 등록_확인() throws Exception {
         //given
-        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", Check.createCheck());
 
         //when
         memberRepository.register(member);
@@ -89,7 +89,7 @@ public class MemberRepositoryTest {
     public void 아이디_회원찾기() throws Exception
     {
         //given
-        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", Check.createCheck());
 
         //when
         memberRepository.register(member);
