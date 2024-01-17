@@ -12,11 +12,18 @@
     <div class="jumbotron">
         <h4 class="mb-3" th:text="|로그인: ${member.userId}|">로그인 사용자 이름</h4>
         <hr class="my-4">
-        <form th:action="@{/members/logout}" method="post">
-            <button class="btn btn-lg btn-secondary mb-4" type="submit">
-                로그아웃
-            </button>
-        </form>
+        <div class="row">
+            <div class="col">
+                <form th:action="@{/members/logout}" method="post">
+                    <button class="btn btn-lg btn-secondary mb-4" type="submit">
+                        로그아웃
+                    </button>
+                </form>
+            </div>
+            <div class="col">
+                <a class="btn btn-lg btn-secondary" href="/members/myProfile">나의 프로필</a>
+            </div>
+        </div>
     </div>
     <div th:replace="fragments/footer :: footer"/>
 </div> <!-- /container -->

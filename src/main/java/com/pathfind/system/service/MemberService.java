@@ -30,4 +30,10 @@ public interface MemberService {
     public void findPassword(String userId, String email);
 
     public void recoverMember(Long id);
+
+    Member updateNickname(Long id, String nickname);
+
+    Member updateEmail(Long id, String email);
+
+    void deleteMember(Long id);
 }

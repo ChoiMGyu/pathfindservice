@@ -5,8 +5,7 @@
 package com.pathfind.system.controller;
 
 import com.pathfind.system.domain.Member;
-import com.pathfind.system.dto.LoginForm;
-import com.pathfind.system.dto.PasswordForm;
+import com.pathfind.system.dto.*;
 import com.pathfind.system.service.MemberService;
 import jakarta.mail.Session;
 import jakarta.servlet.http.Cookie;
@@ -19,9 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import com.pathfind.system.domain.Check;
 import com.pathfind.system.domain.Member;
-import com.pathfind.system.dto.EmailRequestDto;
-import com.pathfind.system.dto.FindPasswordForm;
-import com.pathfind.system.dto.MemberForm;
 import com.pathfind.system.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -76,12 +72,12 @@ public class MemberController {
             result.addError(new FieldError("memberForm", "email", "이미 존재하는 이메일입니다"));
         }
         logger.info("error: {}", result);
-        return "redirect:/members/new";
+        return "members/registerForm";
     }
 
     @PostMapping("/register")
     public String postRegister(@Valid MemberForm form, BindingResult result) {
-        if(result.hasErrors()) {
+        if (result.hasErrors()) {
             logger.info("error: {}", result);
             return "members/registerForm";
         }
@@ -104,12 +100,12 @@ public class MemberController {
 
     @PostMapping("/isValidEmail")
     public String isValidEmail(@Valid EmailRequestDto form, BindingResult result) {
-        if(result.hasErrors()) {
+        if (result.hasErrors()) {
             logger.info("error: {}", result);
             return "members/findUserId";
         }
         Member member = Member.createMember(null, null, null, form.getEmail(), null);
-        if(memberService.findByEmail(member).isEmpty()) {
+        if (memberService.findByEmail(member).isEmpty()) {
             result.addError(new FieldError("emailRequestDto", "email", "존재하지 않는 이메일입니다"));
         }
         logger.info("email validation error: {}", result);
@@ -135,7 +131,7 @@ public class MemberController {
 
     @PostMapping("/isValidIdEmail")
     public String isValidIdEmail(@Valid FindPasswordForm form, BindingResult result) {
-        if(result.hasErrors()) {
+        if (result.hasErrors()) {
             logger.info("error: {}", result);
             return "members/findPassword";
         }
@@ -164,11 +160,11 @@ public class MemberController {
 
     @PostMapping("/updatePassword")
     public String updatePassword(@Valid PasswordForm form, BindingResult result, HttpSession session) {
-        if(result.hasErrors()) {
+        if (result.hasErrors()) {
             return "members/updatePasswordForm";
         }
 
-        Member loginMember = (Member)session.getAttribute(SessionConst.LOGIN_MEMBER);
+        Member loginMember = (Member) session.getAttribute(SessionConst.LOGIN_MEMBER);
         logger.info("로그인 멤버의 아이디 : " + loginMember.getId() + ", 패스워드 : " + loginMember.getPassword());
 
         memberService.updatePassword(loginMember.getId(), form.getOldPassword(), form.getNewPassword1(), form.getNewPassword2());
@@ -186,13 +182,13 @@ public class MemberController {
     @PostMapping("/login")
     public String login(@Valid @ModelAttribute LoginForm form, BindingResult result, HttpServletRequest request) {
         logger.info("post login");
-        if(result.hasErrors()) {
+        if (result.hasErrors()) {
             return "members/loginForm";
         }
         Member loginMember = memberService.login(form.getUserId(), form.getPassword());
         logger.info("login? : {}", loginMember);
 
-        if(loginMember == null) {
+        if (loginMember == null) {
             result.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다.");
 //            <div th:if="${#fields.hasGlobalErrors()}">
 //            <p class="field-error" th:each="err : ${#fields.globalErrors()}"
@@ -211,9 +207,115 @@ public class MemberController {
     @PostMapping("/logout")
     public String logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
-        if(session != null) {
+        if (session != null) {
             session.invalidate();
         }
         return "redirect:/";
+    }
+
+    @GetMapping("/myProfile")
+    public String getProfile(HttpServletRequest request, Model model) {
+        HttpSession session = request.getSession();
+        if (session == null) {
+            return "redirect:/members/login";
+        }
+
+        Member member = (Member) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        MemberForm memberForm = new MemberForm();
+        memberForm.setUserId(member.getUserId());
+        memberForm.setEmail(member.getEmail());
+        NicknameForm nicknameForm = new NicknameForm();
+        nicknameForm.setNickname(member.getNickname());
+
+        model.addAttribute("memberForm", memberForm);
+        model.addAttribute("nicknameForm", nicknameForm);
+
+        return "members/myProfile";
+    }
+
+    @PostMapping("/updateNickname")
+    public String updateNickname(MemberForm memberForm, @Valid NicknameForm nicknameForm, BindingResult result, HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        if (session == null) {
+            return "redirect:/members/login";
+        }
+
+        Member member = (Member) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        memberForm.setUserId(member.getUserId());
+        memberForm.setEmail(member.getEmail());
+        if (result.hasErrors()) {
+            return "/members/myProfile";
+        }
+
+        Member newMember = memberService.updateNickname(member.getId(), nicknameForm.getNickname());
+        session.setAttribute(SessionConst.LOGIN_MEMBER, newMember);
+
+        return "redirect:/members/myProfile";
+    }
+
+    @GetMapping("/updateEmail")
+    public String updateEmail(HttpServletRequest request, Model model) {
+        HttpSession session = request.getSession();
+        if (session == null) {
+            return "redirect:/members/login";
+        }
+
+        model.addAttribute("emailRequestDto", new EmailRequestDto());
+
+        return "members/updateEmail";
+    }
+
+    @PostMapping("/isValidEmail2")
+    public String isValidEmail2(@Valid EmailRequestDto form, BindingResult result) {
+        if (result.hasErrors()) {
+            logger.info("error: {}", result);
+            return "members/updateEmail";
+        }
+
+        Member member = Member.createMember(null, null, null, form.getEmail(), null);
+        if (!memberService.findByEmail(member).isEmpty()) {
+            result.addError(new FieldError("emailRequestDto", "email", "이미 존재하는 이메일입니다"));
+            return "members/updateEmail";
+        }
+
+        return "members/updateEmail";
+    }
+
+    @PostMapping("/updateEmail")
+    public String updateEmail(@Valid EmailRequestDto form, HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        if (session == null) {
+            return "redirect:/members/login";
+        }
+
+        Member member = (Member) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        member = memberService.updateEmail(member.getId(), form.getEmail());
+        session.setAttribute(SessionConst.LOGIN_MEMBER, member);
+
+        return "redirect:/members/myProfile";
+    }
+
+    @GetMapping("/leave")
+    public String leaveNotice(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        if (session == null) {
+            return "redirect:/members/login";
+        }
+
+        return "members/leaveNotice";
+    }
+
+    @PostMapping("/leave")
+    public String leaveService(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        if (session == null) {
+            return "redirect:/members/login";
+        }
+
+        Member member = (Member) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        memberService.deleteMember(member.getId());
+        session.setAttribute(SessionConst.LOGIN_MEMBER, null);
+
+        return "members/bye";
     }
 }

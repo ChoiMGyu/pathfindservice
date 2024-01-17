@@ -42,7 +42,7 @@ function chkEmailConfirm(data) {
             $("#emailconfirm").attr('class', 'form-control');
             $('#time').text("");
             emailConfirm = 1;
-            document.getElementById("findIdForm").submit();
+            document.getElementById("emailForm").submit();
         }
     })
 }
@@ -71,7 +71,7 @@ function beforeNumberCheck() {
     $("#numberCheck").on('click', function () {
         if ($("#numberSend").val() == "N") {
             alert("먼저 인증번호 발급을 해주세요.");
-            $("#email").focus();
+            $("#numberSend").focus();
             return false;
         }
     });
