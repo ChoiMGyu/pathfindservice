@@ -4,7 +4,7 @@
 <body>
 <div class="container">
     <div th:replace="fragments/bodyHeader :: bodyHeader"/>
-    <form id="emailForm" role="form" action="/members/returnId" th:object="${emailRequestDto}" method="post">
+    <form id="emailForm" role="form" action="/members/updateEmail" th:object="${emailRequestDto}" method="post">
         <div class="form-group mb-3">
             <div class="input-group">
                 <label class="input-group-text w-25" th:for="email">이메일</label>
@@ -30,5 +30,5 @@
 </div> <!-- /container -->
 </body>
 <script type="text/javascript" src="/js/members.js"></script>
-<script type="text/javascript" src="/js/findUserId.js"></script>
+<script type="text/javascript" src="/js/updateEmail.js"></script>
 </html>

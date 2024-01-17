@@ -81,6 +81,10 @@ public class Member {
         this.nickname = nickname;
     }
 
+    public void changeEmail(String email) {
+        this.email = email;
+    }
+
     public void changeJoinDate(LocalDate date) {
         this.joinDate = date;
     }

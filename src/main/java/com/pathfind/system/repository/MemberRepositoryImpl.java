@@ -66,4 +66,10 @@ public class MemberRepositoryImpl implements MemberRepository {
                 .setParameter("email", email)
                 .getResultList();
     }
+
+    @Override
+    public void deleteMember(Member member) {
+        em.remove(member);
+        em.remove(member.getCheck());
+    }
 }

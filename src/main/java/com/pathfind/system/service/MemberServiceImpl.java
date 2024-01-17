@@ -120,4 +120,26 @@ public class MemberServiceImpl implements MemberService {
         return result.updateToTemporaryPassword();
     }
 
+    @Override
+    @Transactional
+    public Member updateNickname(Long id, String nickname) {
+        Member result = memberRepository.findByID(id);
+        result.changeNickname(nickname);
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public Member updateEmail(Long id, String email) {
+        Member result = memberRepository.findByID(id);
+        result.changeEmail(email);
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public void deleteMember(Long id) {
+        Member result = memberRepository.findByID(id);
+        memberRepository.deleteMember(result);
+    }
 }
