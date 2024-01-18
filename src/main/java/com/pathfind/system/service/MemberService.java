@@ -19,7 +19,7 @@ public interface MemberService {
 
     public void validateDuplicateInfo(Member member);
 
-    public void updatePassword(Long id, String oldPassword, String newPassword1, String newPassword2);
+    public int updatePassword(Long id, String oldPassword, String newPassword1, String newPassword2);
 
     public Member login(String userId, String password);
 
