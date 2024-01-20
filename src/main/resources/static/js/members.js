@@ -76,7 +76,7 @@ function updateCountdown() {
         clearInterval(countdown);
         showMessage('인증번호 유효시간이 만료되었습니다.', 'alert alert-danger alert-dismissible fade show mt-3')
     }
-};
+}
 
 // 인증번호 확인 전에 인증번호를 발급 받았는지 여부를 묻는 함수이다.
 function beforeNumberCheck() {
