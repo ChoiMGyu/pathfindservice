@@ -2,10 +2,10 @@
 function comparePassword() {
     $("#passwordConfirm").on("focusout", function () {
         if ($("#password").val() !== $("#passwordConfirm").val()) {
-            $("#passwordConfirmTxt").html("<span id='emconfirmchk'>비밀번호 다름</span>")
+            //$("#passwordConfirmTxt").html("<span id='emconfirmchk'>비밀번호 다름</span>")
             $("#passwordConfirm").attr('class', 'form-control passwordConfirmError');
         } else {
-            $("#passwordConfirmTxt").html("<span id='emconfirmchk'>비밀번호 확인</span>")
+            //$("#passwordConfirmTxt").html("<span id='emconfirmchk'>비밀번호 확인</span>")
             $("#passwordConfirm").attr('class', 'form-control');
             passwordConfirm = 1;
         }

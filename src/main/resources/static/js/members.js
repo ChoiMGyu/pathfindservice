@@ -1,3 +1,13 @@
+var timeId;
+
+// id가 message와 notice인 속성을 사용해 메시지를 웹페이지에 표시하는 함수이다.
+function showMessage(message, noticeClass) {
+    $("#message").text(message);
+    $("#notice").attr('class', noticeClass);
+    $("#notice").show();
+    clearTimeout(timeId);
+    timeId = setTimeout(function () { $("#notice").hide(); }, 5000); // 5000 milliseconds (5 seconds)
+}
 // 이메일 인증번호 전송 함수
 function checkEmail(message) {
     if(!isUserIdEmpty() || !isEmailEmpty() || !isNicknameEmpty() || !isChkEmpty(message)) return false;
@@ -9,7 +19,7 @@ function checkEmail(message) {
         contentType: "application/json; charset-utf-8",
         data: JSON.stringify({"email": $("#email").val()}),
         success: function (data) {
-            alert("해당 이메일로 인증번호 발송이 완료되었습니다. \n 확인부탁드립니다.")
+            showMessage('해당 이메일로 인증번호 발송이 완료되었습니다. 확인 부탁드립니다.');
             //console.log("data : " + data);
             emailConfirm = 0;
             $("#emailconfirmTxt").html("<span id='emconfirmchk'>인증번호</span>")
@@ -35,10 +45,12 @@ function checkEmail(message) {
 function chkEmailConfirm(data) {
     $("#numberCheck").on("click", function () {
         if (data != $("#emailconfirm").val()) {
-            $("#emailconfirmTxt").html("<span id='emconfirmchk'>인증 실패</span>")
+            //$("#emailconfirmTxt").html("<span id='emconfirmchk'>인증 실패</span>");
+            showMessage('인증번호가 다릅니다.', 'alert alert-danger alert-dismissible fade show mt-3');
             $("#emailconfirm").attr('class', 'form-control fieldError');
         } else {
-            $("#emailconfirmTxt").html("<span id='emconfirmchk'>인증 완료</span>")
+            //$("#emailconfirmTxt").html("<span id='emconfirmchk'>인증 완료</span>");
+            showMessage('인증 완료되었습니다.', 'alert alert-info alert-dismissible fade show mt-3');
             $("#emailconfirm").attr('class', 'form-control');
             $('#time').text("");
             emailConfirm = 1;
@@ -62,7 +74,7 @@ function updateCountdown() {
         seconds--;
     } else {
         clearInterval(countdown);
-        alert('인증번호 유효시간이 만료되었습니다.');
+        showMessage('인증번호 유효시간이 만료되었습니다.', 'alert alert-danger alert-dismissible fade show mt-3')
     }
 };
 
@@ -70,7 +82,7 @@ function updateCountdown() {
 function beforeNumberCheck() {
     $("#numberCheck").on('click', function () {
         if ($("#numberSend").val() == "N") {
-            alert("먼저 인증번호 발급을 해주세요.");
+            showMessage('먼저 인증번호 발급을 해주세요.', 'alert alert-warning alert-dismissible fade show mt-3');
             $("#numberSend").focus();
             return false;
         }
@@ -100,7 +112,7 @@ function focusEmail() {
 
 function isUserIdEmpty() {
     if ($("#userId").val() == "") {
-        alert("아이디를 입력해 주세요.");
+        showMessage('아이디를 입력해 주세요.', 'alert alert-warning alert-dismissible fade show mt-3')
         $("#userId").focus();
         return false;
     }
@@ -109,7 +121,7 @@ function isUserIdEmpty() {
 
 function isNicknameEmpty() {
     if ($("#nickname").val() == "") {
-        alert("닉네임을 입력해 주세요.");
+        showMessage('닉네임을 입력해 주세요.','alert alert-warning alert-dismissible fade show mt-3');
         $("#nickname").focus();
         return false;
     }
@@ -118,7 +130,7 @@ function isNicknameEmpty() {
 
 function isEmailEmpty() {
     if ($("#email").val() == "") {
-        alert("이메일을 입력해 주세요.");
+        showMessage('이메일을 입력해 주세요.', 'alert alert-warning alert-dismissible fade show mt-3');
         $("#email").focus();
         return false;
     }
@@ -127,7 +139,7 @@ function isEmailEmpty() {
 
 function isChkEmpty(message) {
     if ($('#Chk').val() == "N") {
-        alert(message);
+        showMessage(message, 'alert alert-warning alert-dismissible fade show mt-3');
         return false;
     }
     return true;
@@ -136,7 +148,7 @@ function isChkEmpty(message) {
 var emailConfirm = 0;
 function isEmailConfirm() {
     if (emailConfirm === 0) {
-        alert("이메일 인증을 진행해 주세요.");
+        showMessage('이메일 인증을 진행해 주세요.', 'alert alert-warning alert-dismissible fade show mt-3');
         $("#numberSend").focus();
         return false;
     }
@@ -145,7 +157,7 @@ function isEmailConfirm() {
 
 function isPasswordEmpty() {
     if ($("#password").val() == "") {
-        alert("비밀번호를 입력해 주세요.");
+        showMessage('비밀번호를 입력해 주세요.', 'alert alert-warning alert-dismissible fade show mt-3');
         $("#password").focus();
         return false;
     }
@@ -154,7 +166,7 @@ function isPasswordEmpty() {
 
 function isPasswordConfirmEmpty() {
     if ($("#passwordConfirm").val() == "") {
-        alert("비밀번호 확인을 입력해 주세요.");
+        showMessage('비밀번호 확인을 입력해 주세요.', 'alert alert-warning alert-dismissible fade show mt-3');
         $("#passwordConfirm").focus();
         return false;
     }
@@ -164,7 +176,7 @@ function isPasswordConfirmEmpty() {
 var passwordConfirm = 0;
 function isPasswordConfirm() {
     if (passwordConfirm === 0) {
-        alert("확인 비밀번호가 비밀번호와 다릅니다.");
+        showMessage('확인 비밀번호가 비밀번호와 다릅니다.', 'alert alert-danger alert-dismissible fade show mt-3');
         $("#passwordConfirm").focus();
         return false;
     }
