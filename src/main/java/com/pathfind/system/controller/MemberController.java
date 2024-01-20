@@ -58,19 +58,23 @@ public class MemberController {
     }
 
     @PostMapping(value = "/validationChk")
-    public String validationChk(@Valid MemberForm form, BindingResult result) {
+    public String validationChk(@Valid MemberForm form, BindingResult result, Model model) {
         logger.info("member id check");
         logger.info("error: {}", result);
         Member member = Member.createMember(form.getUserId(), null, form.getNickname(), form.getEmail(), null);
         if (form.getUserId() != null && !memberService.findByUserID(member).isEmpty()) {
-            result.addError(new FieldError("memberForm", "userId", "이미 존재하는 아이디입니다"));
+            result.rejectValue("userId", "UserId.exist");
         }
         if (form.getNickname() != null && !memberService.findByNickname(member).isEmpty()) {
-            result.addError(new FieldError("memberForm", "nickname", "이미 존재하는 닉네임입니다"));
+            result.rejectValue("nickname", "Nickname.exist");
         }
         if (form.getEmail() != null && !memberService.findByEmail(member).isEmpty()) {
-            result.addError(new FieldError("memberForm", "email", "이미 존재하는 이메일입니다"));
+            result.rejectValue("email", "Email.exist");
         }
+        if(result.hasErrors()) return "members/registerForm";
+
+        model.addAttribute("message", "아이디, 닉네임, 이메일 중복 확인을 통과하였습니다.");
+
         logger.info("error: {}", result);
         return "members/registerForm";
     }
@@ -106,7 +110,7 @@ public class MemberController {
         }
         Member member = Member.createMember(null, null, null, form.getEmail(), null);
         if (memberService.findByEmail(member).isEmpty()) {
-            result.addError(new FieldError("emailRequestDto", "email", "존재하지 않는 이메일입니다"));
+            result.rejectValue("email", "Email.notExist");
         }
         logger.info("email validation error: {}", result);
 
@@ -138,8 +142,7 @@ public class MemberController {
         try {
             memberService.idEmailChk(form.getUserId(), form.getEmail());
         } catch (Exception e) {
-            result.addError(new FieldError("findPasswordForm", "userId", e.getMessage()));
-            result.addError(new FieldError("findPasswordForm", "email", e.getMessage()));
+            result.reject("userInfo", e.getMessage());
         }
 
         return "members/findPassword";
@@ -234,7 +237,7 @@ public class MemberController {
     }
 
     @PostMapping("/updateNickname")
-    public String updateNickname(MemberForm memberForm, @Valid NicknameForm nicknameForm, BindingResult result, HttpServletRequest request) {
+    public String updateNickname(MemberForm memberForm, @Valid NicknameForm nicknameForm, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {
         HttpSession session = request.getSession();
         if (session == null) {
             return "redirect:/members/login";
@@ -248,7 +251,13 @@ public class MemberController {
         }
 
         Member newMember = memberService.updateNickname(member.getId(), nicknameForm.getNickname());
+        if(newMember == null) {
+            result.rejectValue("nickname", "Nickname.exist");
+            return "/members/myProfile";
+        }
+
         session.setAttribute(SessionConst.LOGIN_MEMBER, newMember);
+        rttr.addFlashAttribute("message", "닉네임을 변경했습니다.");
 
         return "redirect:/members/myProfile";
     }
@@ -274,7 +283,7 @@ public class MemberController {
 
         Member member = Member.createMember(null, null, null, form.getEmail(), null);
         if (!memberService.findByEmail(member).isEmpty()) {
-            result.addError(new FieldError("emailRequestDto", "email", "이미 존재하는 이메일입니다"));
+            result.rejectValue("email", "Email.exist");
             return "members/updateEmail";
         }
 
@@ -282,7 +291,7 @@ public class MemberController {
     }
 
     @PostMapping("/updateEmail")
-    public String updateEmail(@Valid EmailRequestDto form, HttpServletRequest request) {
+    public String updateEmail(@Valid EmailRequestDto form, HttpServletRequest request, RedirectAttributes rttr) {
         HttpSession session = request.getSession();
         if (session == null) {
             return "redirect:/members/login";
@@ -290,6 +299,7 @@ public class MemberController {
 
         Member member = (Member) session.getAttribute(SessionConst.LOGIN_MEMBER);
         member = memberService.updateEmail(member.getId(), form.getEmail());
+        rttr.addFlashAttribute("message", "닉네임을 변경했습니다.");
         session.setAttribute(SessionConst.LOGIN_MEMBER, member);
 
         return "redirect:/members/myProfile";

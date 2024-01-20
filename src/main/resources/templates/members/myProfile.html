@@ -1,11 +1,15 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/header :: header"/>
+<head th:replace="~{fragments/header :: header}"/>
 <body>
 <div class="container">
-    <div th:replace="fragments/bodyHeader :: bodyHeader"/>
+    <div th:replace="~{fragments/bodyHeader :: bodyHeader}"/>
     <div class="header p-5 bg-body-tertiary rounded-3">
         <div class="text-center">
+            <div th:if="${message}" class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+                <span class="text-start" th:text="${message}">수정 완료</span>
+                <button id="messageBtn" type="button" class="btn-close messageBtn" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
             <h2 class="text-body-emphasis mb-3">나의 프로필</h2>
             <table class="table rounded-top-3 overflow-hidden">
                 <tr>
@@ -28,9 +32,9 @@
                                        th:class="${#fields.hasErrors('nickname')} ? 'form-control fieldError' : 'form-control'">
                             </div>
                             <div style="width: 100%">
-                            <p style="margin: 0; font-size: 14px;" id="userIdError" th:if="${#fields.hasErrors('nickname')}"
-                               th:errors="*{nickname}" class="text-start">
-                                Incorrect date</p>
+                            <small style="margin: 0; font-size: 14px;" id="userIdError" th:if="${#fields.hasErrors('nickname')}"
+                               th:errors="*{nickname}" class="text-start text-danger">
+                                Incorrect date</small>
                             </div>
                         </div>
                     </td>
@@ -64,7 +68,8 @@
         </div>
         <a href="/members/leave" style="color: var(--bs-tertiary-color); text-decoration-line: none;">회원 탈퇴 ></a>
     </div>
-    <div th:replace="fragments/footer :: footer"/>
+    <div th:replace="~{fragments/footer :: footer}"/>
 </div> <!-- /container -->
 </body>
+<script type="text/javascript" src="/js/messages.js"></script>
 </html>

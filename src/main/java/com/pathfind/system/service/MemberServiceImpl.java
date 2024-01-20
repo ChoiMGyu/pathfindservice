@@ -124,6 +124,8 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public Member updateNickname(Long id, String nickname) {
         Member result = memberRepository.findByID(id);
+        List<Member> isDuplicated = memberRepository.findByNickname(nickname);
+        if(!isDuplicated.isEmpty()) return null;
         result.changeNickname(nickname);
         return result;
     }
