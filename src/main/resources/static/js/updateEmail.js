@@ -13,4 +13,4 @@ function emailChk() {
     form.submit();
 }
 
-focusEmail()
+changeEmail()
