@@ -1,3 +1,7 @@
+/*
+ * 클래스 기능 : 로그인 여부에 따라 다른 홈화면을 제공하는 controller
+ * 최근 수정 일자 : 2024.01.20(토)
+ */
 package com.pathfind.system.controller;
 
 import com.pathfind.system.domain.Member;
@@ -24,6 +28,12 @@ public class HomeController {
 
         //세션에 회원 데이터가 없으면 home
         if(loginMember == null) {
+            return "home";
+        }
+
+        //휴면 계정이 홈화면으로 이동시에는 세션을 무효화하고 이동
+        if(loginMember.getCheck().isDormant()) {
+            session.invalidate();
             return "home";
         }
 
