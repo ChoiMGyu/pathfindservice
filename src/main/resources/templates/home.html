@@ -1,35 +1,3 @@
-<!--<!DOCTYPE HTML>-->
-<!--<html xmlns:th="http://www.thymeleaf.org">-->
-<!--<head th:replace="fragments/header :: header">-->
-<!--    <title>Hello</title>-->
-<!--    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />-->
-<!--</head>-->
-<!--<body>-->
-<!--<div class="container">-->
-<!--    <div th:replace="fragments/bodyHeader :: bodyHeader" />-->
-<!--    <div class="jumbotron">-->
-<!--        <h1>MAP Application</h1>-->
-<!--        <p class="lead">회원 기능</p>-->
-<!--        <p>-->
-<!--            <a class="btn btn-lg btn-secondary" href="/members/new">회원 가입</a>-->
-<!--            <a class="btn btn-lg btn-secondary" href="/members">회원 목록</a>-->
-<!--        </p>-->
-<!--        <p class="lead">상품 기능</p>-->
-<!--        <p>-->
-<!--            <a class="btn btn-lg btn-dark" href="/items/new">상품 등록</a>-->
-<!--            <a class="btn btn-lg btn-dark" href="/items">상품 목록</a>-->
-<!--        </p>-->
-<!--        <p class="lead">주문 기능</p>-->
-<!--        <p>-->
-<!--            <a class="btn btn-lg btn-info" href="/order">상품 주문</a>-->
-<!--            <a class="btn btn-lg btn-info" href="/orders">주문 내역</a>-->
-<!--        </p>-->
-<!--    </div>-->
-<!--    <div th:replace="fragments/footer :: footer" />-->
-<!--</div> &lt;!&ndash; /container &ndash;&gt;-->
-<!--</body>-->
-<!--</html>-->
-
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -37,20 +5,31 @@
     <link th:href="@{/css/bootstrap.min.css}"
           href="css/bootstrap.min.css" rel="stylesheet">
 </head>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener("DOMContentLoaded", function () {
+        var messageElement = document.querySelector('.alert');
+        if (messageElement) {
+            setTimeout(function () {
+                messageElement.style.display = 'none';
+            }, 5000); // 5000 milliseconds (5 seconds)
+        }
+    });
+    /*]]>*/
+</script>
 <body>
-<div class="container" style="max-width: 600px">
-    <div class="py-5 text-center">
-        <h2>홈 화면</h2>
+<div class="container">
+    <div th:replace="fragments/bodyHeader :: bodyHeader"/>
+    <div th:if="${message}" class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+        <span th:text="${message}">휴면 복구 완료</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
-    <div class="row">
-        <div class="col">
-            <button class="w-100 btn btn-secondary btn-lg" type="button"
-                    th:onclick="|location.href='@{/members/add}'|">
-                회원 가입
-            </button>
-        </div>
-        <div class="col">
-            <button class="w-100 btn btn-dark btn-lg"
+    <div class="jumbotron">
+        <p class="lead">회원 기능</p>
+        <p>
+            <a class="btn btn-lg btn-secondary" href="/members/agree">회원 가입</a>
+
+            <button class="btn btn-lg btn-secondary"
                     onclick="location.href='items.html'"
                     th:onclick="|location.href='@{/members/login}'|" type="button">
                 로그인
