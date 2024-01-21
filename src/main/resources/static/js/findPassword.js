@@ -25,5 +25,5 @@ function chkBeforeSubmit() {
 }
 
 chkBeforeSubmit();
-focusUserId();
-focusEmail();
+changeUserId();
+changeEmail();

@@ -6,33 +6,27 @@ package com.pathfind.system.controller;
 
 import com.pathfind.system.domain.Member;
 import com.pathfind.system.dto.*;
+import com.pathfind.system.service.MailSendService;
 import com.pathfind.system.service.MemberService;
-import jakarta.mail.Session;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import com.pathfind.system.domain.Check;
-import com.pathfind.system.domain.Member;
-import com.pathfind.system.service.MemberService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Objects;
+import java.util.regex.Pattern;
 
 @Controller
 @RequiredArgsConstructor
@@ -43,53 +37,274 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    @GetMapping(value = "/new")
-    public String getRegister(Model model) {
-        logger.info("get register");
-        model.addAttribute("memberForm", new MemberForm());
-
-        return "members/registerForm";
-    }
+    private final MailSendService mailSendService;
 
     @GetMapping(value = "/agree")
-    public String getAgree() {
+    public String getAgree(HttpServletRequest request) {
         logger.info("get register");
+        HttpSession session = request.getSession();
+        session.invalidate();
         return "members/agree";
     }
 
-    @PostMapping(value = "/validationChk")
-    public String validationChk(@Valid MemberForm form, BindingResult result, Model model) {
-        logger.info("member id check");
-        logger.info("error: {}", result);
-        Member member = Member.createMember(form.getUserId(), null, form.getNickname(), form.getEmail(), null);
-        if (form.getUserId() != null && !memberService.findByUserID(member).isEmpty()) {
-            result.rejectValue("userId", "UserId.exist");
+    @GetMapping(value = "/new")
+    public String getRegister(HttpServletRequest request, Model model) {
+        logger.info("get register");
+        HttpSession session = request.getSession();
+        RegisterForm registerForm = (RegisterForm) session.getAttribute(SessionConst.REGISTER_MEMBER);
+        if (registerForm == null) {
+            session.setAttribute(SessionConst.REGISTER_MEMBER, new RegisterForm());
+            model.addAttribute("registerForm", new RegisterForm());
+        } else {
+            logger.info("registerForm: {}", registerForm);
+            model.addAttribute("registerForm", registerForm);
         }
-        if (form.getNickname() != null && !memberService.findByNickname(member).isEmpty()) {
-            result.rejectValue("nickname", "Nickname.exist");
-        }
-        if (form.getEmail() != null && !memberService.findByEmail(member).isEmpty()) {
-            result.rejectValue("email", "Email.exist");
-        }
-        if(result.hasErrors()) return "members/registerForm";
 
-        model.addAttribute("message", "아이디, 닉네임, 이메일 중복 확인을 통과하였습니다.");
-
-        logger.info("error: {}", result);
         return "members/registerForm";
     }
 
-    @PostMapping("/register")
-    public String postRegister(@Valid MemberForm form, BindingResult result) {
+    @PostMapping(value = "/userIdChk")
+    public String userIdChk(RegisterForm form, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {
+        logger.info("member id check");
+
+        HttpSession session = request.getSession(false);
+
+        logger.info("userID: {}", form.getUserId());
+        if (Objects.equals(form.getUserId(), "")) {
+            result.rejectValue("userId", "Empty.userId");
+        }
+
+        String patternUserId = "(?=.*[0-9])(?=.*[a-zA-Z]).{5,12}";
+        boolean regexUserId = Pattern.matches(patternUserId, form.getUserId());
+        if (!result.hasFieldErrors("userId") && !regexUserId) {
+            result.rejectValue("userId", "Format.userId");
+        }
+
+        Member member = Member.createMember(form.getUserId(), null, null, null, null);
+        if (form.getUserId() != null && !memberService.findByUserID(member).isEmpty()) {
+            result.rejectValue("userId", "UserId.exist");
+        }
+
         if (result.hasErrors()) {
-            logger.info("error: {}", result);
+            form.setUserIdCheck(false);
+            session.setAttribute(SessionConst.REGISTER_MEMBER, form);
             return "members/registerForm";
         }
+
+        form.setUserIdCheck(true);
+        session.setAttribute(SessionConst.REGISTER_MEMBER, form);
+        rttr.addFlashAttribute("message", "아이디 중복 확인을 통과하였습니다.");
+
+        logger.info("error: {}", result);
+        return "redirect:/members/new";
+    }
+
+    @PostMapping(value = "/nicknameChk")
+    public String nicknameChk(RegisterForm form, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {
+        logger.info("member nickname check");
+
+        HttpSession session = request.getSession(false);
+
+        if (Objects.equals(form.getNickname(), "")) {
+            result.rejectValue("nickname", "Empty.nickname");
+        }
+
+        String patternNickname = "^[ㄱ-ㅎ가-힣a-z0-9-_]{2,10}$";
+        boolean regexNickname = Pattern.matches(patternNickname, form.getNickname());
+        if (!result.hasFieldErrors("nickname") && !regexNickname) {
+            result.rejectValue("nickname", "Format.nickname");
+        }
+
+        Member member = Member.createMember(null, null, form.getNickname(), null, null);
+        if (form.getNickname() != null && !memberService.findByNickname(member).isEmpty()) {
+            result.rejectValue("nickname", "Nickname.exist");
+        }
+
+        if (result.hasErrors()) {
+            form.setNicknameCheck(false);
+            session.setAttribute(SessionConst.REGISTER_MEMBER, form);
+            return "members/registerForm";
+        }
+
+        form.setNicknameCheck(true);
+        session.setAttribute(SessionConst.REGISTER_MEMBER, form);
+        rttr.addFlashAttribute("message", "닉네임 중복 확인을 통과하였습니다.");
+
+        logger.info("error: {}", result);
+        return "redirect:/members/new";
+    }
+
+    @PostMapping(value = "/emailChk")
+    public String emailChk(RegisterForm form, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {
+        logger.info("member email check");
+
+        HttpSession session = request.getSession(false);
+
+        if (Objects.equals(form.getEmail(), "")) {
+            result.rejectValue("email", "Empty.email");
+        }
+
+        String patternEmail = "^(?:\\w+\\.?)*\\w+@(?:\\w+\\.)+\\w+$";
+        boolean regexEmail = Pattern.matches(patternEmail, form.getEmail());
+        if (!result.hasFieldErrors("email") && !regexEmail) {
+            result.rejectValue("email", "Format.email");
+        }
+
+        Member member = Member.createMember(null, null, null, form.getEmail(), null);
+        if (form.getEmail() != null && !memberService.findByEmail(member).isEmpty()) {
+            result.rejectValue("email", "Email.exist");
+        }
+
+        if (result.hasErrors()) {
+            form.setEmailCheck(false);
+            session.setAttribute(SessionConst.REGISTER_MEMBER, form);
+            return "members/registerForm";
+        }
+
+        form.setEmailCheck(true);
+        session.setAttribute(SessionConst.REGISTER_MEMBER, form);
+        rttr.addFlashAttribute("message", "이메일 중복 확인을 통과하였습니다.");
+
+        logger.info("error: {}", result);
+        return "redirect:/members/new";
+    }
+
+    @PostMapping("/emailNumberSend")
+    public String emailNumberSend(RegisterForm form, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {
+        logger.info("member email number send");
+
+        HttpSession session = request.getSession(false);
+
+        if (Objects.equals(form.getEmail(), "")) {
+            result.rejectValue("email", "Empty.email");
+        }
+        if (!result.hasFieldErrors("email") && !form.isEmailCheck()) {
+            result.rejectValue("email", "Empty.email.check");
+        }
+
+        if(result.hasErrors()) {
+            form.setEmailNumberSend(false);
+            session.setAttribute(SessionConst.REGISTER_MEMBER, form);
+            return "members/registerForm";
+        }
+
+        mailSendService.joinEmail(form.getEmail());
+        form.setEmailNumberSend(true);
+        form.setTimeCount(1800L); // 인증번호 유효 기간: 30분
+        session.setAttribute(SessionConst.REGISTER_MEMBER, form);
+        rttr.addFlashAttribute("message", "해당 이메일로 인증번호 발송이 완료되었습니다. 확인 부탁드립니다.");
+
+        return "redirect:/members/new";
+    }
+
+    @PostMapping("/emailNumberChk")
+    public String emailNumberChk(RegisterForm form, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {
+        logger.info("member email number check");
+
+        HttpSession session = request.getSession(false);
+
+        if(!form.isEmailNumberSend()) {
+            result.rejectValue("emailNumber", "Empty.emailNumber.send");
+        }
+        if (!result.hasFieldErrors("emailNumber") && Objects.equals(form.getEmailNumber(), "")) {
+            result.rejectValue("emailNumber", "Empty.emailNumber");
+        }
+
+        String patternEmailNumber = "^[0-9]*$";
+        boolean regexEmailNumber = Pattern.matches(patternEmailNumber, form.getEmailNumber());
+        if (!result.hasFieldErrors("emailNumber") && !regexEmailNumber) {
+            result.rejectValue("emailNumber", "Format.emailNumber");
+        }
+
+        boolean isSame = mailSendService.CheckAuthNum(form.getEmail(), form.getEmailNumber());
+        if (!result.hasFieldErrors("emailNumber") && !isSame) {
+            result.rejectValue("emailNumber", "NotSame.emailNumber");
+        }
+
+        if (result.hasErrors()) {
+            form.setEmailNumberCheck(false);
+            session.setAttribute(SessionConst.REGISTER_MEMBER, form);
+            return "members/registerForm";
+        }
+
+        form.setEmailNumberCheck(true);
+        session.setAttribute(SessionConst.REGISTER_MEMBER, form);
+        rttr.addFlashAttribute("message", "이메일 인증이 완료되었습니다.");
+
+        return "redirect:/members/new";
+    }
+
+    @PostMapping("/register")
+    public String postRegister(RegisterForm form, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {
+        logger.info("member password check and register");
+
+        HttpSession session = request.getSession(false);
+
+        if (Objects.equals(form.getPassword(), "")) {
+            result.rejectValue("password", "Empty.password");
+        }
+
+        String patternPassword = "(?=.*[0-9])(?=.*[a-zA-Z])(?=.*\\W)(?=\\S+$).{8,20}";
+        boolean regexPassword = Pattern.matches(patternPassword, form.getPassword());
+        if (!result.hasFieldErrors("password") && !regexPassword) {
+            result.rejectValue("password", "Format.password");
+        }
+        if (Objects.equals(form.getPasswordConfirm(), "")) {
+            result.rejectValue("passwordConfirm", "Empty.passwordConfirm");
+        }
+        if (!result.hasFieldErrors("password") && !result.hasFieldErrors("passwordConfirm") && !Objects.equals(form.getPassword(), form.getPasswordConfirm())) {
+            result.rejectValue("passwordConfirm", "NotSame.password");
+        }
+
+        if (Objects.equals(form.getUserId(), "")) {
+            result.rejectValue("userId", "Empty.userId");
+        }
+        if (!result.hasFieldErrors("userId") && !form.isUserIdCheck()) {
+            result.rejectValue("userId", "Empty.userId.check");
+        }
+        if (Objects.equals(form.getNickname(), "")) {
+            result.rejectValue("nickname", "Empty.nickname");
+        }
+        if (!result.hasFieldErrors("nickname") && !form.isNicknameCheck()) {
+            result.rejectValue("nickname", "Empty.nickname.check");
+        }
+        if (Objects.equals(form.getEmail(), "")) {
+            result.rejectValue("email", "Empty.email");
+        }
+        if (!result.hasFieldErrors("email") && !form.isEmailCheck()) {
+            result.rejectValue("email", "Empty.email.check");
+        }
+        if(!form.isEmailNumberSend()) {
+            result.rejectValue("emailNumber", "Empty.emailNumber.send");
+        }
+        if (!result.hasFieldErrors("emailNumber") && Objects.equals(form.getEmailNumber(), "")) {
+            result.rejectValue("emailNumber", "Empty.emailNumber");
+        }
+        if (!result.hasFieldErrors("emailNumber") && !form.isEmailNumberCheck()) {
+            result.rejectValue("emailNumber", "Empty.emailNumber.check");
+        }
+
+        if (result.hasFieldErrors("userId")) form.setUserIdCheck(false);
+        if (result.hasFieldErrors("nickname")) form.setNicknameCheck(false);
+        if (result.hasFieldErrors("email")) form.setEmailCheck(false);
+        if (result.hasFieldErrors("emailNumber")) form.setEmailNumberCheck(false);
+
+        session.setAttribute(SessionConst.REGISTER_MEMBER, form);
+        if (result.hasErrors()) return "members/registerForm";
+
         Check check = Check.createCheck();
         check.changeEmailAuth(true);
         check.changeInformationAgree(true);
         Member newMember = Member.createMember(form.getUserId(), form.getPassword(), form.getNickname(), form.getEmail(), check);
         memberService.register(newMember);
+
+        return "redirect:/members/registerComplete";
+    }
+
+    @GetMapping("/registerComplete")
+    public String registerComplete(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        session.invalidate();
 
         return "members/registerComplete";
     }
@@ -218,7 +433,7 @@ public class MemberController {
 
     @GetMapping("/myProfile")
     public String getProfile(HttpServletRequest request, Model model) {
-        HttpSession session = request.getSession();
+        HttpSession session = request.getSession(false);
         if (session == null) {
             return "redirect:/members/login";
         }
@@ -238,7 +453,7 @@ public class MemberController {
 
     @PostMapping("/updateNickname")
     public String updateNickname(MemberForm memberForm, @Valid NicknameForm nicknameForm, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {
-        HttpSession session = request.getSession();
+        HttpSession session = request.getSession(false);
         if (session == null) {
             return "redirect:/members/login";
         }
@@ -251,7 +466,7 @@ public class MemberController {
         }
 
         Member newMember = memberService.updateNickname(member.getId(), nicknameForm.getNickname());
-        if(newMember == null) {
+        if (newMember == null) {
             result.rejectValue("nickname", "Nickname.exist");
             return "/members/myProfile";
         }
@@ -264,7 +479,7 @@ public class MemberController {
 
     @GetMapping("/updateEmail")
     public String updateEmail(HttpServletRequest request, Model model) {
-        HttpSession session = request.getSession();
+        HttpSession session = request.getSession(false);
         if (session == null) {
             return "redirect:/members/login";
         }
@@ -292,7 +507,7 @@ public class MemberController {
 
     @PostMapping("/updateEmail")
     public String updateEmail(@Valid EmailRequestDto form, HttpServletRequest request, RedirectAttributes rttr) {
-        HttpSession session = request.getSession();
+        HttpSession session = request.getSession(false);
         if (session == null) {
             return "redirect:/members/login";
         }
@@ -307,7 +522,7 @@ public class MemberController {
 
     @GetMapping("/leave")
     public String leaveNotice(HttpServletRequest request) {
-        HttpSession session = request.getSession();
+        HttpSession session = request.getSession(false);
         if (session == null) {
             return "redirect:/members/login";
         }
@@ -317,7 +532,7 @@ public class MemberController {
 
     @PostMapping("/leave")
     public String leaveService(HttpServletRequest request) {
-        HttpSession session = request.getSession();
+        HttpSession session = request.getSession(false);
         if (session == null) {
             return "redirect:/members/login";
         }

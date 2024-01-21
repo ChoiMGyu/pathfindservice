@@ -12,7 +12,7 @@ function comparePassword() {
     })
 }
 
-// 아이디, 닉네임, 이메일 중복 여부 및 유효성 확인 함수
+/*// 아이디, 닉네임, 이메일 중복 여부 및 유효성 확인 함수
 function validationChk() {
     let form = document.createElement("form");
     form.name = "memberForm";
@@ -37,6 +37,35 @@ function validationChk() {
     form.appendChild(input4);
     document.body.appendChild(form);
     form.submit();
+}*/
+
+// 아이디 중복 여부 및 유효성 확인 함수
+function userIdChk() {
+    let form = document.getElementById("registerForm");
+    form.action = "/members/userIdChk";
+    form.submit();
+}
+
+// 닉네임 중복 여부 및 유효성 확인 함수
+function nicknameChk() {
+    let form = document.getElementById("registerForm");
+    form.action = "/members/nicknameChk";
+    form.submit();
+}
+
+// 이메일 중복 여부 및 유효성 확인 함수
+function emailChk() {
+    let form = document.getElementById("registerForm");
+    form.action = "/members/emailChk";
+    form.submit();
+}
+
+// 이메일 인증 번호 확인 함수
+function emailNumberChk() {
+    let form = document.getElementById("registerForm");
+    document.getElementById("timeCount").value = seconds;
+    form.action = "/members/emailNumberChk";
+    form.submit();
 }
 
 // 회원 가입 양식 제출 전 양식이 올바른지 확인하는 함수
@@ -48,7 +77,7 @@ function chkBeforeSubmit() {
 }
 
 comparePassword();
-chkBeforeSubmit();
-focusUserId();
-focusNickname();
-focusEmail()
+//chkBeforeSubmit();
+changeUserId();
+changeNickname();
+changeEmail();
