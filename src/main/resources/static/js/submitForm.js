@@ -41,28 +41,28 @@ function validationChk() {
 
 // 아이디 중복 여부 및 유효성 확인 함수
 function userIdChk() {
-    let form = document.getElementById("registerForm");
+    let form = document.getElementById("submitForm");
     form.action = "/members/userIdChk";
     form.submit();
 }
 
 // 닉네임 중복 여부 및 유효성 확인 함수
 function nicknameChk() {
-    let form = document.getElementById("registerForm");
+    let form = document.getElementById("submitForm");
     form.action = "/members/nicknameChk";
     form.submit();
 }
 
 // 이메일 중복 여부 및 유효성 확인 함수
 function emailChk() {
-    let form = document.getElementById("registerForm");
+    let form = document.getElementById("submitForm");
     form.action = "/members/emailChk";
     form.submit();
 }
 
 // 이메일 인증 번호 확인 함수
 function emailNumberChk() {
-    let form = document.getElementById("registerForm");
+    let form = document.getElementById("submitForm");
     document.getElementById("timeCount").value = seconds;
     form.action = "/members/emailNumberChk";
     form.submit();
@@ -81,3 +81,4 @@ comparePassword();
 changeUserId();
 changeNickname();
 changeEmail();
+changeEmailNumber();

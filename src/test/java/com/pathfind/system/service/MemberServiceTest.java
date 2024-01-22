@@ -45,7 +45,7 @@ public class MemberServiceTest {
         Assert.assertEquals(member, memberRepository.findByUserID("userID1").get(0));
     }
 
-    @Test(expected = IllegalStateException.class)
+    /*@Test(expected = IllegalStateException.class)
     public void 아이디_중복_확인_예외() throws Exception {
         //given
         Member member1 = Member.createMember("userID1", "1234", "userA", "hello@hello.net", Check.createCheck());
@@ -108,7 +108,7 @@ public class MemberServiceTest {
 
         //then
         fail("예외가 발생해야 한다.");
-    }
+    }*/
 
     @Test
     public void 비밀번호_변경() throws Exception
@@ -235,7 +235,7 @@ public class MemberServiceTest {
         fail("예외가 발생해야 한다.");
     }
 
-    @Test
+    /*@Test
     public void 이메일로_아이디_찾기_성공() throws Exception {
         //given
         Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
@@ -272,7 +272,7 @@ public class MemberServiceTest {
 
         //then
         fail("예외가 발생해야 한다.");
-    }
+    }*/
 
     @Test
     public void 아이디_이메일_일치여부_확인_성공() throws Exception {

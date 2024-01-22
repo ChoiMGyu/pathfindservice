@@ -1,6 +1,6 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/header :: header" />
+<head th:replace="~{fragments/header :: header}" />
 <head>
     <meta charset="utf-8">
     <link th:href="@{/css/bootstrap.min.css}"
@@ -18,7 +18,7 @@
 </head>
 <body>
 <div class="container">
-    <div th:replace="fragments/bodyHeader :: bodyHeader"/>
+    <div th:replace="~{fragments/bodyHeader :: bodyHeader}"/>
     <div class="py-5 text-center">
         <h2>로그인</h2></div>
     <form action="item.html" th:action th:object="${loginForm}" method="post"> <!--action : 목적지 url 수정해야함 -->
@@ -56,7 +56,7 @@
         </div>
     </form>
     <br/>
-    <div th:replace="fragments/footer :: footer" />
+    <div th:replace="~{fragments/footer :: footer}" />
 </div> <!-- /container -->
 </body>
 </html>

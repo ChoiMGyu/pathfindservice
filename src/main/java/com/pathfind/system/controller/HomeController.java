@@ -21,6 +21,7 @@ public class HomeController {
             return "home";
         }
         Member loginMember = (Member) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        session.setAttribute(SessionConst.SUBMIT_MEMBER, null);
 
         //세션에 회원 데이터가 없으면 home
         if(loginMember == null) {

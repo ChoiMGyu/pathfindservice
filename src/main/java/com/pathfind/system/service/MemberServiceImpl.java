@@ -44,16 +44,6 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public void validateDuplicateInfo(Member member) {
-        if (!this.findByUserID(member).isEmpty())
-            throw new IllegalStateException("이미 존재하는 아이디입니다.");
-        if (!this.findByNickname(member).isEmpty())
-            throw new IllegalStateException("이미 존재하는 닉네임입니다.");
-        if (!this.findByEmail(member).isEmpty())
-            throw new IllegalStateException("이미 존재하는 이메일입니다.");
-    }
-
-    @Override
     @Transactional
     public void updatePassword(Long id, String oldPassword, String newPassword1, String newPassword2) {
         Member findMember = memberRepository.findByID(id);
@@ -90,22 +80,17 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public String findUserIdByEmail(String email) {
-        List<String> result = memberRepository.findUserIdByEmail(email);
-
-        if (result.isEmpty())
-            throw new IllegalStateException("유효하지 않은 이메일입니다.");
-
-        return result.get(0);
+    public List<String> findUserIdByEmail(String email) {
+        return memberRepository.findUserIdByEmail(email);
     }
 
     @Override
-    public void idEmailChk(String userId, String email) {
+    public boolean idEmailChk(String userId, String email) {
         List<Member> findByUserID = memberRepository.findByUserID(userId);
         List<Member> findByEmail = memberRepository.findByEmail(email);
 
-        if (findByUserID.isEmpty() || findByEmail.isEmpty() || !findByUserID.get(0).equals(findByEmail.get(0)))
-            throw new IllegalStateException("회원 정보가 일치하지 않습니다.");
+        return !findByUserID.isEmpty() && !findByEmail.isEmpty() && findByUserID.get(0).equals(findByEmail.get(0));
+            //throw new IllegalStateException("회원 정보가 일치하지 않습니다.");
     }
 
     @Override
@@ -122,12 +107,12 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public Member updateNickname(Long id, String nickname) {
+    public Optional<Member> updateNickname(Long id, String nickname) {
         Member result = memberRepository.findByID(id);
         List<Member> isDuplicated = memberRepository.findByNickname(nickname);
-        if(!isDuplicated.isEmpty()) return null;
+        if(!isDuplicated.isEmpty()) return Optional.empty();
         result.changeNickname(nickname);
-        return result;
+        return Optional.ofNullable(result);
     }
 
     @Override

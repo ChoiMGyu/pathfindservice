@@ -7,6 +7,7 @@ package com.pathfind.system.service;
 import com.pathfind.system.domain.Member;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MemberService {
     public List<Member> findByUserID(Member member);
@@ -17,21 +18,19 @@ public interface MemberService {
 
     public Long register(Member member);
 
-    public void validateDuplicateInfo(Member member);
-
     public void updatePassword(Long id, String oldPassword, String newPassword1, String newPassword2);
 
     public Member login(String userId, String password);
 
-    public String findUserIdByEmail(String email);
+    public List<String> findUserIdByEmail(String email);
 
-    public void idEmailChk(String userId, String email);
+    public boolean idEmailChk(String userId, String email);
 
     public void findPassword(String userId, String email);
 
     public void recoverMember(Long id);
 
-    Member updateNickname(Long id, String nickname);
+    Optional<Member> updateNickname(Long id, String nickname);
 
     Member updateEmail(Long id, String email);
 

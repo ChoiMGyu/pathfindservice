@@ -40,7 +40,7 @@ function checkEmail(message) {
             alert("인증번호 전송에 실패했습니다. 다시 시도해 주시기 바랍니다.");
         }
     })*/
-    let form = document.getElementById("registerForm");
+    let form = document.getElementById("submitForm");
     form.action = "/members/emailNumberSend";
     form.submit();
 }
@@ -111,7 +111,7 @@ function beforeNumberCheck() {
     });
 }
 
-// id가 userId인 속성이 포커스 되면 id가 Chk인 곳의 value를 N으로 바꾼다. N일 때는 중복 검사 혹은 확인 검사를 먼저 하도록 하는데 쓰인다.
+// id가 userId인 속성의 값이 변하면 아이디 중복 확인을 false로 바꾼다. N일 때는 중복 검사 혹은 확인 검사를 먼저 하도록 하는데 쓰인다.
 function changeUserId() {
     $('#userId').on('change', function () {
         $('#Chk').attr("value", "N");
@@ -119,7 +119,7 @@ function changeUserId() {
     });
 }
 
-// id가 nickname인 속성이 포커스 되면 id가 Chk인 곳의 value를 N으로 바꾼다. N일 때는 중복 검사 혹은 확인 검사를 먼저 하도록 하는데 쓰인다.
+// id가 nickname인 속성의 값이 변하면 닉네임 중복 확인을 false로 바꾼다. N일 때는 중복 검사 혹은 확인 검사를 먼저 하도록 하는데 쓰인다.
 function changeNickname() {
     $('#nickname').on('change', function () {
         $('#Chk').attr("value", "N");
@@ -127,13 +127,20 @@ function changeNickname() {
     });
 }
 
-// id가 email인 속성이 포커스 되면 id가 Chk인 곳의 value를 N으로 바꾼다. N일 때는 중복 검사 혹은 확인 검사를 먼저 하도록 하는데 쓰인다.
+// id가 email인 속성의 값이 변하면 이메일 중복 확인, 이메일 인증 번호 발급, 이메일 인증 번호 검증 여부를 false로 바꾼다. N일 때는 중복 검사 혹은 확인 검사를 먼저 하도록 하는데 쓰인다.
 function changeEmail() {
     $('#email').on('change', function () {
         $('#Chk').attr("value", "N");
         $('#emailCheck').prop('checked', false);
         $('#emailNumberCheck').prop('checked', false);
         $('#emailNumberSend').prop('checked', false);
+    });
+}
+
+// id가 emailNumber인 속성의 값이 변하면 이메일 인증 번호 확인을 false로 바꾼다.
+function changeEmailNumber() {
+    $('#emailNumber').on('change', function () {
+        $('#emailNumberCheck').prop('checked', false);
     });
 }
 

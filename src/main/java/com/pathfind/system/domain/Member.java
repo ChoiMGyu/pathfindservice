@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 @Entity
 @Getter
@@ -100,13 +101,20 @@ public class Member {
     }
 
     private String getRandomPassword() {
-        StringBuilder randomPassword = new StringBuilder();
-        for (int i = 0; i < 14; i++) {
-            int nextType = (int) (Math.random() * 3);
-            if (nextType == 0) randomPassword.append((char) (48 + (int) (Math.random() * 10)));
-            else if (nextType == 1) randomPassword.append((char) (65 + (int) (Math.random() * 26)));
-            else randomPassword.append((char) (97 + (int) (Math.random() * 26)));
-        }
+        String patternPassword = "(?=.*[0-9])(?=.*[a-zA-Z])(?=.*\\W)(?=\\S+$).{8,20}";
+        StringBuilder randomPassword;
+        boolean regexPassword;
+        do {
+            randomPassword = new StringBuilder();
+            for (int i = 0; i < 14; i++) {
+                int nextType = (int) (Math.random() * 4);
+                if (nextType == 0) randomPassword.append((char) (48 + (int) (Math.random() * 10)));
+                else if (nextType == 1) randomPassword.append((char) (65 + (int) (Math.random() * 26)));
+                else if (nextType == 2) randomPassword.append((char) (97 + (int) (Math.random() * 26)));
+                else randomPassword.append((char) (33 + (int) (Math.random() * 94)));
+            }
+            regexPassword = Pattern.matches(patternPassword, randomPassword.toString());
+        } while(!regexPassword);
         return randomPassword.toString();
     }
 

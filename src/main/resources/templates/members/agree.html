@@ -1,9 +1,9 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/header :: header"/>
+<head th:replace="~{fragments/header :: header}"/>
 <body>
 <div class="container">
-    <div th:replace="fragments/bodyHeader :: bodyHeader"/>
+    <div th:replace="~{fragments/bodyHeader :: bodyHeader}"/>
     <div class="d-flex flex-column mb-3" style="height:100%; overflow-y: scroll;">
         <h4 class="mb-3">약관 동의</h4>
         <div class="card" style="width: 100%; height:200px; overflow-y: scroll;">
@@ -42,7 +42,7 @@
     <div class="d-flex justify-content-end">
     <button id="submit" class="btn btn-primary" type="submit">다음</button>
     </div>
-    <div th:replace="fragments/footer :: footer"/>
+    <div th:replace="~{fragments/footer :: footer}"/>
 </div> <!-- /container -->
 </body>
 <script type="text/javascript">

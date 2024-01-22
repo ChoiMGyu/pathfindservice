@@ -1,4 +1,4 @@
-// 서버측에 사용자가 기입한 아이디, 이메일이 있는지 여부를 물어보는 함수이다.
+/*// 서버측에 사용자가 기입한 아이디, 이메일이 있는지 여부를 물어보는 함수이다.
 function idEmailChk() {
     let form = document.createElement("form");
     form.name = "findPasswordForm";
@@ -15,7 +15,7 @@ function idEmailChk() {
     form.appendChild(input2);
     document.body.appendChild(form);
     form.submit();
-}
+}*/
 
 // 비밀번호 초기화 전 양식이 올바른지 확인하는 함수
 function chkBeforeSubmit() {
@@ -24,6 +24,12 @@ function chkBeforeSubmit() {
     });
 }
 
-chkBeforeSubmit();
+function idEmailChk() {
+    let form = document.getElementById("submitForm");
+    form.action = "/members/isValidIdEmail";
+    form.submit();
+}
+
+//chkBeforeSubmit();
 changeUserId();
 changeEmail();
