@@ -32,13 +32,13 @@
 
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="fragments/header :: header">
+<head th:replace="~{fragments/header :: header}">
     <title>Hello</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 <body>
 <div class="container">
-    <div th:replace="fragments/bodyHeader :: bodyHeader"/>
+    <div th:replace="~{fragments/bodyHeader :: bodyHeader}"/>
     <div class="jumbotron">
         <p class="lead">회원 기능</p>
         <p>
@@ -53,7 +53,7 @@
             <a class="btn btn-lg btn-secondary" href="/members/findPassword">비밀번호 초기화</a>
         </p>
     </div>
-    <div th:replace="fragments/footer :: footer"/>
+    <div th:replace="~{fragments/footer :: footer}"/>
 </div> <!-- /container -->
 </body>
 </html>
