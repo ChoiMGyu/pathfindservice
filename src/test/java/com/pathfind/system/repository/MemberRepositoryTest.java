@@ -46,20 +46,20 @@ public class MemberRepositoryTest {
     }
 
     @Test
-    public void 아이디_확인() throws Exception {
+    public void 아이디로_찾기() throws Exception {
         //given
         Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
         em.persist(member);
 
         //when
-        Member findMember = em.find(Member.class, member.getId());
+        List<Member> result = memberRepository.findByUserID(member.getUserId());
 
         //then
-        Assert.assertEquals(member, findMember);
+        Assert.assertEquals(member, result.get(0));
     }
 
     @Test
-    public void 닉네임_확인() throws Exception {
+    public void 닉네임으로_찾기() throws Exception {
         //given
         Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
         em.persist(member);
@@ -73,7 +73,7 @@ public class MemberRepositoryTest {
     }
 
     @Test
-    public void 이메일_확인() throws Exception {
+    public void 이메일로_찾기() throws Exception {
         //given
         Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
         em.persist(member);
@@ -165,6 +165,24 @@ public class MemberRepositoryTest {
 
         //then
         Assert.assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void 회원_삭제() throws Exception {
+        //given
+        Check check = Check.createCheck();
+        em.persist(check);
+        Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", check);
+        em.persist(member);
+        Long id = member.getId();
+
+        //when
+        memberRepository.deleteMember(member);
+        em.flush();
+        em.clear();
+
+        //then
+        Assert.assertNull(em.find(Member.class, id));
     }
 
 }

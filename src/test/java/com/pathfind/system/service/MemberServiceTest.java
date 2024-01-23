@@ -17,6 +17,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.fail;
 
@@ -45,74 +46,52 @@ public class MemberServiceTest {
         Assert.assertEquals(member, memberRepository.findByUserID("userID1").get(0));
     }
 
-    /*@Test(expected = IllegalStateException.class)
-    public void 아이디_중복_확인_예외() throws Exception {
+    @Test
+    public void 아이디로_찾기() throws Exception {
         //given
         Member member1 = Member.createMember("userID1", "1234", "userA", "hello@hello.net", Check.createCheck());
         Member member2 = Member.createMember("userID1", "5678", "userB", "bye@hello.net", null);
 
         //when
-        try {
-            memberService.register(member1);
-            //em.flush();
-            memberService.validateDuplicateInfo(member2);
-        } catch (IllegalStateException e) {
-            System.out.println("===============================");
-            System.out.println(e.getMessage());
-            System.out.println("===============================");
-            throw e;
-        }
+        memberService.register(member1);
+        //em.flush();
+        List<Member> result = memberService.findByUserID(member2);
 
         //then
-        fail("예외가 발생해야 한다.");
+        Assert.assertEquals(result.get(0).getUserId(), member2.getUserId());
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void 닉네임_중복_확인_예외() throws Exception {
+    @Test
+    public void 닉네임으로_찾기() throws Exception {
         //given
         Member member1 = Member.createMember("userID1", "1234", "userA", "hello@hello.net", Check.createCheck());
         Member member2 = Member.createMember("userID2", "5678", "userA", "bye@hello.net", null);
 
 
         //when
-        try {
-            memberService.register(member1);
-            memberService.validateDuplicateInfo(member2);
-        } catch (IllegalStateException e) {
-            System.out.println("===============================");
-            System.out.println(e.getMessage());
-            System.out.println("===============================");
-            throw e;
-        }
+        memberService.register(member1);
+        List<Member> result = memberService.findByNickname(member2);
 
         //then
-        fail("예외가 발생해야 한다.");
+        Assert.assertEquals(result.get(0).getNickname(), member2.getNickname());
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void 이메일_중복_확인_예외() throws Exception {
+    @Test
+    public void 이메일로_찾기() throws Exception {
         //given
         Member member1 = Member.createMember("userID1", "1234", "userA", "hello@hello.net", Check.createCheck());
         Member member2 = Member.createMember("userID2", "5678", "userB", "hello@hello.net", null);
 
         //when
-        try {
-            memberService.register(member1);
-            memberService.validateDuplicateInfo(member2);
-        } catch (IllegalStateException e) {
-            System.out.println("===============================");
-            System.out.println(e.getMessage());
-            System.out.println("===============================");
-            throw e;
-        }
+        memberService.register(member1);
+        List<Member> result = memberService.findByEmail(member2);
 
         //then
-        fail("예외가 발생해야 한다.");
-    }*/
+        Assert.assertEquals(result.get(0).getEmail(), member2.getEmail());
+    }
 
     @Test
-    public void 비밀번호_변경() throws Exception
-    {
+    public void 비밀번호_변경() throws Exception {
         //given
         Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", Check.createCheck());
         String oldPassword = "1234";
@@ -127,8 +106,7 @@ public class MemberServiceTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void 옛비밀번호불일치_변경() throws Exception
-    {
+    public void 옛비밀번호불일치_변경() throws Exception {
         //given
         Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", Check.createCheck());
         String oldPassword = "1111";
@@ -150,8 +128,7 @@ public class MemberServiceTest {
     }
 
     @Test
-    public void 휴면계정복구() throws Exception
-    {
+    public void 휴면계정복구() throws Exception {
         //given
         Check check = Check.createCheck();
         check.changeEmailAuth(true);
@@ -210,7 +187,7 @@ public class MemberServiceTest {
         Assert.assertTrue(member.equals(result));
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void 로그인_실패() throws Exception {
         //given
         Check check = Check.createCheck();
@@ -222,20 +199,13 @@ public class MemberServiceTest {
         em.clear();
 
         //when
-        try {
             Member result = memberService.login(id, password);
-        } catch (Exception e) {
-            System.out.println("===============================");
-            System.out.println(e.getMessage());
-            System.out.println("===============================");
-            throw e;
-        }
 
         //then
-        fail("예외가 발생해야 한다.");
+        Assert.assertNull(result);
     }
 
-    /*@Test
+    @Test
     public void 이메일로_아이디_찾기_성공() throws Exception {
         //given
         Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
@@ -245,13 +215,13 @@ public class MemberServiceTest {
         em.clear();
 
         //when
-        String result = memberService.findUserIdByEmail(email);
+        List<String> result = memberService.findUserIdByEmail(email);
 
         //then
-        Assert.assertEquals(id, result);
+        Assert.assertEquals(id, result.get(0));
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void 이메일로_아이디_찾기_실패() throws Exception {
         //given
         Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
@@ -261,18 +231,11 @@ public class MemberServiceTest {
         em.clear();
 
         //when
-        try {
-            String result = memberService.findUserIdByEmail(email);
-        } catch (Exception e) {
-            System.out.println("===============================");
-            System.out.println(e.getMessage());
-            System.out.println("===============================");
-            throw e;
-        }
+        List<String> result = memberService.findUserIdByEmail(email);
 
         //then
-        fail("예외가 발생해야 한다.");
-    }*/
+        Assert.assertTrue(result.isEmpty());
+    }
 
     @Test
     public void 아이디_이메일_일치여부_확인_성공() throws Exception {
@@ -284,13 +247,13 @@ public class MemberServiceTest {
         em.clear();
 
         //when
-        memberService.idEmailChk(id, email);
+        boolean result = memberService.idEmailChk(id, email);
 
         //then
-        // 예외가 발생하지 않아야 한다.
+        Assert.assertTrue(result);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void 아이디_이메일_일치여부_확인_실패() throws Exception {
         //given
         Member member = Member.createMember("userID1", "1234", "userA", "hello@hello.net", null);
@@ -300,18 +263,12 @@ public class MemberServiceTest {
         em.clear();
 
         //when
-        try {
-            memberService.idEmailChk(id, email);
-        } catch (Exception e) {
-            System.out.println("===============================");
-            System.out.println(e.getMessage());
-            System.out.println("===============================");
-            throw e;
-        }
+        boolean result = memberService.idEmailChk(id, email);
 
         //then
-        fail("예외가 발생해야 한다.");
+        Assert.assertFalse(result);
     }
+
     @Test
     public void 임시_비밀번호_발급및저장_AND_임시_비밀번호_이메일_전송() throws Exception {
         //given
@@ -329,6 +286,62 @@ public class MemberServiceTest {
 /*        System.out.println("==========================");
         System.out.println(memberService.findByUserID(member).get(0).getPassword());
         System.out.println("==========================");*/
+    }
+
+    @Test
+    public void 닉네임_변경() throws Exception {
+        //given
+        Member member = Member.createMember("userID1", "1234", "userA", "imsiyujeo99@gmail.com", null);
+        em.persist(member);
+        Long id = member.getId();
+        String nickname = member.getNickname();
+        em.flush();
+        em.clear();
+
+        //when
+        String updateNickname = "updateUserA";
+        Optional<Member> result = memberService.updateNickname(id, updateNickname);
+
+        //then
+        Assert.assertNotEquals(result.get().getNickname(), nickname);
+    }
+
+    @Test
+    public void 이메일_변경() throws Exception {
+        //given
+        Member member = Member.createMember("userID1", "1234", "userA", "imsiyujeo99@gmail.com", null);
+        em.persist(member);
+        Long id = member.getId();
+        String email = member.getEmail();
+        em.flush();
+        em.clear();
+
+        //when
+        String updateEmail = "imsihoesa@gmail.com";
+        Member result = memberService.updateEmail(id, updateEmail);
+
+        //then
+        Assert.assertNotEquals(result.getEmail(), email);
+    }
+
+    @Test
+    public void 회원_삭제() throws Exception {
+        //given
+        Check check = Check.createCheck();
+        em.persist(check);
+        Member member = Member.createMember("userID1", "1234", "userA", "imsiyujeo99@gmail.com", check);
+        em.persist(member);
+        Long id = member.getId();
+        em.flush();
+        em.clear();
+
+        //when
+        memberService.deleteMember(id);
+        em.flush();
+        em.clear();
+
+        //then
+        Assert.assertNull(em.find(Member.class, id));
     }
 
 }

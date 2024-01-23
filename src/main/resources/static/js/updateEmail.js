@@ -13,4 +13,19 @@
     form.submit();
 }*/
 
-changeEmail()
+// 이메일 변경 전 양식이 올바른지 확인하는 함수
+function checkBeforeSubmit() {
+    $("#numberCheck").on('click', function () {
+        return isEmailNumberSend()  && isEmailNumberEmpty();
+    });
+}
+
+function emailChk() {
+    if(!isEmailEmpty()) return true;
+    let form = document.getElementById("submitForm");
+    form.action = "/members/emailChk";
+    form.submit();
+}
+
+changeEmail();
+checkBeforeSubmit();
