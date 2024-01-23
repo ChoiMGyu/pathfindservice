@@ -36,9 +36,25 @@
     <title>Hello</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener("DOMContentLoaded", function () {
+        var messageElement = document.querySelector('.alert');
+        if (messageElement) {
+            setTimeout(function () {
+                messageElement.style.display = 'none';
+            }, 5000); // 5000 milliseconds (5 seconds)
+        }
+    });
+    /*]]>*/
+</script>
 <body>
 <div class="container">
     <div th:replace="~{fragments/bodyHeader :: bodyHeader}"/>
+    <div th:if="${message}" class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+        <span th:text="${message}">휴면 복구 완료</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
     <div class="jumbotron">
         <p class="lead">회원 기능</p>
         <p>
