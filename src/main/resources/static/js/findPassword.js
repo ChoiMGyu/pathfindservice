@@ -17,19 +17,30 @@ function idEmailChk() {
     form.submit();
 }*/
 
+function isUserIdEmailCheck() {
+    if ($("#userIdCheck").is(":checked") === false || $("#emailCheck").is(":checked") === false) {
+        resetError();
+        $('#globalError').text('아이디, 이메일 확인을 해주세요.').show();
+        return false;
+    }
+    return true;
+}
+
 // 비밀번호 초기화 전 양식이 올바른지 확인하는 함수
-function chkBeforeSubmit() {
+function checkBeforeSubmit() {
     $("#findPasswordSubmit").on('click', function () {
-        return isUserIdEmpty() && isEmailEmpty() && isChkEmpty("아이디, 이메일 확인을 해주세요.") && isEmailConfirm();
+        return isUserIdEmpty() && isEmailEmpty() && isUserIdEmailCheck() && isEmailNumberSend()
+            && isEmailNumberEmpty() && isEmailNumberCheck();
     });
 }
 
 function idEmailChk() {
+    if(!isUserIdEmpty() || !isEmailEmpty()) return false;
     let form = document.getElementById("submitForm");
     form.action = "/members/isValidIdEmail";
     form.submit();
 }
 
-//chkBeforeSubmit();
 changeUserId();
 changeEmail();
+checkBeforeSubmit();

@@ -1,17 +1,3 @@
-// 비밀번호와 비밀번호 확인이 같은지 다른지에 따라 화면을 바꾸는 함수이다.
-function comparePassword() {
-    $("#passwordConfirm").on("focusout", function () {
-        if ($("#password").val() !== $("#passwordConfirm").val()) {
-            //$("#passwordConfirmTxt").html("<span id='emconfirmchk'>비밀번호 다름</span>")
-            $("#passwordConfirm").attr('class', 'form-control passwordConfirmError');
-        } else {
-            //$("#passwordConfirmTxt").html("<span id='emconfirmchk'>비밀번호 확인</span>")
-            $("#passwordConfirm").attr('class', 'form-control');
-            passwordConfirm = 1;
-        }
-    })
-}
-
 /*// 아이디, 닉네임, 이메일 중복 여부 및 유효성 확인 함수
 function validationChk() {
     let form = document.createElement("form");
@@ -39,46 +25,42 @@ function validationChk() {
     form.submit();
 }*/
 
-// 아이디 중복 여부 및 유효성 확인 함수
+// 아이디 중복 여부 및 유효성 확인을 서버에서 진행할 수 있도록 form을 전송하는 함수
 function userIdChk() {
+    if(!isUserIdEmpty()) return false;
     let form = document.getElementById("submitForm");
     form.action = "/members/userIdChk";
     form.submit();
 }
 
-// 닉네임 중복 여부 및 유효성 확인 함수
+// 닉네임 중복 여부 및 유효성 확인을 서버에서 진행할 수 있도록 form을 전송하는 함수
 function nicknameChk() {
+    if(!isNicknameEmpty()) return false;
     let form = document.getElementById("submitForm");
     form.action = "/members/nicknameChk";
     form.submit();
 }
 
-// 이메일 중복 여부 및 유효성 확인 함수
+// 이메일 중복 여부 및 유효성 확인을 서버에서 진행할 수 있도록 form을 전송하는 함수
 function emailChk() {
+    if(!isEmailEmpty()) return false;
     let form = document.getElementById("submitForm");
     form.action = "/members/emailChk";
     form.submit();
 }
 
-// 이메일 인증 번호 확인 함수
-function emailNumberChk() {
-    let form = document.getElementById("submitForm");
-    document.getElementById("timeCount").value = seconds;
-    form.action = "/members/emailNumberChk";
-    form.submit();
-}
-
 // 회원 가입 양식 제출 전 양식이 올바른지 확인하는 함수
-function chkBeforeSubmit() {
+function checkBeforeSubmit() {
     $("#registerSubmit").on('click', function () {
-        return (isUserIdEmpty() && isNicknameEmpty() && isEmailEmpty() && isChkEmpty("아이디, 닉네임, 이메일 중복 확인을 해주세요.") &&
-            isEmailConfirm() && isPasswordEmpty() && isPasswordConfirmEmpty() && isPasswordConfirm());
+        return (isUserIdEmpty() && isUserIdCheck() && isNicknameEmpty() && isNicknameCheck()
+        && isEmailEmpty() && isEmailCheck() && isEmailNumberSend() && isEmailNumberEmpty()
+        && isEmailNumberCheck() && isPasswordEmpty() && isPasswordConfirmEmpty() && isPasswordSame());
     });
 }
 
-comparePassword();
-//chkBeforeSubmit();
 changeUserId();
 changeNickname();
 changeEmail();
 changeEmailNumber();
+comparePassword();
+checkBeforeSubmit();

@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 관련 페이지 렌더링을 하는 controller
- * 최근 수정 일자 : 2024.01.15(월)
+ * 최근 수정 일자 : 2024.01.23(월)
  */
 package com.pathfind.system.controller;
 
@@ -254,6 +254,7 @@ public class MemberController {
 
         if (result.hasErrors()) {
             form.setEmailNumberSend(false);
+            form.setEmailNumberCheck(false);
             session.setAttribute(SessionConst.SUBMIT_MEMBER, form);
             rttr.addFlashAttribute(BindingResult.MODEL_KEY_PREFIX + "submitForm", result);
             return "redirect:" + path;
@@ -261,6 +262,7 @@ public class MemberController {
 
         mailSendService.joinEmail(form.getEmail());
         form.setEmailNumberSend(true);
+        form.setEmailNumberCheck(false);
         form.setTimeCount(1800L); // 인증번호 유효 기간: 30분
         session.setAttribute(SessionConst.SUBMIT_MEMBER, form);
         rttr.addFlashAttribute("message", "해당 이메일로 인증번호 발송이 완료되었습니다. 확인 부탁드립니다.");

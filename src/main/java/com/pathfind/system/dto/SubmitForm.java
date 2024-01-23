@@ -1,3 +1,7 @@
+/*
+ * 클래스 기능 : 회원가입, 아이디 찾기, 비밀번호 찾기등을 할 때의 정보를 클라이언트와 컨트롤러 사이세서 주고받기 위해 사용되는 form이다.
+ * 최근 수정 일자 : 2024.01.22(월)
+ */
 package com.pathfind.system.dto;
 
 import lombok.Data;

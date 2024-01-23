@@ -12,10 +12,20 @@
     document.body.appendChild(form);
     form.submit();
 }*/
+
+// 아이디 찾기 전 양식이 올바른지 확인하는 함수
+function checkBeforeSubmit() {
+    $("#numberCheck").on('click', function () {
+        return isEmailNumberSend()  && isEmailNumberEmpty();
+    });
+}
+
 function emailChk() {
+    if(!isEmailEmpty()) return true;
     let form = document.getElementById("submitForm");
     form.action = "/members/isValidEmail";
     form.submit();
 }
 
-changeEmail()
+changeEmail();
+checkBeforeSubmit();
