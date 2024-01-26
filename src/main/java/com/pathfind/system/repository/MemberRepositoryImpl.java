@@ -46,7 +46,12 @@ public class MemberRepositoryImpl implements MemberRepository {
 
     @Override
     public Member findByID(Long id) {
-        return em.find(Member.class, id);
+        return em.createQuery("select m from Member m" +
+                        " join fetch m.check" +
+                        " where m.id = :id" , Member.class)
+                .setParameter("id", id)
+                .getSingleResult();
+        //return em.find(Member.class, id);
     }
 
     @Override

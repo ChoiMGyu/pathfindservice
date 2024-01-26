@@ -4,10 +4,12 @@
  */
 package com.pathfind.system.controller;
 
+import com.pathfind.system.domain.Check;
 import com.pathfind.system.domain.Member;
-import com.pathfind.system.dto.LoginForm;
-import com.pathfind.system.dto.PasswordForm;
+import com.pathfind.system.dto.*;
+import com.pathfind.system.service.MailSendService;
 import com.pathfind.system.service.MemberService;
+import com.pathfind.system.validation.ValidationSequence;
 import jakarta.mail.Session;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,8 +23,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Controller
 @RequiredArgsConstructor
@@ -737,6 +749,9 @@ public class MemberController {
         }
 
         Optional<Member> newMember = memberService.updateNickname(member.getId(), nicknameForm.getNickname());
+/*        logger.info("newMember: {}", newMember.get());
+        logger.info("newMember - isDormant: {}", newMember.get().getCheck().isDormant());
+        logger.info("newMember: {}", newMember.get());*/
         if (newMember.isEmpty()) {
             result.rejectValue("nickname", "Nickname.exist");
             return "/members/myProfile";
