@@ -1,12 +1,15 @@
 /*
  * 클래스 기능 : 회원 서비스 클래스
- * 최근 수정 일자 : 2024.01.22(월)
+ * 최근 수정 일자 : 2024.01.26(금)
  */
 package com.pathfind.system.service;
 
+import com.pathfind.system.controller.MemberController;
 import com.pathfind.system.domain.Member;
 import com.pathfind.system.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +20,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MemberServiceImpl implements MemberService {
+
+    private static final Logger logger = LoggerFactory.getLogger(MemberServiceImpl.class);
 
     private final MemberRepository memberRepository;
     private final MailSendService mailSendService;
@@ -45,20 +50,18 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public int updatePassword(Long id, String oldPassword, String newPassword1, String newPassword2) {
+    public Member updatePassword(Long id, String oldPassword, String newPassword1, String newPassword2) {
         Member findMember = memberRepository.findByID(id);
-        //패스워드 변경을 하는 시점에는 로그인되어 있는 상태이므로 findMember는 무조건 값을 가짐
+        logger.info("service에서 호출한 findMember 객체 : " + findMember);
         if (findMember.getPassword().equals(oldPassword)) {
             if (newPassword1.equals(newPassword2)) {
                 findMember.changePassword(newPassword1);
-                return 1;
+                return findMember;
             } else {
-                //throw new IllegalStateException("새 비밀번호 확인이 올바르지 않습니다.");
-                return -1;
+                return findMember;
             }
         } else {
-            //throw new IllegalStateException("기존 비밀번호가 일치하지 않습니다.");
-            return 0;
+            return findMember;
         }
     }
 

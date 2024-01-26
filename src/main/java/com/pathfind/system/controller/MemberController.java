@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 관련 페이지 렌더링을 하는 controller
- * 최근 수정 일자 : 2024.01.15(월)
+ * 최근 수정 일자 : 2024.01.26(금)
  */
 package com.pathfind.system.controller;
 
@@ -621,7 +621,12 @@ public class MemberController {
 
         if(!result.hasErrors()) {
             logger.info("패스워드를 정상적으로 변경했습니다.");
-            memberService.updatePassword(loginMember.getId(), form.getOldPassword(), form.getNewPassword1(), form.getNewPassword2());
+            //logger.info("controller에서 비밀번호 변경을 하기 전 loginMember 객체 : " + loginMember);
+            //비밀번호 변경을 하기 전 loginMember와 서비스 계층 로직 내에서 비밀번호 변경을 한 loginMember는 동일함
+            loginMember = memberService.updatePassword(loginMember.getId(), form.getOldPassword(), form.getNewPassword1(), form.getNewPassword2());
+            //그러나 비밀번호 변경을 한 후 반환된 loginMember는 이전의 loginMember와는 다른 객체임
+            //logger.info("controller에서 비밀번호 변경을 한 후 loginMember : " + loginMember);
+            session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);
             rttr.addFlashAttribute("message", "패스워드를 변경했습니다.");
             return "redirect:/members/updatePassword";
         }
