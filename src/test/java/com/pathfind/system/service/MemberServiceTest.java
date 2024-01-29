@@ -291,7 +291,9 @@ public class MemberServiceTest {
     @Test
     public void 닉네임_변경() throws Exception {
         //given
-        Member member = Member.createMember("userID1", "1234", "userA", "imsiyujeo99@gmail.com", null);
+        Check check = Check.createCheck();
+        em.persist(check);
+        Member member = Member.createMember("userID1", "1234", "userA", "imsiyujeo99@gmail.com", check);
         em.persist(member);
         Long id = member.getId();
         String nickname = member.getNickname();
@@ -309,7 +311,9 @@ public class MemberServiceTest {
     @Test
     public void 이메일_변경() throws Exception {
         //given
-        Member member = Member.createMember("userID1", "1234", "userA", "imsiyujeo99@gmail.com", null);
+        Check check = Check.createCheck();
+        em.persist(check);
+        Member member = Member.createMember("userID1", "1234", "userA", "imsiyujeo99@gmail.com", check);
         em.persist(member);
         Long id = member.getId();
         String email = member.getEmail();
