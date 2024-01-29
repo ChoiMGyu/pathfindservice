@@ -12,5 +12,6 @@ import java.util.List;
 public class GraphRequest {
     //private int numVertices;
     private Long start;
+    private Long end;
     //private List<Edge> edges;
 }

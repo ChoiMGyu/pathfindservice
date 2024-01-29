@@ -12,16 +12,18 @@ import java.util.PriorityQueue;
 public class Dijkstra {
     private static final Logger logger = LoggerFactory.getLogger(Dijkstra.class);
 
-    public List<Node> shortestPath(Graph graph, Long startId) {
+    public DijkstraResult shortestPath(Graph graph, Long startId) {
         PriorityQueue<Node> pq = new PriorityQueue<>(Comparator.comparing(Node::getDistance));
         List<Node> nodes = new ArrayList<>();
+        List<Integer> path = new ArrayList<>();
         for(long i = 0L; i < graph.getNumVertices(); i++) {
-            Node node = new Node(i, Long.MAX_VALUE);
+            Node node = new Node(i, Double.MAX_VALUE);
             if(i == startId) {
                 node.setDistance(0);
             }
             nodes.add(node);
             pq.add(node);
+            path.add(0);
         }
 
         while(!pq.isEmpty()) {
@@ -34,9 +36,11 @@ public class Dijkstra {
                     nodes.get(v.getV()).setDistance(alt);
                     pq.remove(nodes.get(v.getV()));
                     pq.offer(nodes.get(v.getV()));
+                    path.set(v.getV(), u.getId().intValue());
                 }
             }
         }
-        return nodes;
+
+        return new DijkstraResult(path, nodes);
     }
 }

@@ -7,6 +7,9 @@ package com.pathfind.system.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 public class ObjectAddress {
@@ -19,7 +22,7 @@ public class ObjectAddress {
     @Column(nullable = false)
     private String address; // 주소
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "object_id", nullable = false)
-    private Objects object; // 일대일 연관관계 매핑
+/*    @OneToMany(mappedBy = "objectAddress")
+    //@JoinColumn(name = "object_id", nullable = false)
+    private List<Objects> objects = new ArrayList<>(); // 일대다 연관관계 매핑*/
 }

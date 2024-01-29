@@ -26,7 +26,8 @@ public class Objects {
     @Column(nullable = false)
     private ObjType objectType; // 대상의 종류(건물, 랜드마크, 벤치 등등)
 
-    /*@OneToOne(fetch = FetchType.LAZY, mappedBy = "object", cascade = CascadeType.ALL)
-    private ObjectAddress objectAddress;*/
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "address_id")
+    private ObjectAddress objectAddress;
 
 }
