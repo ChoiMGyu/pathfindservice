@@ -1,18 +1,16 @@
 package com.pathfind.system.algorithm;
 
 import com.pathfind.system.controller.MemberController;
+import com.pathfind.system.domain.RoadVertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.*;
 
 public class Dijkstra {
     private static final Logger logger = LoggerFactory.getLogger(Dijkstra.class);
 
-    public DijkstraResult shortestPath(Graph graph, Long startId) {
+    public static DijkstraResult shortestPath(Graph graph, Long startId, Long endId) {
         PriorityQueue<Node> pq = new PriorityQueue<>(Comparator.comparing(Node::getDistance));
         List<Node> nodes = new ArrayList<>();
         List<Integer> path = new ArrayList<>();
@@ -41,6 +39,20 @@ public class Dijkstra {
             }
         }
 
-        return new DijkstraResult(path, nodes);
+        List<Integer> result = new ArrayList<>();
+        Stack<Integer> stack = new Stack<>();
+        int endToStart = endId.intValue();
+        stack.push(endToStart);
+        while (endToStart != startId.intValue()) {
+            endToStart = path.get(endToStart);
+            stack.push(endToStart);
+        }
+        logger.info("find path start({}) to end({})", startId, endId);
+        while (!stack.isEmpty()) {
+            logger.info("path: {}", stack.peek());
+            result.add(stack.pop());
+        }
+
+        return new DijkstraResult(nodes, result);
     }
 }

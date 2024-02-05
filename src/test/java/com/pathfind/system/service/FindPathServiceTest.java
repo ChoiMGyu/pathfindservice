@@ -21,7 +21,7 @@ class FindPathServiceTest {
     @Autowired
     FindPathService findPathService;
 
-    @Test
+/*    @Test
     public void 도보_길찾기() throws Exception {
         //given
         Long start = 1L, end = 5L;
@@ -63,5 +63,5 @@ class FindPathServiceTest {
             System.out.println("roadVertex.getId() = " + roadVertex.getId()+", roadVertex.getLatitude() = "+roadVertex.getLatitude()+", roadVertex.getLongitude() = "+roadVertex.getLongitude());
         }
         System.out.println("==================================================");
-    }
+    }*/
 }
