@@ -7,8 +7,7 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class ShortestPathResponse {
+public class FindPathResponse {
     private double distance;
-    private int speed;
     private List<ShortestPathRoute> path;
 }

@@ -42,3 +42,5 @@ application.yml
 EmailConfig.java
 
 MailSendServiceImpl.java
+
+apikey.js

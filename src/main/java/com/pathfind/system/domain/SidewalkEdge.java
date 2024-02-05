@@ -16,13 +16,13 @@ public class SidewalkEdge {
     @Column(name = "sidewalk_edge_id")
     private Long id; // SidewalkEdge 테이블 아이디
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sidewalk_vertex_id1", nullable = false)
-    private SidewalkVertex sidewalkVertex1; // 보도 정점1(시작)
+    //@ManyToOne(fetch = FetchType.LAZY)
+    @Column(name = "sidewalk_vertex_id1", nullable = false)
+    private Long sidewalkVertex1; // 보도 정점1(시작)
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sidewalk_vertex_id2", nullable = false)
-    private SidewalkVertex sidewalkVertex2; // 도보 정점2(끝)
+    //@ManyToOne(fetch = FetchType.LAZY)
+    @Column(name = "sidewalk_vertex_id2", nullable = false)
+    private Long sidewalkVertex2; // 도보 정점2(끝)
 
     @Column(nullable = false)
     private double length; // 간선 길이

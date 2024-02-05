@@ -16,13 +16,13 @@ public class RoadEdge {
     @Column(name = "road_edge_id")
     private Long id; // RoadEdge 테이블 아이디
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "road_vertex_id1", nullable = false)
-    private RoadVertex roadVertex1; // 도로 정점1(시작)
+    //@ManyToOne(fetch = FetchType.LAZY)
+    @Column(name = "road_vertex_id1", nullable = false)
+    private Long roadVertex1; // 도로 정점1(시작)
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "road_vertex_id2", nullable = false)
-    private RoadVertex roadVertex2; // 도로 정점2(끝)
+    //@ManyToOne(fetch = FetchType.LAZY)
+    @Column(name = "road_vertex_id2", nullable = false)
+    private Long roadVertex2; // 도로 정점2(끝)
 
     @Column(nullable = false)
     private double length; // 간선 길이
