@@ -1,7 +1,9 @@
+/*
+ * 클래스 기능 : 다익스트라 알고리즘을 구현한 클래스
+ * 최근 수정 일자 : 2024.02.5(월)
+ */
 package com.pathfind.system.algorithm;
 
-import com.pathfind.system.controller.MemberController;
-import com.pathfind.system.domain.RoadVertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

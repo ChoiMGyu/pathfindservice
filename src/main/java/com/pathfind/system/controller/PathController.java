@@ -1,3 +1,7 @@
+/*
+ * 클래스 기능 : 길찾기 관련 페이지 랜더링을 하는 Controller
+ * 최근 수정 일자 : 2024.02.05(월)
+ */
 package com.pathfind.system.controller;
 
 import com.pathfind.system.findPathDto.GraphVCRequest;
