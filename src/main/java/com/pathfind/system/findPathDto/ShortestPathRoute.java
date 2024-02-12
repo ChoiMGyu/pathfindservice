@@ -1,4 +1,4 @@
-package com.pathfind.system.dto;
+package com.pathfind.system.findPathDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

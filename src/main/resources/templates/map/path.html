@@ -17,7 +17,7 @@
             </form>
         </section>
 
-        <section class="mb-5">
+        <section id="findPathSection" class="mb-5">
             <h5><b>길찾기</b></h5>
             <form id="graphRequestForm" role="form" action="" th:object="${graphRequest}" method="get">
                 <div class="form-group">
@@ -50,7 +50,15 @@
                     <button class="btn btn-outline-primary" type="button" onclick="resetFindPathForm()">다시 입력</button>
                     <button class="btn btn-outline-primary" type="button" onclick="findPath()">길찾기></button>
                 </div>
+                <small class="text-danger" style="margin: 0; display:none;" id="findPathError"></small>
             </form>
+        </section>
+
+        <section id="pathInfoSection" class="mb-5">
+            <div id="pathInfo" class="p-2 text-start bg-body-secondary rounded-3" style="display: none">
+                <strong id="time" class="mx-auto text-dark" style="display: none"></strong>
+                <small id="distance" class="vr mx-auto text-muted" style="display: none; opacity: 100%"></small>
+            </div>
         </section>
 
         <section class="mb-5">

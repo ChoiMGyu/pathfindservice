@@ -6,25 +6,20 @@ package com.pathfind.system.controller;
 
 import com.pathfind.system.domain.Check;
 import com.pathfind.system.domain.Member;
-import com.pathfind.system.dto.*;
+import com.pathfind.system.memberDto.*;
 import com.pathfind.system.service.MailSendService;
 import com.pathfind.system.service.MemberService;
 import com.pathfind.system.validation.ValidationSequence;
-import jakarta.mail.Session;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 

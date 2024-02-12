@@ -2,10 +2,9 @@
  * 클래스 기능 : 회원 정보를 클라이언트와 컨트롤러 사이에서 주고받기 위해 사용되는 form이다.
  * 최근 수정 일자 : 2024.01.22(월)
  */
-package com.pathfind.system.dto;
+package com.pathfind.system.memberDto;
 
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
