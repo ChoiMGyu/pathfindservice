@@ -2,7 +2,7 @@
  * 클래스 기능 : 사용자의 이메일을 받아올 DTO
  * 최근 수정 일자 : 2024.01.09(화)
  */
-package com.pathfind.system.dto;
+package com.pathfind.system.memberDto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;

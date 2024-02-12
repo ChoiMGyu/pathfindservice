@@ -23,13 +23,20 @@ let drawRoute = [];
 let markers = [];
 
 function findPath() {
+    $("#findPathSection").attr('class', 'mb-5');
+    $("#pathInfo").hide();
+    for (let i = 0; i < $("#pathInfo").children().length; i++) {
+        $("#pathInfo").children().eq(i).hide();
+    }
+    resetError();
+    if (!isTransportationsEmpty() || !isStartEmpty() || !isEndEmpty()) return;
     let graphRequestForm = $("#graphRequestForm").serialize();
     //console.log(graphRequestForm);
     $.ajax({
         type: "get",
         url: "/path?" + graphRequestForm,
         success: function (response) {
-            console.log('distance: ' + response.distance);
+            //console.log('distance: ' + response.distance);
             for (let i = 0; i < drawRoute.length; i++) drawRoute[i].setMap(null);
             drawRoute = [];
             for (let i = 0; i < markers.length; i++) {
@@ -59,27 +66,117 @@ function findPath() {
             startPoint.setMap(map);
             markers.push(startPoint);
 
-            /*            let startPointInfo = document.createElement('div');
-                        startPointInfo.textContent = "출발";
-                        startPointInfo.style.width = "100%";
-                        startPointInfo.style.padding = "5px";
-                        startPoint.infowindow = new kakao.maps.InfoWindow({content: startPointInfo});
-                        startPoint.infowindow.open(map, startPoint);*/
+            /*let startPointInfo = document.createElement('div');
+            startPointInfo.textContent = "출발";
+            startPointInfo.style.width = "100%";
+            startPointInfo.style.padding = "5px";
+            startPoint.infowindow = new kakao.maps.InfoWindow({content: startPointInfo});
+            startPoint.infowindow.open(map, startPoint);*/
 
             let endPoint = new kakao.maps.Marker({position: new kakao.maps.LatLng(route[route.length - 1].latitude, route[route.length - 1].longitude)})
             endPoint.setMap(map);
             markers.push(endPoint);
 
-            /*            let endPointInfo = document.createElement('div');
-                        endPointInfo.textContent = "도착";
-                        endPointInfo.style.width = "100%";
-                        endPointInfo.style.padding = "5px";
-                        endPoint.infowindow = new kakao.maps.InfoWindow({content: endPointInfo});
-                        endPoint.infowindow.open(map, endPoint);*/
+            /*let endPointInfo = document.createElement('div');
+            endPointInfo.textContent = "도착";
+            endPointInfo.style.width = "100%";
+            endPointInfo.style.padding = "5px";
+            endPoint.infowindow = new kakao.maps.InfoWindow({content: endPointInfo});
+            endPoint.infowindow.open(map, endPoint);*/
+            /*====================================================================================================*/
+            /*시간 계산*/
+            let timeText = "";
+            let speed = response.speed * 1000 / 60;
+            let minutes = Math.round(response.distance / speed);
+            let hours = Math.floor(minutes / 60);
+            minutes %= 60;
+            if (hours > 0) timeText += hours.toString() + "시간 ";
+            timeText += minutes.toString() + "분";
+            //console.log(speed);
+            $("#time").text(timeText);
+            /*====================================================================================================*/
+
+            /*====================================================================================================*/
+            /*거리 계산*/
+            let distanceText = "\u00a0";
+            let distance = response.distance / 1000;
+            //console.log(distance);
+            if (distance >= 1) distanceText += (Math.round(distance * 10) / 10).toString() + "km";
+            else distanceText += Math.round(distance * 1000).toString() + "m";
+            $("#distance").text(distanceText);
+            /*====================================================================================================*/
+
+            $("#findPathSection").attr('class', 'mb-3');
+            $("#pathInfo").show();
+            for (let i = 0; i < $("#pathInfo").children().length; i++) {
+                $("#pathInfo").children().eq(i).show();
+            }
+            //console.log($("#pathInfo").children().length);
+            //console.log($("#pathInfo").children());
         },
         error: function (error) {
-            alert("에러 발생!");
-            console.log(error);
+            //alert("에러 발생!");
+            //console.log(error);
+            //console.log(error.responseJSON);
+
+            let isEnd = false;
+            error.responseJSON.find(function (err) {
+                if (err.field !== "transportation") return;
+                isEnd = true;
+                $("#findPathError").text(err.message).show();
+                $("#transportation").attr('class', "form-control fieldError").focus();
+            });
+            if (isEnd) return;
+            error.responseJSON.find(function (err) {
+                if (err.field !== "start") return;
+                isEnd = true;
+                $("#findPathError").text(err.message).show();
+                $("#startPoint").attr('class', "form-control fieldError").focus();
+            });
+            if (isEnd) return;
+            error.responseJSON.find(function (err) {
+                if (err.field !== "end") return;
+                isEnd = true;
+                $("#findPathError").text(err.message).show();
+                $("#endPoint").attr('class', "form-control fieldError").focus();
+            });
         }
     })
+}
+
+function resetError() {
+    $("#startPoint").attr('class', "form-control");
+    $("#endPoint").attr('class', "form-control");
+    $("#transportation").attr('class', "form-control");
+    $("#findPathError").hide();
+}
+
+function isStartEmpty() {
+    if ($("#startPoint").val() === "") {
+        resetError();
+        $("#startPoint").attr('class', "form-control fieldError").focus();
+        $("#findPathError").text('출발지를 입력해 주세요.').show();
+        return false;
+    }
+    return true;
+}
+
+function isEndEmpty() {
+    if ($("#endPoint").val() === "") {
+        resetError();
+        $("#endPoint").attr('class', "form-control fieldError").focus();
+        $("#findPathError").text('도착지를 입력해 주세요.').show();
+        return false;
+    }
+    return true;
+}
+
+function isTransportationsEmpty() {
+    if ($("#transportation").val() === "") {
+        resetError();
+        $("#transportation").attr('class', "form-control fieldError").focus();
+        $("#findPathError").text('이동 수단을 선택해 주세요.').show();
+        return false;
+    }
+    return true;
 }

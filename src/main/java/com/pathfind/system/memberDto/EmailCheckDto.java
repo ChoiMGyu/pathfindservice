@@ -2,7 +2,7 @@
  * 클래스 기능 : 사용자의 이메일과 사용자의 입력 인증번호를 받아오는 DTO
  * 최근 수정 일자 : 2024.01.10(수)
  */
-package com.pathfind.system.dto;
+package com.pathfind.system.memberDto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
