@@ -7,8 +7,8 @@ import com.pathfind.system.domain.RoadEdge;
 import com.pathfind.system.domain.RoadVertex;
 import com.pathfind.system.domain.SidewalkEdge;
 import com.pathfind.system.domain.SidewalkVertex;
-import com.pathfind.system.dto.FindPathResponse;
-import com.pathfind.system.dto.ShortestPathRoute;
+import com.pathfind.system.findPathDto.FindPathCSResponse;
+import com.pathfind.system.findPathDto.ShortestPathRoute;
 import com.pathfind.system.repository.RoadEdgeRepository;
 import com.pathfind.system.repository.RoadVertexRepository;
 import com.pathfind.system.repository.SidewalkEdgeRepository;
@@ -35,7 +35,7 @@ public class FindPathServiceImpl implements FindPathService {
     private final SidewalkVertexRepository sidewalkVertexRepository;
 
     @Override
-    public FindPathResponse findRoadPath(Long start, Long end) {
+    public FindPathCSResponse findRoadPath(Long start, Long end) {
         List<RoadVertex> vertices = roadVertexRepository.findAll();
         int numVertices = vertices.size();
         logger.info("roadVertices size: {}", numVertices);
@@ -55,11 +55,11 @@ public class FindPathServiceImpl implements FindPathService {
             routeInfo.add(new ShortestPathRoute(idx.longValue(), vertices.get(idx).getLatitude(), vertices.get(idx).getLongitude()));
         }
 
-        return new FindPathResponse(dijkstraResult.getNodes().get(end.intValue()).getDistance(), routeInfo);
+        return new FindPathCSResponse(dijkstraResult.getNodes().get(end.intValue()).getDistance(), routeInfo);
     }
 
     @Override
-    public FindPathResponse findSidewalkPath(Long start, Long end) {
+    public FindPathCSResponse findSidewalkPath(Long start, Long end) {
         List<SidewalkVertex> vertices = sidewalkVertexRepository.findAll();
         int numVertices = vertices.size();
         logger.info("sidewalkVertices size: {}", numVertices);
@@ -79,6 +79,6 @@ public class FindPathServiceImpl implements FindPathService {
             routeInfo.add(new ShortestPathRoute(idx.longValue(), vertices.get(idx).getLatitude(), vertices.get(idx).getLongitude()));
         }
 
-        return new FindPathResponse(dijkstraResult.getNodes().get(end.intValue()).getDistance(), routeInfo);
+        return new FindPathCSResponse(dijkstraResult.getNodes().get(end.intValue()).getDistance(), routeInfo);
     }
 }

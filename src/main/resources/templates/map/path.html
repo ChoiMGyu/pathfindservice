@@ -11,10 +11,8 @@
     <div class="h-100 d-inline-block col-2">
         <section class="mt-3 mb-5">
             <h5><b>검색</b></h5>
-            <form role="form" action="" method="" class="d-flex">
-                <input class="form-control me-2" type="search" placeholder="장소, 구조물, 주소 검색" aria-label="Search">
-                <button class="btn btn-outline-primary" type="button">Search</button>
-            </form>
+            <input class="form-control me-2" type="search" id="query" name="query" placeholder="장소, 구조물, 주소 검색" aria-label="Search">
+            <button class="btn btn-outline-primary" type="button" onclick="findPlace(); setBounds()">Search</button>
         </section>
 
         <section class="mb-5">

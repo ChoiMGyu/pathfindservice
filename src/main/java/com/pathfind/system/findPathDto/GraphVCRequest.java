@@ -1,15 +1,13 @@
-package com.pathfind.system.algorithm;
+package com.pathfind.system.findPathDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GraphRequest {
+public class GraphVCRequest {
     private Long start;
     private Long end;
     private String transportation;

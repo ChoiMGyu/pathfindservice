@@ -1,4 +1,4 @@
-package com.pathfind.system.dto;
+package com.pathfind.system.findPathDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class FindPathResponse {
+public class FindPathCSResponse {
     private double distance;
     private List<ShortestPathRoute> path;
 }

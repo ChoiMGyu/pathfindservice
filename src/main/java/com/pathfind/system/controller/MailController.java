@@ -4,8 +4,8 @@
  */
 package com.pathfind.system.controller;
 
-import com.pathfind.system.dto.EmailCheckDto;
-import com.pathfind.system.dto.EmailRequestDto;
+import com.pathfind.system.memberDto.EmailCheckDto;
+import com.pathfind.system.memberDto.EmailRequestDto;
 import com.pathfind.system.service.MailSendService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
