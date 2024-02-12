@@ -1,8 +1,7 @@
 package com.pathfind.system.controller;
 
-import com.pathfind.system.algorithm.GraphRequest;
+import com.pathfind.system.findPathDto.GraphVCRequest;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +21,7 @@ public class PathController {
     public String getPath(HttpServletRequest request, Model model) {
         logger.info("get find path page");
         //HttpSession session = request.getSession();
-        model.addAttribute("graphRequest", new GraphRequest());
+        model.addAttribute("graphRequest", new GraphVCRequest());
 
         return "map/path";
     }
