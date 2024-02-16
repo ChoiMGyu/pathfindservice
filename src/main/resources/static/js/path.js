@@ -1,3 +1,12 @@
+const MAP_API = config.apikey;
+var container = document.getElementById('map');
+var options = {
+    center: new kakao.maps.LatLng(35.8330177, 128.7532086),
+    level: 4 //지도 레벨 설정 (현재 100m)
+};
+
+var map = new kakao.maps.Map(container, options);
+
 function selectTransportation(transportation) {
     if (transportation === '자동차') {
         $("#carBtn").attr('class', 'form-control btn btn-primary');
@@ -26,28 +35,66 @@ let markers = [];
 // findPlace 함수 정의
 function findPlace() {
     // 입력된 값을 가져와서 query 변수에 저장
-    var query = $("#query").val();
-    console.log(query);
+    console.log("findPlace() 함수 호출됨");
+    $("#searchPlaceSection").attr('class', 'mt-3 mb-5');
+    resetPlaceError();
+    console.log("전");
+    if (!isPlaceEmpty()) return;
+    console.log("후");
+    var searchContent = $("#searchRequestForm").val();
+    console.log("검색 내용:", searchContent);
     // Ajax 요청 보내기
     $.ajax({
         type: "GET",
         url: "/searchPlace",
         data: {
-            query: query
+            searchContent: searchContent
         },
         success: function(response) {
             // 서버로부터의 응답을 처리
             console.log("검색 결과:", response);
-            // 원하는 작업 수행
+
+            if(!response.name) {
+                console.log("입력하신 내용의 장소가 존재하지 않습니다.");
+                return;
+            }
+
+            var latitude = response.latitude;
+            var longitude = response.longitude;
+            console.log("검색된 장소의 위도:", latitude);
+            console.log("검색된 장소의 경도:", longitude);
+
+            // 마커가 표시될 위치입니다
+            var markerPosition  = new kakao.maps.LatLng(latitude, longitude);
+
+            // 마커를 생성합니다
+            var marker = new kakao.maps.Marker({
+                position: markerPosition
+            });
+
+            // 마커가 지도 위에 표시되도록 설정합니다
+            marker.setMap(map);
+
+            setBounds(response);
         },
         error: function(xhr, status, error) {
             // 에러 처리
             console.error("에러 발생:", error);
+            //var searchContent = document.getElementById("searchRequestForm").value;
+
+            let isEnd = false;
+            error.responseJSON.find(function (err) {
+                if (err.field !== "searchContent") return;
+                isEnd = true;
+                $("#searchPlaceError").text(err.message).show();
+                $("#searchRequestForm").attr('class', "form-control fieldError").focus();
+            });
         }
     });
 }
 
 function findPath() {
+    console.log("findPath() 호출됨")
     $("#findPathSection").attr('class', 'mb-5');
     $("#pathInfo").hide();
     for (let i = 0; i < $("#pathInfo").children().length; i++) {
@@ -169,38 +216,29 @@ function findPath() {
     })
 }
 
-var mapContainer = document.getElementById('map'), // 지도를 표시할 div
-    mapOption = {
-        center: new kakao.maps.LatLng(33.450701, 126.570667), // 지도의 중심좌표
-        level: 3 // 지도의 확대 레벨
-    };
-
-var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
-
-// 버튼을 클릭하면 아래 배열의 좌표들이 모두 보이게 지도 범위를 재설정합니다
-var points = [
-    new kakao.maps.LatLng(33.452278, 126.567803),
-    new kakao.maps.LatLng(33.452671, 126.574792),
-    new kakao.maps.LatLng(33.451744, 126.572441)
-];
-
-// 지도를 재설정할 범위정보를 가지고 있을 LatLngBounds 객체를 생성합니다
-var bounds = new kakao.maps.LatLngBounds();
-
-var i, marker;
-for (i = 0; i < points.length; i++) {
-    // 배열의 좌표들이 잘 보이게 마커를 지도에 추가합니다
-    marker =     new kakao.maps.Marker({ position : points[i] });
-    marker.setMap(map);
-
-    // LatLngBounds 객체에 좌표를 추가합니다
-    bounds.extend(points[i]);
-}
-
-function setBounds() {
+function setBounds(response) {
     // LatLngBounds 객체에 추가된 좌표들을 기준으로 지도의 범위를 재설정합니다
     // 이때 지도의 중심좌표와 레벨이 변경될 수 있습니다
     console.log("지도 범위 재설정 하기 - 모든 마커가 보일 수 있게");
+    console.log("setBounds()로 전달된 response latitude : " + response.latitude);
+    console.log("setBounds()로 전달된 response longitude : " + response.longitude);
+    // 버튼을 클릭하면 아래 배열의 좌표들이 모두 보이게 지도 범위를 재설정합니다
+    var points = [
+        new kakao.maps.LatLng(response.latitude, response.longitude)
+    ];
+
+    // 지도를 재설정할 범위정보를 가지고 있을 LatLngBounds 객체를 생성합니다
+    var bounds = new kakao.maps.LatLngBounds();
+
+    var i, marker;
+    for (i = 0; i < points.length; i++) {
+        // 배열의 좌표들이 잘 보이게 마커를 지도에 추가합니다
+        marker = new kakao.maps.Marker({ position : points[i] });
+        marker.setMap(map);
+
+        // LatLngBounds 객체에 좌표를 추가합니다
+        bounds.extend(points[i]);
+    }
     map.setBounds(bounds);
 }
 
@@ -236,6 +274,23 @@ function isTransportationsEmpty() {
         resetError();
         $("#transportation").attr('class', "form-control fieldError").focus();
         $("#findPathError").text('이동 수단을 선택해 주세요.').show();
+        return false;
+    }
+    return true;
+}
+
+function resetPlaceError() {
+    $("#searchRequestForm").attr('class', "form-control");
+    $("#searchPlaceError").hide();
+}
+
+function isPlaceEmpty() {
+    //console.log("검색내용이 비었는지 확인 :" , $("#searchRequestForm").val());
+    if($("#searchRequestForm").val() === "") {
+        //console.log("검색내용이 비어서 조건문에 만족함");
+        resetPlaceError();
+        $("#searchRequestForm").attr('class', "form-control fieldError").focus();
+        $("#searchPlaceError").text('검색 내용을 입력해주세요').show();
         return false;
     }
     return true;

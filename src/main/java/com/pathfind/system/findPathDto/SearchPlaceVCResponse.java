@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 검색 로직 반환 Response
- * 최근 수정 일자 : 2024.02.12 (월)
+ * 최근 수정 일자 : 2024.02.16(금)
  */
 package com.pathfind.system.findPathDto;
 
@@ -27,6 +27,9 @@ public class SearchPlaceVCResponse {
     @NotEmpty
     private ObjType objectType; // 대상의 종류(건물, 랜드마크, 벤치 등등)
 
-//    private double Latitude;
-//    private double Longitude;
+    @NotEmpty
+    private double Latitude;
+
+    @NotEmpty
+    private double Longitude;
 }

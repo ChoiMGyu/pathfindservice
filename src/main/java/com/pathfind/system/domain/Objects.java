@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 건물, 랜드마크 등의 정보를 담는 오브젝트 엔티티
- * 최근 수정 일자 : 2024.01.05(금)
+ * 최근 수정 일자 : 2024.02.13(화)
  */
 package com.pathfind.system.domain;
 
@@ -29,5 +29,11 @@ public class Objects {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_id")
     private ObjectAddress objectAddress;
+
+    @OneToOne(mappedBy = "object", fetch = FetchType.LAZY)
+    private RoadVertex roadVertex; //RoadVertex와 Objects 양방향 연관관계
+
+    //==연관관계 메소드를 위한 setter==//
+    public void changeVertex(RoadVertex roadVertex) { this.roadVertex = roadVertex; }
 
 }
