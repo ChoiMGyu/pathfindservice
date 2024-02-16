@@ -9,10 +9,12 @@
 <div style="height: 10%;" th:replace="~{fragments/bodyHeader :: bodyHeader}"/>
 <div class="container-fluid row" style="height: 85%;">
     <div class="h-100 d-inline-block col-2">
-        <section class="mt-3 mb-5">
+        <section id="searchPlaceSection" class="mt-3 mb-5">
             <h5><b>검색</b></h5>
-            <input class="form-control me-2" type="search" id="query" name="query" placeholder="장소, 구조물, 주소 검색" aria-label="Search">
-            <button class="btn btn-outline-primary" type="button" onclick="findPlace(); setBounds()">Search</button>
+            <input class="form-control me-2" type="search" id="searchRequestForm" name="searchRequestForm" th:object="${searchRequest}" placeholder="장소, 구조물, 주소 검색" aria-label="Search">
+            <button class="btn btn-outline-primary" type="button" onclick="findPlace()">Search</button>
+            <div></div>
+            <small class="text-danger" style="margin: 0; display:none;" id="searchPlaceError"></small>
         </section>
 
         <section id="findPathSection" class="mb-5">
@@ -73,16 +75,16 @@
         src="//dapi.kakao.com/v2/maps/sdk.js?appkey=36d7d56dffc065ea26aa515b442d5b6f"></script>
 <script type="text/javascript" src="/js/apikey.js"></script>
 <script type="text/javascript" src="/js/path.js"></script>
-<script>
-    const MAP_API = config.apikey;
-    var container = document.getElementById('map');
-    var options = {
-        center: new kakao.maps.LatLng(35.8330177, 128.7532086),
-        level: 4 //지도 레벨 설정 (현재 100m)
-    };
+<!--<script>-->
+<!--    const MAP_API = config.apikey;-->
+<!--    var container = document.getElementById('map');-->
+<!--    var options = {-->
+<!--        center: new kakao.maps.LatLng(35.8330177, 128.7532086),-->
+<!--        level: 4 //지도 레벨 설정 (현재 100m)-->
+<!--    };-->
 
-    var map = new kakao.maps.Map(container, options);
-</script>
+<!--    var map = new kakao.maps.Map(container, options);-->
+<!--</script>-->
 <!-- services와 clusterer, drawing 라이브러리 불러오기 -->
 <script type="text/javascript"
         src="//dapi.kakao.com/v2/maps/sdk.js?appkey=36d7d56dffc065ea26aa515b442d5b6f&libraries=services,clusterer,drawing"></script>
