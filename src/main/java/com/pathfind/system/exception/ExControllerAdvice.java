@@ -27,7 +27,6 @@ public class ExControllerAdvice {
         ErrorCode errorCode = ErrorCode.INVALID_INPUT_VALUE;
         BindingResult bindingResult = e.getBindingResult();
 
-        StringBuilder builder = new StringBuilder();
         List<ErrorResult> response = new ArrayList<>();
         for (FieldError err : bindingResult.getFieldErrors()) {
             response.add(new ErrorResult(errorCode.getCode(), err.getField(), err.getDefaultMessage()));

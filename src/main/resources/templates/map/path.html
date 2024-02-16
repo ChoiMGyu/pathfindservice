@@ -24,10 +24,6 @@
                     <label th:for="transportation" style="display:none;">이동 수단</label>
                     <input id="transportation" th:field="*{transportation}" type="text" style="display: none">
                     <div class="input-group mb-1">
-                        <!--<input id="car" type="button" class="form-control btn btn-outline-primary" value="자동차"
-                               placeholder="자동차" aria-label="이동수단-자동차" aria-describedby="transportation-car" readonly>
-                        <input id="onFoot" type="button" class="form-control btn btn-outline-primary" value="도보"
-                               placeholder="도보" aria-label="이동수단-도보" aria-describedby="transportation-onFoot" readonly>-->
                         <button id="carBtn" class="form-control btn btn-outline-primary" type="button" onclick="selectTransportation('자동차')">자동차</button>
                         <button id="onFootBtn" class="form-control btn btn-outline-primary" type="button" onclick="selectTransportation('도보')">도보</button>
                     </div>
@@ -63,14 +59,13 @@
 
         <section class="mb-5">
             <h5><b>최근 검색</b></h5>
+            <ul id="recentSearch" class="p-2 text-start bg-body-secondary rounded-3" style="display: none">
+            </ul>
         </section>
     </div>
     <div class="h-100 d-inline-block col-10" id="map"></div>
 </div>
 <div style="height: 5%;" th:replace="~{fragments/footer :: footer}"/>
-<!--<p><em>지도를 클릭해주세요!</em></p>-->
-<!--<p id="result"></p>
-<div id="clickLatlng"></div>-->
 <script id="apikey" type="text/javascript"
         src="//dapi.kakao.com/v2/maps/sdk.js?appkey=36d7d56dffc065ea26aa515b442d5b6f"></script>
 <script type="text/javascript" src="/js/apikey.js"></script>

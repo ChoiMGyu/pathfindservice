@@ -1,3 +1,6 @@
+const SEARCH = "search";
+const FIND_PATH = "findPath";
+
 const MAP_API = config.apikey;
 var container = document.getElementById('map');
 var options = {
@@ -50,7 +53,7 @@ function findPlace() {
         data: {
             searchContent: searchContent
         },
-        success: function(response) {
+        success: function (response) {
             // 서버로부터의 응답을 처리
             console.log("검색 결과:", response);
 
@@ -76,8 +79,15 @@ function findPlace() {
             marker.setMap(map);
 
             setBounds(response);
+            // 원하는 작업 수행
+
+
+            /*====================================================================================================*/
+            /*최근 검색 추가*/
+            addRecentSearch(SEARCH);
+            /*====================================================================================================*/
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             // 에러 처리
             console.error("에러 발생:", error);
             //var searchContent = document.getElementById("searchRequestForm").value;
@@ -91,6 +101,108 @@ function findPlace() {
             });
         }
     });
+}
+
+// 최근 검색 객체를 생성하는 함수이다.
+function makeRecentSearch(search, transportation, start, end) {
+    return {
+        search,
+        transportation,
+        start,
+        end
+    };
+}
+
+// 최근 검색 리스트에 사용자가 검색한 내용을 추가하는 함수이다.  최근 검색 표시 개수는 최대 10개로 제한해 놓았다.(네이버 길찾기를 참고함.)
+function addRecentSearch(type) {
+    let recentSearch;
+    if (type === SEARCH) recentSearch = makeRecentSearch($("#searchRequestForm").val(), null, null, null);
+    else if (type === FIND_PATH) recentSearch = makeRecentSearch(null, $("#transportation").val(), $("#startPoint").val(), $("#endPoint").val());
+    //console.log(recentSearch);
+    let search = [];
+    let previousSearch = JSON.parse(localStorage.getItem("recentSearch"));
+    //console.log(JSON.parse(localStorage.getItem("recentSearch")));
+    if (previousSearch != null) {
+        for (let i = previousSearch.length === 10 ? 1 : 0; i < previousSearch.length; i++) {
+            search.push(previousSearch[i]);
+        }
+        for (let i = 0; i < previousSearch.length; i++) {
+            if (JSON.stringify(search[i]) === JSON.stringify(recentSearch)) {
+                search.splice(i, 1);
+            }
+        }
+    }
+    //console.log(search);
+    //console.log(recentSearch);
+    search.push(recentSearch);
+    //console.log(search);
+    localStorage.setItem("recentSearch", JSON.stringify(search));
+
+    showRecentSearchList();
+}
+
+// 최근 검색 리스트를 사용자에게 보여주는 함수이다.
+function showRecentSearchList() {
+    let searchList = JSON.parse(localStorage.getItem("recentSearch"));
+    //console.log(JSON.parse(localStorage.getItem("recentSearch")));
+    //console.log(searchList.length);
+    $("#recentSearch").empty();
+    if (searchList == null || searchList.length === 0) {
+        $("#recentSearch").hide();
+    } else {
+        $("#recentSearch").show();
+        for (let i = searchList.length - 1; i >= 0; i--) {
+            if (searchList[i].search !== null) {
+                let text = searchList[i].search.toString();
+                $("#recentSearch").append(
+                    "<li class='alert alert-dark alert-dismissible' style='list-style: none; padding-bottom: 0; padding-top: 0; margin-bottom: 0.25rem' id='" + (i + "thSearch").toString() + "'>" +
+                    "   <div role = 'button' onclick='deleteRecentSearch(" + i + "); searchAgain(\"" + searchList[i].search + "\");'>"
+                    + text +
+                    "   </div>" +
+                    "   <button style='padding: 0.25rem;' type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close' onclick='deleteRecentSearch(" + i + ")'></button>" +
+                    "</li>");
+            } else {
+                let text = (searchList[i].transportation + (searchList[i].transportation === "자동차" ? "" : "\u00a0\u00a0\u00a0") + " | " + searchList[i].start + " → " + searchList[i].end).toString();
+                //console.log(searchList[i]);
+                $("#recentSearch").append(
+                    "<li class='alert alert-dark alert-dismissible' style='list-style: none; padding-bottom: 0; padding-top: 0; margin-bottom: 0.25rem' id='" + (i + "thSearch").toString() + "'>" +
+                    "   <div role = 'button' onclick='deleteRecentSearch(" + i + "); searchAgain(" + null + ", \"" + searchList[i].transportation + "\", " + searchList[i].start + ", " + searchList[i].end + ");'>"
+                    + text +
+                    "   </div>" +
+                    "   <button style='padding: 0.25rem;' type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close' onclick='deleteRecentSearch(" + i + ")'></button>" +
+                    "</li>");
+            }
+        }
+    }
+}
+
+// 최근 검색 버튼을 누를 시 다시 해당 검색 결과를 보여주는 함수이다.
+function searchAgain(search, transportation, start, end) {
+    if (search !== null) {
+        $("#searchRequestForm").val(search);
+        findPlace();
+        //setBounds();
+    } else {
+        selectTransportation(transportation);
+        $("#transportation").val(transportation);
+        $("#startPoint").val(start);
+        $("#endPoint").val(end);
+        findPath();
+    }
+}
+
+// idx번째 최근 검색을 삭제하는 함수이다.
+function deleteRecentSearch(idx) {
+    let search = [];
+    let previousSearch = JSON.parse(localStorage.getItem("recentSearch"));
+    //console.log(JSON.parse(localStorage.getItem("recentSearch")));
+    for (let i = 0; i < previousSearch.length; i++) search.push(previousSearch[i]);
+    search.splice(idx, 1);
+    if (!search.length) {
+        $("#recentSearch").hide();
+        localStorage.removeItem("recentSearch");
+    } else localStorage.setItem("recentSearch", JSON.stringify(search));
+    showRecentSearchList();
 }
 
 function findPath() {
@@ -108,6 +220,8 @@ function findPath() {
         type: "get",
         url: "/path?" + graphRequestForm,
         success: function (response) {
+            /*====================================================================================================*/
+            /*길찾기 경로 지도에 표시*/
             //console.log('distance: ' + response.distance);
             for (let i = 0; i < drawRoute.length; i++) drawRoute[i].setMap(null);
             drawRoute = [];
@@ -145,7 +259,7 @@ function findPath() {
             startPoint.infowindow = new kakao.maps.InfoWindow({content: startPointInfo});
             startPoint.infowindow.open(map, startPoint);*/
 
-            let endPoint = new kakao.maps.Marker({position: new kakao.maps.LatLng(route[route.length - 1].latitude, route[route.length - 1].longitude)})
+            let endPoint = new kakao.maps.Marker({position: new kakao.maps.LatLng(route[route.length - 1].latitude, route[route.length - 1].longitude)});
             endPoint.setMap(map);
             markers.push(endPoint);
 
@@ -155,6 +269,9 @@ function findPath() {
             endPointInfo.style.padding = "5px";
             endPoint.infowindow = new kakao.maps.InfoWindow({content: endPointInfo});
             endPoint.infowindow.open(map, endPoint);*/
+            /*====================================================================================================*/
+
+
             /*====================================================================================================*/
             /*시간 계산*/
             let timeText = "";
@@ -168,6 +285,7 @@ function findPath() {
             $("#time").text(timeText);
             /*====================================================================================================*/
 
+
             /*====================================================================================================*/
             /*거리 계산*/
             let distanceText = "\u00a0";
@@ -178,6 +296,9 @@ function findPath() {
             $("#distance").text(distanceText);
             /*====================================================================================================*/
 
+
+            /*====================================================================================================*/
+            /*길찾기 결과의 거리, 시간 출력*/
             $("#findPathSection").attr('class', 'mb-3');
             $("#pathInfo").show();
             for (let i = 0; i < $("#pathInfo").children().length; i++) {
@@ -185,6 +306,36 @@ function findPath() {
             }
             //console.log($("#pathInfo").children().length);
             //console.log($("#pathInfo").children());
+            /*====================================================================================================*/
+
+
+            /*====================================================================================================*/
+            /*최근 검색 추가.*/
+            addRecentSearch(FIND_PATH);
+            /*====================================================================================================*/
+
+
+            /*====================================================================================================*/
+            /*지도 범위 재설정*/
+            // 지도 범위 재설정에 사용되는 변수들이다.
+            let minLat = {latitude: 90, longitude: 0};
+            let maxLat = {latitude: -90, longitude: 0};
+            let minLng = {latitude: 0, longitude: 180};
+            let maxLng = {latitude: 0, longitude: -180};
+
+            for (let i = 0; i < route.length; i++) {
+                if (minLat.latitude > route[i].latitude) minLat = route[i];
+                if (maxLat.latitude < route[i].latitude) maxLat = route[i];
+                if (minLng.longitude > route[i].longitude) minLng = route[i];
+                if (maxLng.longitude < route[i].longitude) maxLng = route[i];
+            }
+            let routeBounds = new kakao.maps.LatLngBounds();
+            routeBounds.extend(new kakao.maps.LatLng(minLat.latitude, minLat.longitude));
+            routeBounds.extend(new kakao.maps.LatLng(maxLat.latitude, maxLat.longitude));
+            routeBounds.extend(new kakao.maps.LatLng(minLng.latitude, minLng.longitude));
+            routeBounds.extend(new kakao.maps.LatLng(maxLng.latitude, maxLng.longitude));
+            map.setBounds(routeBounds);
+            /*====================================================================================================*/
         },
         error: function (error) {
             //alert("에러 발생!");
@@ -295,3 +446,5 @@ function isPlaceEmpty() {
     }
     return true;
 }
+
+showRecentSearchList();
