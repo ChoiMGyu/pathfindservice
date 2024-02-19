@@ -35,7 +35,7 @@ public class SearchController {
         //               어노테이션을 사용해 HTTP 요청 본문에 담긴 값들을 자바 객체로 변환시켜, 객체에 저장
         logger.info("장소, 구조물, 벤치를 검색: " + request.getSearchContent());
         Long result = objectsService.search(request.getSearchContent());
-        if(result == -1L) {
+        if (result == -1L) {
             logger.info("입력하신 검색 내용이 존재하지 않습니다");
             return new SearchPlaceVCResponse();
         }
@@ -43,7 +43,7 @@ public class SearchController {
         ObjectAddress objectAddress = objects.getObjectAddress();
         double longitude = objects.getRoadVertex().getLongitude();
         double latitude = objects.getRoadVertex().getLatitude();
-        return new SearchPlaceVCResponse(objects.getName(), objects.getDescription(), objectAddress.getAddress(), objects.getObjectType(), latitude, longitude);
+        return new SearchPlaceVCResponse(objects.getName(), objects.getDescription(), objectAddress.getAddress(), objects.getObjectType(), latitude, longitude, objects.getRoadVertex().getId() - 1, objects.getSidewalkVertex().getId() - 1);
     }
 
 }

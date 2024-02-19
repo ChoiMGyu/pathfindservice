@@ -22,10 +22,15 @@ public class SidewalkVertex {
     @Column(nullable = false)
     private double longitude; // 정점의 경도
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "is_destination")
     private Objects object; // 일대일 연관관계 매핑
 
+    //==연관관계 메소드==//
+    public void changeObjects(Objects objects) {
+        this.object = objects;
+        objects.changeSidewalkVertex(this);
+    }
     /*@OneToMany(mappedBy = "sidewalkVertex1", cascade = CascadeType.ALL)
     private List<SidewalkEdge> sidewalkEdges = new ArrayList<>();*/
 }

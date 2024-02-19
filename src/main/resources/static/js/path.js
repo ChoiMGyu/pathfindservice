@@ -23,11 +23,14 @@ function selectTransportation(transportation) {
 }
 
 function resetFindPathForm() {
+    resetError();
     $("#carBtn").attr('class', 'form-control btn btn-outline-primary');
     $("#onFootBtn").attr('class', 'form-control btn btn-outline-primary');
     $("#transportation").val("");
     $("#startPoint").val("");
     $("#endPoint").val("");
+    $("#start").val("");
+    $("#end").val("");
 }
 
 function resetSearchForm() {
@@ -104,10 +107,7 @@ function findPlace() {
             removeMarker();
             resetFindPathForm();
             $("#findPathSection").attr('class', 'mb-5');
-            $("#pathInfo").hide();
-            for (let i = 0; i < $("#pathInfo").children().length; i++) {
-                $("#pathInfo").children().eq(i).hide();
-            }
+            $("#pathInfoSection").hide();
             removePolyline();
 
             // 마커가 표시될 위치입니다
@@ -128,6 +128,19 @@ function findPlace() {
             /*====================================================================================================*/
             /*최근 검색 추가*/
             addRecentSearch(SEARCH);
+            /*====================================================================================================*/
+
+
+            /*====================================================================================================*/
+            /*검색 정보 제공*/
+            $("#findPathSection").hide();
+            $("#pathInfoSection").hide();
+            $("#recentSearchSection").hide();
+            $("#searchInfoSection").show();
+            $("#searchName").text(response.name);
+            if (response.objectType === "BUILDING") $("#searchAddress").text(response.address).show();
+            else $("#searchAddress").hide();
+            $("#searchDescription").text(response.description);
             /*====================================================================================================*/
         },
         error: function (xhr, status, error) {
@@ -198,7 +211,7 @@ function showRecentSearchList() {
             if (searchList[i].search !== null) {
                 let text = searchList[i].search.toString();
                 $("#recentSearch").append(
-                    "<li class='alert alert-dark alert-dismissible' style='list-style: none; padding-bottom: 0; padding-top: 0; margin-bottom: 0.25rem' id='" + (i + "thSearch").toString() + "'>" +
+                    "<li onselectstart='return false' class='alert alert-dark alert-dismissible' style='list-style: none; padding-bottom: 0; padding-top: 0; margin-bottom: 0.25rem' id='" + (i + "thSearch").toString() + "'>" +
                     "   <div role = 'button' onclick='deleteRecentSearch(" + i + "); searchAgain(\"" + searchList[i].search + "\");'>"
                     + text +
                     "   </div>" +
@@ -208,8 +221,8 @@ function showRecentSearchList() {
                 let text = (searchList[i].transportation + (searchList[i].transportation === "자동차" ? "" : "\u00a0\u00a0\u00a0") + " | " + searchList[i].start + " → " + searchList[i].end).toString();
                 //console.log(searchList[i]);
                 $("#recentSearch").append(
-                    "<li class='alert alert-dark alert-dismissible' style='list-style: none; padding-bottom: 0; padding-top: 0; margin-bottom: 0.25rem' id='" + (i + "thSearch").toString() + "'>" +
-                    "   <div role = 'button' onclick='deleteRecentSearch(" + i + "); searchAgain(" + null + ", \"" + searchList[i].transportation + "\", " + searchList[i].start + ", " + searchList[i].end + ");'>"
+                    "<li onselectstart='return false' class='alert alert-dark alert-dismissible' style='list-style: none; padding-bottom: 0; padding-top: 0; margin-bottom: 0.25rem' id='" + (i + "thSearch").toString() + "'>" +
+                    "   <div role = 'button' onclick='deleteRecentSearch(" + i + "); searchAgain(" + null + ", \"" + searchList[i].transportation + "\", \"" + searchList[i].start + "\", \"" + searchList[i].end + "\");'>"
                     + text +
                     "   </div>" +
                     "   <button style='padding: 0.25rem;' type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close' onclick='deleteRecentSearch(" + i + ")'></button>" +
@@ -224,7 +237,6 @@ function searchAgain(search, transportation, start, end) {
     if (search !== null) {
         $("#searchRequestForm").val(search);
         findPlace();
-        //setBounds();
     } else {
         selectTransportation(transportation);
         $("#transportation").val(transportation);
@@ -248,17 +260,83 @@ function deleteRecentSearch(idx) {
     showRecentSearchList();
 }
 
+// 서버에게 길찾기 수행을 요청하고 길찾기 결과를 반환받아 길찾기 결과 정보를 사용자에게 제공하는 함수이다.
 function findPath() {
     console.log("findPath() 호출됨")
     $("#findPathSection").attr('class', 'mb-5');
-    $("#pathInfo").hide();
-    for (let i = 0; i < $("#pathInfo").children().length; i++) {
-        $("#pathInfo").children().eq(i).hide();
-    }
     resetError();
     $("#searchPlaceSection").attr('class', 'mt-3 mb-5');
     resetPlaceError();
     if (!isTransportationsEmpty() || !isStartEmpty() || !isEndEmpty()) return;
+
+    /*====================================================================================================*/
+    /*출발지, 도착지 정점 아이디 찾기*/
+    let searchStartContent = $("#startPoint").val();
+    let searchEndContent = $("#endPoint").val();
+    let roadVertexStartId, roadVertexEndId, sidewalkVertexStartId, sidewalkVertexEndId;
+    let isReturn = false;
+    $.ajax({
+        type: "GET",
+        url: "/searchPlace",
+        async: false,
+        data: {
+            searchContent: searchStartContent
+        },
+        success: function (response) {
+            console.log(response)
+            if (!response.name) {
+                $("#findPathError").text("올바른 출발지를 입력해 주세요.").show();
+                $("#startPoint").attr('class', "form-control fieldError").focus();
+                isReturn = true;
+                return;
+            }
+            roadVertexStartId = response.roadVertexId;
+            sidewalkVertexStartId = response.sidewalkVertexId;
+        },
+        error: function (error) {
+            $("#findPathError").text("올바른 출발지를 입력해 주세요.").show();
+            $("#startPoint").attr('class', "form-control fieldError").focus();
+        }
+    });
+    if (isReturn) return;
+    $.ajax({
+        type: "GET",
+        url: "/searchPlace",
+        async: false,
+        data: {
+            searchContent: searchEndContent
+        },
+        success: function (response) {
+            if (!response.name) {
+                $("#findPathError").text("올바른 도착지를 입력해 주세요.").show();
+                $("#endPoint").attr('class', "form-control fieldError").focus();
+                isReturn = true;
+                return;
+            }
+            roadVertexEndId = response.roadVertexId;
+            sidewalkVertexEndId = response.sidewalkVertexId;
+        },
+        error: function (error) {
+            $("#findPathError").text("올바른 도착지를 입력해 주세요.").show();
+            $("#endPoint").attr('class', "form-control fieldError").focus();
+        }
+    });
+    if (isReturn) return;
+    if ($("#transportation").val() === "자동차") {
+        $("#start").val(roadVertexStartId);
+        $("#end").val(roadVertexEndId);
+    } else {
+        $("#start").val(sidewalkVertexStartId);
+        $("#end").val(sidewalkVertexEndId);
+    }
+    /**
+     * 길찾기 사이트에서 출발지와 도착지를 정점 아이디로 검색하고 싶다면
+     * 윗 부분을 주석 처리하고 아랫부분의 주석을 해제하면 됨.
+     */
+    /*$("#start").val($("#startPoint").val());
+    $("#end").val($("#endPoint").val());*/
+    /*====================================================================================================*/
+
     let graphRequestForm = $("#graphRequestForm").serialize();
     //console.log(graphRequestForm);
     $.ajax({
@@ -347,12 +425,7 @@ function findPath() {
             /*====================================================================================================*/
             /*길찾기 결과의 거리, 시간 출력*/
             $("#findPathSection").attr('class', 'mb-3');
-            $("#pathInfo").show();
-            for (let i = 0; i < $("#pathInfo").children().length; i++) {
-                $("#pathInfo").children().eq(i).show();
-            }
-            //console.log($("#pathInfo").children().length);
-            //console.log($("#pathInfo").children());
+            $("#pathInfoSection").show();
             /*====================================================================================================*/
 
 
@@ -491,4 +564,33 @@ function isPlaceEmpty() {
     return true;
 }
 
+// 길찾기에서 출발지와 도착지를 바꾸는 함수이다.
+function changeStartEnd() {
+    let startPoint = $("#startPoint").val();
+    $("#startPoint").val($("#endPoint").val());
+    $("#endPoint").val(startPoint);
+}
+
+// 검색 결과에서 출발 버튼을 누르면 해당 검색 결과가 출발지로 설정되는 함수이다.
+function setSearchStartPoint() {
+    $("#startPoint").val($("#searchRequestForm").val());
+    goToHome();
+}
+
+// 검색 결과에서 도착 버튼을 누르면 해당 검색 결과가 도착지로 설정되는 함수이다.
+function setSearchEndPoint() {
+    $("#endPoint").val($("#searchRequestForm").val());
+    goToHome();
+}
+
+// 길찾기, 최근 검색을 사용자에게 보여주는 함수이다.
+function goToHome() {
+    $("#searchRequestForm").val("");
+    $("#searchInfoSection").hide();
+    $("#findPathSection").show();
+    $("#recentSearchSection").show();
+}
+
+$("#findPathSection").show();
+$("#recentSearchSection").show();
 showRecentSearchList();
