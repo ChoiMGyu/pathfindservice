@@ -33,7 +33,12 @@ public class Objects {
     @OneToOne(mappedBy = "object", fetch = FetchType.LAZY)
     private RoadVertex roadVertex; //RoadVertex와 Objects 양방향 연관관계
 
+    @OneToOne(mappedBy = "object", fetch = FetchType.LAZY)
+    private SidewalkVertex sidewalkVertex; //SidewalkVertex와 Objects 양방향 연관관계
+
     //==연관관계 메소드를 위한 setter==//
-    public void changeVertex(RoadVertex roadVertex) { this.roadVertex = roadVertex; }
+    public void changeRoadVertex(RoadVertex roadVertex) { this.roadVertex = roadVertex; }
+
+    public void changeSidewalkVertex(SidewalkVertex sidewalkVertex) { this.sidewalkVertex = sidewalkVertex; }
 
 }

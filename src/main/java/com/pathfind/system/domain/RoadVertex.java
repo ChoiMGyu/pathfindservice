@@ -29,7 +29,7 @@ public class RoadVertex {
     //==연관관계 메소드==//
     public void changeObjects(Objects objects) {
         this.object = objects;
-        objects.changeVertex(this);
+        objects.changeRoadVertex(this);
     }
 
     /*@OneToMany(mappedBy = "roadVertex1", cascade = CascadeType.ALL)

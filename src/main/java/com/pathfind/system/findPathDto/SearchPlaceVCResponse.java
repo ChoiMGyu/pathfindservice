@@ -32,4 +32,8 @@ public class SearchPlaceVCResponse {
 
     @NotEmpty
     private double Longitude;
+
+    private Long roadVertexId;
+
+    private Long sidewalkVertexId;
 }
