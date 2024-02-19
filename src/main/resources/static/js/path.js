@@ -30,9 +30,41 @@ function resetFindPathForm() {
     $("#endPoint").val("");
 }
 
+function resetSearchForm() {
+    $("#searchRequestForm").val("");
+}
+
 // 출발지와 도착지 사이의 폴리라인(카카오 api의 객체, 경로를 의미함)들을 저장한다. 새로운 경로 탐색 시 기존 경로를 삭제하기 위해 사용한다.
 let drawRoute = [];
-let markers = [];
+var markers = [];
+
+// 마커를 생성하고 지도 위에 마커를 표시하는 함수입니다
+function addMarker(position) {
+    var marker = new kakao.maps.Marker({
+            position: position
+        });
+    marker.setMap(map); // 지도 위에 마커를 표출합니다
+    markers.push(marker);  // 배열에 생성된 마커를 추가합니다
+
+    return marker;
+}
+
+// 지도 위에 표시되고 있는 마커를 모두 제거합니다
+function removeMarker() {
+    console.log("removeMarker() 호출됨");
+    for (var i = 0; i < markers.length; i++) {
+        markers[i].setMap(null);
+    }
+    markers = [];
+}
+
+function removePolyline() {
+    console.log("removePolyline() 호출됨");
+    for(var i = 0; i < drawRoute.length; i++) {
+        drawRoute[i].setMap(null);
+    }
+    drawRoute = [];
+}
 
 // JavaScript 코드
 // findPlace 함수 정의
@@ -41,11 +73,10 @@ function findPlace() {
     console.log("findPlace() 함수 호출됨");
     $("#searchPlaceSection").attr('class', 'mt-3 mb-5');
     resetPlaceError();
-    console.log("전");
     if (!isPlaceEmpty()) return;
-    console.log("후");
     var searchContent = $("#searchRequestForm").val();
     console.log("검색 내용:", searchContent);
+    resetError();
     // Ajax 요청 보내기
     $.ajax({
         type: "GET",
@@ -55,10 +86,12 @@ function findPlace() {
         },
         success: function (response) {
             // 서버로부터의 응답을 처리
-            console.log("검색 결과:", response);
+            console.log("SearchController에서 반환하는 response:", response);
 
             if(!response.name) {
-                console.log("입력하신 내용의 장소가 존재하지 않습니다.");
+                resetPlaceError();
+                $("#searchRequestForm").attr('class', "form-control fieldError").focus();
+                $("#searchPlaceError").text('검색 내용이 존재하지 않습니다').show();
                 return;
             }
 
@@ -67,20 +100,30 @@ function findPlace() {
             console.log("검색된 장소의 위도:", latitude);
             console.log("검색된 장소의 경도:", longitude);
 
+            //현재 지도에 있는 마커들을 지움
+            removeMarker();
+            resetFindPathForm();
+            $("#findPathSection").attr('class', 'mb-5');
+            $("#pathInfo").hide();
+            for (let i = 0; i < $("#pathInfo").children().length; i++) {
+                $("#pathInfo").children().eq(i).hide();
+            }
+            removePolyline();
+
             // 마커가 표시될 위치입니다
-            var markerPosition  = new kakao.maps.LatLng(latitude, longitude);
+            //var markerPosition  = new kakao.maps.LatLng(latitude, longitude);
 
             // 마커를 생성합니다
-            var marker = new kakao.maps.Marker({
-                position: markerPosition
-            });
+            // var marker = new kakao.maps.Marker({
+            //     position: markerPosition
+            // });
+            //var marker = addMarker(markerPosition);
 
             // 마커가 지도 위에 표시되도록 설정합니다
-            marker.setMap(map);
+            //marker.setMap(map);
 
+            //마커를 생성하면서 마커를 배열에 넣음
             setBounds(response);
-            // 원하는 작업 수행
-
 
             /*====================================================================================================*/
             /*최근 검색 추가*/
@@ -213,6 +256,8 @@ function findPath() {
         $("#pathInfo").children().eq(i).hide();
     }
     resetError();
+    $("#searchPlaceSection").attr('class', 'mt-3 mb-5');
+    resetPlaceError();
     if (!isTransportationsEmpty() || !isStartEmpty() || !isEndEmpty()) return;
     let graphRequestForm = $("#graphRequestForm").serialize();
     //console.log(graphRequestForm);
@@ -223,6 +268,8 @@ function findPath() {
             /*====================================================================================================*/
             /*길찾기 경로 지도에 표시*/
             //console.log('distance: ' + response.distance);
+            resetSearchForm();
+
             for (let i = 0; i < drawRoute.length; i++) drawRoute[i].setMap(null);
             drawRoute = [];
             for (let i = 0; i < markers.length; i++) {
@@ -370,9 +417,7 @@ function findPath() {
 function setBounds(response) {
     // LatLngBounds 객체에 추가된 좌표들을 기준으로 지도의 범위를 재설정합니다
     // 이때 지도의 중심좌표와 레벨이 변경될 수 있습니다
-    console.log("지도 범위 재설정 하기 - 모든 마커가 보일 수 있게");
-    console.log("setBounds()로 전달된 response latitude : " + response.latitude);
-    console.log("setBounds()로 전달된 response longitude : " + response.longitude);
+    console.log("지도 범위 재설정 하기");
     // 버튼을 클릭하면 아래 배열의 좌표들이 모두 보이게 지도 범위를 재설정합니다
     var points = [
         new kakao.maps.LatLng(response.latitude, response.longitude)
@@ -385,6 +430,7 @@ function setBounds(response) {
     for (i = 0; i < points.length; i++) {
         // 배열의 좌표들이 잘 보이게 마커를 지도에 추가합니다
         marker = new kakao.maps.Marker({ position : points[i] });
+        markers.push(marker);
         marker.setMap(map);
 
         // LatLngBounds 객체에 좌표를 추가합니다
@@ -436,9 +482,7 @@ function resetPlaceError() {
 }
 
 function isPlaceEmpty() {
-    //console.log("검색내용이 비었는지 확인 :" , $("#searchRequestForm").val());
     if($("#searchRequestForm").val() === "") {
-        //console.log("검색내용이 비어서 조건문에 만족함");
         resetPlaceError();
         $("#searchRequestForm").attr('class', "form-control fieldError").focus();
         $("#searchPlaceError").text('검색 내용을 입력해주세요').show();
