@@ -3,10 +3,8 @@ package com.pathfind.system.service;
 import com.pathfind.system.algorithm.Dijkstra;
 import com.pathfind.system.algorithm.DijkstraResult;
 import com.pathfind.system.algorithm.Graph;
-import com.pathfind.system.domain.RoadEdge;
-import com.pathfind.system.domain.RoadVertex;
-import com.pathfind.system.domain.SidewalkEdge;
-import com.pathfind.system.domain.SidewalkVertex;
+import com.pathfind.system.algorithm.Node;
+import com.pathfind.system.domain.*;
 import com.pathfind.system.findPathDto.FindPathCSResponse;
 import com.pathfind.system.findPathDto.ShortestPathRoute;
 import com.pathfind.system.repository.RoadEdgeRepository;
@@ -45,11 +43,18 @@ public class FindPathServiceImpl implements FindPathService {
         logger.info("roadEdges size: {}", edges.size());
         for (RoadEdge edge : edges) {
             logger.info("edge 정보 : " + edge.getRoadVertex1() + " " + edge.getRoadVertex2() + " " + edge.getLength());
-            graph.addEdge(edge.getRoadVertex1()-1, edge.getRoadVertex2()-1, edge.getLength());
+            Objects object = vertices.get(Math.toIntExact(edge.getRoadVertex2() - 1)).getObject();
+            boolean isBuilding = object != null && object.getObjectType() == ObjType.BUILDING;
+            graph.addEdge(edge.getRoadVertex1() - 1, edge.getRoadVertex2() - 1, edge.getLength(), isBuilding);
         }
-
+        List<Node> nodes = new ArrayList<>();
+        for (RoadVertex roadVertex : vertices) {
+            Objects object = roadVertex.getObject();
+            boolean isBuilding = object != null && object.getObjectType() == ObjType.BUILDING;
+            nodes.add(new Node(roadVertex.getId() - 1, 0, isBuilding));
+        }
         logger.info("findPathInfo(출발점과 도착점 사이 경로의 거리, 거쳐가야 하는 경로의 id) {} to {}", start.intValue(), end.intValue());
-        DijkstraResult dijkstraResult = Dijkstra.shortestPath(graph, start, end);
+        DijkstraResult dijkstraResult = Dijkstra.shortestPath(nodes, graph, start, end);
         List<ShortestPathRoute> routeInfo = new ArrayList<>();
         for (Integer idx : dijkstraResult.getRoute()) {
             routeInfo.add(new ShortestPathRoute(idx.longValue(), vertices.get(idx).getLatitude(), vertices.get(idx).getLongitude()));
@@ -69,11 +74,18 @@ public class FindPathServiceImpl implements FindPathService {
         logger.info("sidewalkEdges size: {}", edges.size());
         for (SidewalkEdge edge : edges) {
             logger.info("edge 정보 : " + edge.getSidewalkVertex1() + " " + edge.getSidewalkVertex2() + " " + edge.getLength());
-            graph.addEdge(edge.getSidewalkVertex1()-1, edge.getSidewalkVertex2()-1, edge.getLength());
+            Objects object = vertices.get(Math.toIntExact((edge.getSidewalkVertex2() - 1))).getObject();
+            boolean isBuilding = object != null && object.getObjectType() == ObjType.BUILDING;
+            graph.addEdge(edge.getSidewalkVertex1() - 1, edge.getSidewalkVertex2() - 1, edge.getLength(), isBuilding);
         }
-
+        List<Node> nodes = new ArrayList<>();
+        for (SidewalkVertex sidewalkVertex : vertices) {
+            Objects object = sidewalkVertex.getObject();
+            boolean isBuilding = object != null && object.getObjectType() == ObjType.BUILDING;
+            nodes.add(new Node(sidewalkVertex.getId() - 1, 0, isBuilding));
+        }
         logger.info("findPathInfo(출발점과 도착점 사이 경로의 거리, 거쳐가야 하는 경로의 id) {} to {}", start.intValue(), end.intValue());
-        DijkstraResult dijkstraResult = Dijkstra.shortestPath(graph, start, end);
+        DijkstraResult dijkstraResult = Dijkstra.shortestPath(nodes, graph, start, end);
         List<ShortestPathRoute> routeInfo = new ArrayList<>();
         for (Integer idx : dijkstraResult.getRoute()) {
             routeInfo.add(new ShortestPathRoute(idx.longValue(), vertices.get(idx).getLatitude(), vertices.get(idx).getLongitude()));

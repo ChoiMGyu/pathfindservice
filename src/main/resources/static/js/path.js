@@ -1,5 +1,6 @@
 const SEARCH = "search";
 const FIND_PATH = "findPath";
+const BUILDING = "BUILDING";
 
 const MAP_API = config.apikey;
 var container = document.getElementById('map');
@@ -44,8 +45,8 @@ var markers = [];
 // 마커를 생성하고 지도 위에 마커를 표시하는 함수입니다
 function addMarker(position) {
     var marker = new kakao.maps.Marker({
-            position: position
-        });
+        position: position
+    });
     marker.setMap(map); // 지도 위에 마커를 표출합니다
     markers.push(marker);  // 배열에 생성된 마커를 추가합니다
 
@@ -63,7 +64,7 @@ function removeMarker() {
 
 function removePolyline() {
     console.log("removePolyline() 호출됨");
-    for(var i = 0; i < drawRoute.length; i++) {
+    for (var i = 0; i < drawRoute.length; i++) {
         drawRoute[i].setMap(null);
     }
     drawRoute = [];
@@ -91,7 +92,7 @@ function findPlace() {
             // 서버로부터의 응답을 처리
             console.log("SearchController에서 반환하는 response:", response);
 
-            if(!response.name) {
+            if (!response.name) {
                 resetPlaceError();
                 $("#searchRequestForm").attr('class', "form-control fieldError").focus();
                 $("#searchPlaceError").text('검색 내용이 존재하지 않습니다').show();
@@ -105,7 +106,7 @@ function findPlace() {
 
             //현재 지도에 있는 마커들을 지움
             removeMarker();
-            resetFindPathForm();
+            //resetFindPathForm();
             $("#findPathSection").attr('class', 'mb-5');
             $("#pathInfoSection").hide();
             removePolyline();
@@ -274,6 +275,7 @@ function findPath() {
     let searchStartContent = $("#startPoint").val();
     let searchEndContent = $("#endPoint").val();
     let roadVertexStartId, roadVertexEndId, sidewalkVertexStartId, sidewalkVertexEndId;
+    let startObjectType, endObjectType;
     let isReturn = false;
     $.ajax({
         type: "GET",
@@ -283,7 +285,7 @@ function findPath() {
             searchContent: searchStartContent
         },
         success: function (response) {
-            console.log(response)
+            console.log(response);
             if (!response.name) {
                 $("#findPathError").text("올바른 출발지를 입력해 주세요.").show();
                 $("#startPoint").attr('class', "form-control fieldError").focus();
@@ -292,6 +294,7 @@ function findPath() {
             }
             roadVertexStartId = response.roadVertexId;
             sidewalkVertexStartId = response.sidewalkVertexId;
+            startObjectType = response.objectType;
         },
         error: function (error) {
             $("#findPathError").text("올바른 출발지를 입력해 주세요.").show();
@@ -307,6 +310,7 @@ function findPath() {
             searchContent: searchEndContent
         },
         success: function (response) {
+            console.log(response);
             if (!response.name) {
                 $("#findPathError").text("올바른 도착지를 입력해 주세요.").show();
                 $("#endPoint").attr('class', "form-control fieldError").focus();
@@ -315,6 +319,7 @@ function findPath() {
             }
             roadVertexEndId = response.roadVertexId;
             sidewalkVertexEndId = response.sidewalkVertexId;
+            endObjectType = response.objectType;
         },
         error: function (error) {
             $("#findPathError").text("올바른 도착지를 입력해 주세요.").show();
@@ -362,12 +367,17 @@ function findPath() {
                     new kakao.maps.LatLng(route[i - 1].latitude, route[i - 1].longitude),
                     new kakao.maps.LatLng(route[i].latitude, route[i].longitude)
                 ]
+                let lineColor = '#db4040', lineType = 'solid';
+                if ((i === 1 && startObjectType === BUILDING) || (i === route.length - 1 && endObjectType === BUILDING)) {
+                    lineColor = '#808080';
+                    lineType = 'dashed';
+                }
                 let polyline = new kakao.maps.Polyline({
                     path: linePath, // 선을 구성하는 좌표배열 입니다
                     strokeWeight: 5, // 선의 두께 입니다
-                    strokeColor: '#db4040', // 선의 색깔입니다
+                    strokeColor: lineColor, // 선의 색깔입니다
                     strokeOpacity: 0.7, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
-                    strokeStyle: 'solid', // 선의 스타일입니다
+                    strokeStyle: lineType, // 선의 스타일입니다
                     clickable: false
                 });
                 polyline.setMap(map);
@@ -502,7 +512,7 @@ function setBounds(response) {
     var i, marker;
     for (i = 0; i < points.length; i++) {
         // 배열의 좌표들이 잘 보이게 마커를 지도에 추가합니다
-        marker = new kakao.maps.Marker({ position : points[i] });
+        marker = new kakao.maps.Marker({position: points[i]});
         markers.push(marker);
         marker.setMap(map);
 
@@ -555,7 +565,7 @@ function resetPlaceError() {
 }
 
 function isPlaceEmpty() {
-    if($("#searchRequestForm").val() === "") {
+    if ($("#searchRequestForm").val() === "") {
         resetPlaceError();
         $("#searchRequestForm").attr('class', "form-control fieldError").focus();
         $("#searchPlaceError").text('검색 내용을 입력해주세요').show();

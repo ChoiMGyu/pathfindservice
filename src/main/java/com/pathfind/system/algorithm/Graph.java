@@ -1,3 +1,7 @@
+/*
+ * 클래스 기능 : 그래프 자료구조를 구현한 클래스
+ * 최근 수정 일자 : 2024.02.23(월)
+ */
 package com.pathfind.system.algorithm;
 
 import lombok.AllArgsConstructor;
@@ -23,8 +27,8 @@ public class Graph {
         }
     }
 
-    public void addEdge(Long u, Long v, double weight) {
-        adjList.get(u.intValue()).add(new Node(v.intValue(), weight));
+    public void addEdge(Long u, Long v, double weight, boolean isBuilding) {
+        adjList.get(u.intValue()).add(new Node(v.intValue(), weight, isBuilding));
     }
 
     public int getNumVertices() {
@@ -37,5 +41,6 @@ public class Graph {
     static class Node {
         int v;
         double weight;
+        boolean isBuilding;
     }
 }
