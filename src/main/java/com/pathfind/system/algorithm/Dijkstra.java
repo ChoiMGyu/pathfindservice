@@ -12,7 +12,7 @@ import java.util.*;
 public class Dijkstra {
     private static final Logger logger = LoggerFactory.getLogger(Dijkstra.class);
 
-    public static DijkstraResult shortestPath(List<Node> n, Graph graph, Long startId, Long endId) {
+    public static DijkstraResult dijkstra(List<Node> n, Graph graph, Long startId, Long endId) {
         PriorityQueue<Node> pq = new PriorityQueue<>(Comparator.comparing(Node::getDistance));
         List<Node> nodes = new ArrayList<>();
         List<Integer> path = new ArrayList<>();
@@ -44,6 +44,10 @@ public class Dijkstra {
             }
         }
 
+        return new DijkstraResult(nodes, path);
+    }
+
+    public static List<Integer> getShortestRoute(List<Integer> path, Long startId, Long endId) {
         List<Integer> result = new ArrayList<>();
         Stack<Integer> stack = new Stack<>();
         int endToStart = endId.intValue();
@@ -57,7 +61,7 @@ public class Dijkstra {
             logger.info("path: {}", stack.peek());
             result.add(stack.pop());
         }
-        logger.info("start to end length: {}", nodes.get(Math.toIntExact(endId)).getDistance());
-        return new DijkstraResult(nodes, result);
+
+        return result;
     }
 }

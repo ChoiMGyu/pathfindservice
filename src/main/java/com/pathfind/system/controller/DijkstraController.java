@@ -47,11 +47,11 @@ public class DijkstraController {
         FindPathCSResponse findPathCSResponse;
         if(request.getTransportation().equals("자동차")) {
             logger.info("도로 길찾기");
-            findPathCSResponse = findPathService.findRoadPath(request.getStart(), request.getEnd());
+            findPathCSResponse = findPathService.findRoadRoute(request.getStart(), request.getEnd());
         }
         else {
             logger.info("도보 길찾기");
-            findPathCSResponse = findPathService.findSidewalkPath(request.getStart(), request.getEnd());
+            findPathCSResponse = findPathService.findSidewalkRoute(request.getStart(), request.getEnd());
         }
 
         return new ShortestPathVCResponse(findPathCSResponse.getDistance(), speed, findPathCSResponse.getPath());

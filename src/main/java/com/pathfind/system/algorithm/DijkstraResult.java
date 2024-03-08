@@ -13,5 +13,5 @@ import java.util.List;
 @AllArgsConstructor
 public class DijkstraResult {
     private List<Node> nodes;
-    private List<Integer> route;
+    private List<Integer> path;
 }
