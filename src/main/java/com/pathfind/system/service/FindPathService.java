@@ -4,7 +4,7 @@ import com.pathfind.system.findPathDto.FindPathCSResponse;
 
 public interface FindPathService {
 
-    public FindPathCSResponse findSidewalkPath(Long start, Long end);
+    public FindPathCSResponse findSidewalkRoute(Long start, Long end);
 
-    public FindPathCSResponse findRoadPath(Long start, Long end);
+    public FindPathCSResponse findRoadRoute(Long start, Long end);
 }

@@ -33,7 +33,7 @@ public class FindPathServiceImpl implements FindPathService {
     private final SidewalkVertexRepository sidewalkVertexRepository;
 
     @Override
-    public FindPathCSResponse findRoadPath(Long start, Long end) {
+    public FindPathCSResponse findRoadRoute(Long start, Long end) {
         List<RoadVertex> vertices = roadVertexRepository.findAll();
         int numVertices = vertices.size();
         logger.info("roadVertices size: {}", numVertices);
@@ -54,9 +54,10 @@ public class FindPathServiceImpl implements FindPathService {
             nodes.add(new Node(roadVertex.getId() - 1, 0, isBuilding));
         }
         logger.info("findPathInfo(출발점과 도착점 사이 경로의 거리, 거쳐가야 하는 경로의 id) {} to {}", start.intValue(), end.intValue());
-        DijkstraResult dijkstraResult = Dijkstra.shortestPath(nodes, graph, start, end);
+        DijkstraResult dijkstraResult = Dijkstra.dijkstra(nodes, graph, start, end);
+        List<Integer> shortestRoute = Dijkstra.getShortestRoute(dijkstraResult.getPath(), start, end);
         List<ShortestPathRoute> routeInfo = new ArrayList<>();
-        for (Integer idx : dijkstraResult.getRoute()) {
+        for (Integer idx : shortestRoute) {
             routeInfo.add(new ShortestPathRoute(idx.longValue(), vertices.get(idx).getLatitude(), vertices.get(idx).getLongitude()));
         }
 
@@ -64,7 +65,7 @@ public class FindPathServiceImpl implements FindPathService {
     }
 
     @Override
-    public FindPathCSResponse findSidewalkPath(Long start, Long end) {
+    public FindPathCSResponse findSidewalkRoute(Long start, Long end) {
         List<SidewalkVertex> vertices = sidewalkVertexRepository.findAll();
         int numVertices = vertices.size();
         logger.info("sidewalkVertices size: {}", numVertices);
@@ -85,9 +86,10 @@ public class FindPathServiceImpl implements FindPathService {
             nodes.add(new Node(sidewalkVertex.getId() - 1, 0, isBuilding));
         }
         logger.info("findPathInfo(출발점과 도착점 사이 경로의 거리, 거쳐가야 하는 경로의 id) {} to {}", start.intValue(), end.intValue());
-        DijkstraResult dijkstraResult = Dijkstra.shortestPath(nodes, graph, start, end);
+        DijkstraResult dijkstraResult = Dijkstra.dijkstra(nodes, graph, start, end);
+        List<Integer> shortestRoute = Dijkstra.getShortestRoute(dijkstraResult.getPath(), start, end);
         List<ShortestPathRoute> routeInfo = new ArrayList<>();
-        for (Integer idx : dijkstraResult.getRoute()) {
+        for (Integer idx : shortestRoute) {
             routeInfo.add(new ShortestPathRoute(idx.longValue(), vertices.get(idx).getLatitude(), vertices.get(idx).getLongitude()));
         }
 
