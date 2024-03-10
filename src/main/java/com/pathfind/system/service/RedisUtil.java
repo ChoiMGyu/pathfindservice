@@ -19,7 +19,7 @@ public class RedisUtil {
 
     private final StringRedisTemplate redisTemplate;//Redis에 접근하기 위한 Spring의 Redis 템플릿 클래스
 
-    private static final Logger logger = LoggerFactory.getLogger(MailSendServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(RedisUtil.class);
 
     public String getData(String key){//지정된 키(key)에 해당하는 데이터를 Redis에서 가져오는 메서드
         logger.info("RedisUtil getData - key : " + key);

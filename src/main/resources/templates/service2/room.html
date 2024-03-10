@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns="http://www.w3.org/1999/html">
+<head th:replace="~{fragments/header :: header}">
+    <title>find path service2</title>
+    <link rel="stylesheet" href="/css/map.css">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body style="padding: 0; height: 100vh">
+<div style="height: 10%;" th:replace="~{fragments/bodyHeader :: bodyHeader}"/>
+<div class="container-fluid row" style="height: 85%;">
+    <div class="h-100 d-inline-block col-2">
+        <section id="input latitude, longitude" class="mt-3 mb-5">
+            <div class="form-group">
+                <h5><b>위도, 경도 입력</b></h5>
+                <div class="input-group mb-1">
+                    <input type="text" id="msg" class="form-control">
+                    <button class="btn btn-outline-primary" type="button" id="button-send">전송</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="invite user" class="mt-3 mb-5">
+            <th:block th:if="${room.memberNickname[0] == session.loginMember.nickname}">
+                <div class="form-group">
+                    <h5><b>회원 초대</b></h5>
+                    <div class="input-group mb-1">
+                        <input type="text" id="nickname" class="form-control" th:for="nickname">
+                        <button class="btn btn-outline-primary" type="button" id="invite">초대</button>
+                    </div>
+                </div>
+            </th:block>
+        </section>
+    </div>
+    <div class="h-100 d-inline-block col-10" id="map"></div>
+</div> <!-- /container -->
+<div style="height: 5%;" th:replace="~{fragments/footer :: footer}"/>
+</body>
+<script id="apikey" type="text/javascript"
+        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=36d7d56dffc065ea26aa515b442d5b6f"></script>
+<script type="text/javascript" src="/js/apikey.js"></script>
+<script type="text/javascript" src="/js/path.js"></script>
+<script type="text/javascript"
+        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=36d7d56dffc065ea26aa515b442d5b6f&libraries=services,clusterer,drawing"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script th:inline="javascript">
+    $(document).ready(function () {
+
+        let roomName = [[${room.roomName}]];
+        let roomId = [[${room.roomId}]];
+        let nickname = [[${session.loginMember}]].nickname;
+
+        console.log(roomName + ", " + roomId + ", " + nickname);
+
+        let sockJs = new SockJS("/connection");
+        //1. SockJS를 내부에 들고있는 stomp를 내어줌
+        let stomp = Stomp.over(sockJs);
+
+        //2. connection이 맺어지면 실행
+        stomp.connect({}, function () {
+            console.log("STOMP Connection")
+
+            //3. subscribe(path, callback)으로 메세지를 받을 수 있음
+            stomp.subscribe("/sub/service2/room/" + roomId, function (chat) {
+                let content = JSON.parse(chat.body);
+                //console.log(content);
+                let sender = content.sender;
+                let message = JSON.parse(content.message);
+                let route = message[0];
+                console.log(route);
+
+                setMapRoute(route, null, null);
+            });
+
+            //4. send(path, header, message)로 메세지를 보낼 수 있음
+            //stomp.send('/pub/room/enter', {}, JSON.stringify({roomId: roomId, sender: nickname}))
+        });
+
+        $("#button-send").on("click", function (e) {
+            let msg = document.getElementById("msg");
+
+            console.log(nickname + ":" + msg.value);
+            stomp.send('/pub/room/message', {}, JSON.stringify({roomId: roomId, sender: nickname, message: msg.value}));
+            msg.value = '';
+        });
+
+        $("#invite").on("click", function (e) {
+            let msg = document.getElementById("nickname");
+
+            console.log(nickname + ":" + msg.value);
+            stomp.send('/pub/room/invite', {}, JSON.stringify({roomId: roomId, sender: nickname, message: msg.value}));
+            msg.value = '';
+        });
+    });
+
+    // 브라우저 종료, 뒤로가기, 새로고침 될 때 적용할 이벤트 함수. 브라우저 종료 시 길찾기 방 웹소켓 서버에서도 나갈 수 있게 구현할 예정.
+    /*$(window).on("beforeunload", function () {
+        return "브라우저 종료 시 해당 길찾기 방에서 나가게 됩니다.";
+    });
+
+    $(window).on("unload", function () {
+        return "길찾기 방 종료";
+    });*/
+</script>
+</html>

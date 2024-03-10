@@ -19,7 +19,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class ObjectsServiceImpl implements ObjectsService{
 
-    private static final Logger logger = LoggerFactory.getLogger(MemberServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(ObjectsServiceImpl.class);
 
     private final ObjectsRepository objectsRepository;
 

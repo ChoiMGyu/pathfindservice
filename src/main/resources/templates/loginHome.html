@@ -14,14 +14,17 @@
         <hr class="my-4">
         <div class="row">
             <div class="col">
+                <a class="btn btn-lg btn-secondary" href="/service2/enter">Service 2</a>
+            </div>
+            <div class="col">
+                <a class="btn btn-lg btn-secondary" href="/members/myProfile">나의 프로필</a>
+            </div>
+            <div class="col">
                 <form th:action="@{/members/logout}" method="post">
                     <button class="btn btn-lg btn-secondary mb-4" type="submit">
                         로그아웃
                     </button>
                 </form>
-            </div>
-            <div class="col">
-                <a class="btn btn-lg btn-secondary" href="/members/myProfile">나의 프로필</a>
             </div>
         </div>
     </div>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: header}"/>
+<body>
+<div class="container">
+    <div th:replace="~{fragments/bodyHeader :: bodyHeader}"/>
+    <!--<div class="d-flex justify-content-end">-->
+                <form action="/service2/create-room" method="post">
+                    <input id="name" type="text" name="name" class="form-control">
+                    <button class="btn btn-secondary">개설하기</button>
+                </form>
+        <!--<button id="submit" class="btn btn-primary" type="submit">다음</button>-->
+    <!--</div>-->
+    <div th:replace="~{fragments/footer :: footer}"/>
+</div> <!-- /container -->
+</body>
+<script type="text/javascript">
+    $('#submit').on('click', function () {
+        location.href='/members/new';
+    });
+</script>
+</html>
