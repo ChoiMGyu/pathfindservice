@@ -2,9 +2,11 @@ package com.pathfind.system.findPathService2Dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class MemberLatLng {
     private double latitude; // 위도
     private double longitude; // 경도

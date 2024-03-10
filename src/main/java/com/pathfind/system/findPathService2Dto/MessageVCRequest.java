@@ -6,9 +6,11 @@ package com.pathfind.system.findPathService2Dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class MessageVCRequest {
     private String roomId;
     private String sender;

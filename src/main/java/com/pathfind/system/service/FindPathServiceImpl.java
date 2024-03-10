@@ -25,7 +25,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class FindPathServiceImpl implements FindPathService {
 
-    private static final Logger logger = LoggerFactory.getLogger(MemberServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(FindPathServiceImpl.class);
 
     private final RoadEdgeRepository roadEdgeRepository;
     private final RoadVertexRepository roadVertexRepository;

@@ -17,7 +17,6 @@ import com.pathfind.system.repository.SidewalkVertexRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,10 +26,10 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-//@Transactional
+@Transactional
 public class FindPathRoomServiceImpl implements FindPathRoomService {
 
-    private static final Logger logger = LoggerFactory.getLogger(MemberServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(FindPathRoomServiceImpl.class);
 
     private final RedisUtil redisUtil;
     private final ObjectMapper objectMapper;
@@ -40,35 +39,33 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     private final SidewalkVertexRepository sidewalkVertexRepository;
 
     @Override
-    public FindPathRoom findById(String roomId) throws IOException {
+    public FindPathRoom findRoomById(String roomId) throws IOException {
         logger.info("get room, roomId: {}", roomId);
         String jsonStringRoom = redisUtil.getData(roomId);
         return objectMapper.readValue(jsonStringRoom, FindPathRoom.class);
     }
 
     @Override
-    public FindPathRoom createRoom(String name) throws JsonProcessingException {
-        FindPathRoom findPathRoom = FindPathRoom.createFindPathRoom(name);
-        while(redisUtil.getData(findPathRoom.getRoomId()) == null) findPathRoom.createRoomId();
+    public FindPathRoom createRoom(String nickname, String roomName) throws JsonProcessingException {
+        FindPathRoom findPathRoom = FindPathRoom.createFindPathRoom(roomName);
+        while (redisUtil.getData(findPathRoom.getRoomId()) != null) findPathRoom.createRoomId();
+        findPathRoom.pushNewMember(nickname, null, null, false);
+
         String jsonStringRoom = objectMapper.writeValueAsString(findPathRoom);
-        logger.info("create room, roomId: {}", findPathRoom.getRoomId());
+        logger.info("create jsonStringRoom: {}", jsonStringRoom);
+
         redisUtil.setData(findPathRoom.getRoomId(), jsonStringRoom);
         return findPathRoom;
     }
 
     @Override
-    public FindPathRoom changeRoomMemberLocation(String roomId, String sender, String message) throws IOException, JsonProcessingException {
-        logger.info("change room member's location", roomId);
-        FindPathRoom findPathRoom = findById(roomId);
+    public FindPathRoom changeRoomMemberLocation(String roomId, String sender, String message) throws IOException {
+        logger.info("change room member's location, roomId {}", roomId);
+        FindPathRoom findPathRoom = findRoomById(roomId);
         MemberLatLng memberLatLng = objectMapper.readValue(message, MemberLatLng.class);
         double memberLat = memberLatLng.getLatitude(), memberLng = memberLatLng.getLongitude(), dist = 1000000.0;
-        Integer senderIdx = -1, closestVertexId = -1;
-        for (int i = 0; i < findPathRoom.getMemberNickname().size(); i++) {
-            if (findPathRoom.getMemberNickname().get(i).equals(sender)) {
-                senderIdx = i;
-                break;
-            }
-        }
+        Integer senderIdx = findPathRoom.getMemberNickname().indexOf(sender), closestVertexId = -1;
+
         logger.info("member({})'s current location - latitude: {}, longitude: {}", senderIdx, memberLat, memberLng);
         logger.info("find closest vertexId...");
         if (!findPathRoom.getIsRoad().get(senderIdx)) {
@@ -102,7 +99,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     }
 
     @Override
-    public List<List<ShortestPathRoute>> findRoadShortestRoute(FindPathRoom findPathRoom) {
+    public String findRoadShortestRoute(FindPathRoom findPathRoom) throws JsonProcessingException {
         Long start = findPathRoom.getClosestVertexId().get(0);
         MemberLatLng startLatLng = findPathRoom.getMemberLocation().get(0);
         List<RoadVertex> vertices = roadVertexRepository.findAll();
@@ -143,11 +140,11 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
             shortestRouteList.add(routeInfo);
         }
 
-        return shortestRouteList;
+        return objectMapper.writeValueAsString(shortestRouteList);
     }
 
     @Override
-    public List<List<ShortestPathRoute>> findSidewalkShortestRoute(FindPathRoom findPathRoom) {
+    public String findSidewalkShortestRoute(FindPathRoom findPathRoom) throws JsonProcessingException {
         Long start = findPathRoom.getClosestVertexId().get(0);
         MemberLatLng startLatLng = findPathRoom.getMemberLocation().get(0);
         List<SidewalkVertex> vertices = sidewalkVertexRepository.findAll();
@@ -188,12 +185,20 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
             shortestRouteList.add(routeInfo);
         }
 
-        return shortestRouteList;
+        return objectMapper.writeValueAsString(shortestRouteList);
     }
 
     @Override
     public void deleteRoom(String roomId) {
         logger.info("delete room, id: {}", roomId);
         redisUtil.deleteData(roomId);
+    }
+
+    @Override
+    public void inviteMember(String roomId, String nickname) throws IOException {
+        FindPathRoom room = findRoomById(roomId);
+        room.pushNewMember(nickname, null, null, false);
+        String jsonStringRoom = objectMapper.writeValueAsString(room);
+        redisUtil.setData(roomId, jsonStringRoom);
     }
 }

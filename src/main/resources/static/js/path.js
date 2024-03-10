@@ -261,6 +261,61 @@ function deleteRecentSearch(idx) {
     showRecentSearchList();
 }
 
+// 지도에 두 지점 간의 경로를 그리는 함수이다.
+function setMapRoute(route, startObjectType, endObjectType) {
+    for (let i = 0; i < drawRoute.length; i++) drawRoute[i].setMap(null);
+    drawRoute = [];
+    for (let i = 0; i < markers.length; i++) {
+        //console.log(markers[i]);
+        markers[i].setMap(null);
+        //markers[i].infowindow.close();
+    }
+    markers = [];
+    if(route === undefined) return;
+    for (let i = 1; i < route.length; i++) {
+        let linePath = [
+            new kakao.maps.LatLng(route[i - 1].latitude, route[i - 1].longitude),
+            new kakao.maps.LatLng(route[i].latitude, route[i].longitude)
+        ]
+        let lineColor = '#db4040', lineType = 'solid';
+        if ((i === 1 && startObjectType === BUILDING) || (i === route.length - 1 && endObjectType === BUILDING)) {
+            lineColor = '#808080';
+            lineType = 'dashed';
+        }
+        let polyline = new kakao.maps.Polyline({
+            path: linePath, // 선을 구성하는 좌표배열 입니다
+            strokeWeight: 5, // 선의 두께 입니다
+            strokeColor: lineColor, // 선의 색깔입니다
+            strokeOpacity: 0.7, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
+            strokeStyle: lineType, // 선의 스타일입니다
+            clickable: false
+        });
+        polyline.setMap(map);
+        drawRoute.push(polyline);
+    }
+    let startPoint = new kakao.maps.Marker({position: new kakao.maps.LatLng(route[0].latitude, route[0].longitude)});
+    startPoint.setMap(map);
+    markers.push(startPoint);
+
+    /*let startPointInfo = document.createElement('div');
+    startPointInfo.textContent = "출발";
+    startPointInfo.style.width = "100%";
+    startPointInfo.style.padding = "5px";
+    startPoint.infowindow = new kakao.maps.InfoWindow({content: startPointInfo});
+    startPoint.infowindow.open(map, startPoint);*/
+
+    let endPoint = new kakao.maps.Marker({position: new kakao.maps.LatLng(route[route.length - 1].latitude, route[route.length - 1].longitude)});
+    endPoint.setMap(map);
+    markers.push(endPoint);
+
+    /*let endPointInfo = document.createElement('div');
+    endPointInfo.textContent = "도착";
+    endPointInfo.style.width = "100%";
+    endPointInfo.style.padding = "5px";
+    endPoint.infowindow = new kakao.maps.InfoWindow({content: endPointInfo});
+    endPoint.infowindow.open(map, endPoint);*/
+}
+
 // 서버에게 길찾기 수행을 요청하고 길찾기 결과를 반환받아 길찾기 결과 정보를 사용자에게 제공하는 함수이다.
 function findPath() {
     console.log("findPath() 호출됨")
@@ -348,62 +403,14 @@ function findPath() {
         type: "get",
         url: "/path?" + graphRequestForm,
         success: function (response) {
+            console.log(response);
+            let route = response.path;
             /*====================================================================================================*/
             /*길찾기 경로 지도에 표시*/
             //console.log('distance: ' + response.distance);
             resetSearchForm();
 
-            for (let i = 0; i < drawRoute.length; i++) drawRoute[i].setMap(null);
-            drawRoute = [];
-            for (let i = 0; i < markers.length; i++) {
-                markers[i].setMap(null);
-                //markers[i].infowindow.close();
-            }
-            markers = [];
-
-            let route = response.path;
-            for (let i = 1; i < route.length; i++) {
-                let linePath = [
-                    new kakao.maps.LatLng(route[i - 1].latitude, route[i - 1].longitude),
-                    new kakao.maps.LatLng(route[i].latitude, route[i].longitude)
-                ]
-                let lineColor = '#db4040', lineType = 'solid';
-                if ((i === 1 && startObjectType === BUILDING) || (i === route.length - 1 && endObjectType === BUILDING)) {
-                    lineColor = '#808080';
-                    lineType = 'dashed';
-                }
-                let polyline = new kakao.maps.Polyline({
-                    path: linePath, // 선을 구성하는 좌표배열 입니다
-                    strokeWeight: 5, // 선의 두께 입니다
-                    strokeColor: lineColor, // 선의 색깔입니다
-                    strokeOpacity: 0.7, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
-                    strokeStyle: lineType, // 선의 스타일입니다
-                    clickable: false
-                });
-                polyline.setMap(map);
-                drawRoute.push(polyline);
-            }
-            let startPoint = new kakao.maps.Marker({position: new kakao.maps.LatLng(route[0].latitude, route[0].longitude)});
-            startPoint.setMap(map);
-            markers.push(startPoint);
-
-            /*let startPointInfo = document.createElement('div');
-            startPointInfo.textContent = "출발";
-            startPointInfo.style.width = "100%";
-            startPointInfo.style.padding = "5px";
-            startPoint.infowindow = new kakao.maps.InfoWindow({content: startPointInfo});
-            startPoint.infowindow.open(map, startPoint);*/
-
-            let endPoint = new kakao.maps.Marker({position: new kakao.maps.LatLng(route[route.length - 1].latitude, route[route.length - 1].longitude)});
-            endPoint.setMap(map);
-            markers.push(endPoint);
-
-            /*let endPointInfo = document.createElement('div');
-            endPointInfo.textContent = "도착";
-            endPointInfo.style.width = "100%";
-            endPointInfo.style.padding = "5px";
-            endPoint.infowindow = new kakao.maps.InfoWindow({content: endPointInfo});
-            endPoint.infowindow.open(map, endPoint);*/
+            setMapRoute(route, startObjectType, endObjectType);
             /*====================================================================================================*/
 
 
