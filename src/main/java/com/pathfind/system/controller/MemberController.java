@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 관련 페이지 렌더링을 하는 controller
- * 최근 수정 일자 : 2024.01.26(금)
+ * 최근 수정 일자 : 2024.03.18(월)
  */
 package com.pathfind.system.controller;
 
@@ -112,7 +112,7 @@ public class MemberController {
         logger.info("member user id check");
 
         HttpSession session = request.getSession(false);
-        if(session == null) {
+        if (session == null) {
             return "redirect:/members/login";
         }
 
@@ -156,7 +156,7 @@ public class MemberController {
         logger.info("member nickname check");
 
         HttpSession session = request.getSession(false);
-        if(session == null) {
+        if (session == null) {
             return "redirect:/members/login";
         }
 
@@ -197,7 +197,7 @@ public class MemberController {
         logger.info("member email check");
 
         HttpSession session = request.getSession(false);
-        if(session == null) {
+        if (session == null) {
             return "redirect:/members/login";
         }
 
@@ -238,7 +238,7 @@ public class MemberController {
         logger.info("member email number send");
 
         HttpSession session = request.getSession(false);
-        if(session == null) {
+        if (session == null) {
             return "redirect:/members/login";
         }
 
@@ -275,7 +275,7 @@ public class MemberController {
         logger.info("member email number check");
 
         HttpSession session = request.getSession(false);
-        if(session == null) {
+        if (session == null) {
             return "redirect:/members/login";
         }
 
@@ -303,7 +303,7 @@ public class MemberController {
         logger.info("member password check and register");
 
         HttpSession session = request.getSession(false);
-        if(session == null) {
+        if (session == null) {
             return "redirect:/members/login";
         }
 
@@ -399,7 +399,7 @@ public class MemberController {
     @PostMapping("/isValidEmail")
     public String isValidEmail(SubmitForm form, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {
         HttpSession session = request.getSession(false);
-        if(session == null) {
+        if (session == null) {
             return "redirect:/members/login";
         }
 
@@ -440,7 +440,7 @@ public class MemberController {
     @PostMapping("/returnId")
     public String returnId(SubmitForm form, Model model, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {
         HttpSession session = request.getSession(false);
-        if(session == null) {
+        if (session == null) {
             return "redirect:/members/login";
         }
 
@@ -449,10 +449,9 @@ public class MemberController {
         String path = getPath(request);
 
         List<String> userId = memberService.findUserIdByEmail(form.getEmail());
-        if(!userId.isEmpty()) {
+        if (!userId.isEmpty()) {
             model.addAttribute("userId", userId.get(0));
-        }
-        else {
+        } else {
             result.rejectValue("userId", "Fail.find.userId");
         }
 
@@ -483,7 +482,7 @@ public class MemberController {
     @PostMapping("/isValidIdEmail")
     public String isValidIdEmail(SubmitForm form, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {
         HttpSession session = request.getSession(false);
-        if(session == null) {
+        if (session == null) {
             return "redirect:/members/login";
         }
 
@@ -536,7 +535,7 @@ public class MemberController {
         logger.info("member password reset");
 
         HttpSession session = request.getSession(false);
-        if(session == null) {
+        if (session == null) {
             return "redirect:/members/login";
         }
 
@@ -588,7 +587,7 @@ public class MemberController {
 
     @PostMapping("/updatePassword")
     public String updatePassword(@Validated(ValidationSequence.class) PasswordForm form, BindingResult result, Model model, HttpSession session, RedirectAttributes rttr) {
-        if(result.hasErrors()) {
+        if (result.hasErrors()) {
             return "members/updatePasswordForm";
         }
 
@@ -596,25 +595,25 @@ public class MemberController {
         String regex = "(?=.*[0-9])(?=.*[a-zA-Z])(?=.*\\W)(?=\\S+$).{8,20}";
         Pattern pattern = Pattern.compile(regex);
 
-        Member loginMember = (Member)session.getAttribute(SessionConst.LOGIN_MEMBER);
+        Member loginMember = (Member) session.getAttribute(SessionConst.LOGIN_MEMBER);
         logger.info("로그인 멤버의 아이디 : " + loginMember.getId() + ", 패스워드 : " + loginMember.getPassword());
 
         Matcher matcher = pattern.matcher(form.getNewPassword1());
 
-        if(!form.getOldPassword().equals(loginMember.getPassword())) {
+        if (!form.getOldPassword().equals(loginMember.getPassword())) {
             logger.info("이전 패스워드가 일치하지 않는 경우");
             result.rejectValue("oldPassword", "NotSame.newPassword1");
         }
-        if(!form.getNewPassword1().equals(form.getNewPassword2())) {
+        if (!form.getNewPassword1().equals(form.getNewPassword2())) {
             logger.info("새 패스워드와 새 패스워드 확인이 일치하지 않는 경우");
             result.rejectValue("newPassword2", "NotSame.newPassword2");
         }
-        if(!matcher.matches()) {
+        if (!matcher.matches()) {
             logger.info("새 패스워드 형식이 올바르지 않은 경우");
             result.rejectValue("newPassword2", "Format.newPassword2");
         }
 
-        if(!result.hasErrors()) {
+        if (!result.hasErrors()) {
             logger.info("패스워드를 정상적으로 변경했습니다.");
             //logger.info("controller에서 비밀번호 변경을 하기 전 loginMember 객체 : " + loginMember);
             //비밀번호 변경을 하기 전 loginMember와 서비스 계층 로직 내에서 비밀번호 변경을 한 loginMember는 동일함
@@ -658,9 +657,10 @@ public class MemberController {
         HttpSession session = request.getSession();
         //세션에 로그인 회원 정보 보관 (문자열 상수로 세션 ID 재활용 "loginMember")
         session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);
+        session.setMaxInactiveInterval(60 * 60 * 3);
 
         //로그인 시도 후 세션을 만들고 휴면 계정 여부 체크
-        if(loginMember.getCheck().isDormant()) {
+        if (loginMember.getCheck().isDormant()) {
             return "redirect:/members/recover";
         }
 

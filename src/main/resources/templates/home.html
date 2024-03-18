@@ -1,63 +1,20 @@
-<!--<!DOCTYPE HTML>-->
-<!--<html xmlns:th="http://www.thymeleaf.org">-->
-<!--<head th:replace="fragments/header :: header">-->
-<!--    <title>Hello</title>-->
-<!--    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />-->
-<!--</head>-->
-<!--<body>-->
-<!--<div class="container">-->
-<!--    <div th:replace="fragments/bodyHeader :: bodyHeader" />-->
-<!--    <div class="jumbotron">-->
-<!--        <h1>MAP Application</h1>-->
-<!--        <p class="lead">회원 기능</p>-->
-<!--        <p>-->
-<!--            <a class="btn btn-lg btn-secondary" href="/members/new">회원 가입</a>-->
-<!--            <a class="btn btn-lg btn-secondary" href="/members">회원 목록</a>-->
-<!--        </p>-->
-<!--        <p class="lead">상품 기능</p>-->
-<!--        <p>-->
-<!--            <a class="btn btn-lg btn-dark" href="/items/new">상품 등록</a>-->
-<!--            <a class="btn btn-lg btn-dark" href="/items">상품 목록</a>-->
-<!--        </p>-->
-<!--        <p class="lead">주문 기능</p>-->
-<!--        <p>-->
-<!--            <a class="btn btn-lg btn-info" href="/order">상품 주문</a>-->
-<!--            <a class="btn btn-lg btn-info" href="/orders">주문 내역</a>-->
-<!--        </p>-->
-<!--    </div>-->
-<!--    <div th:replace="fragments/footer :: footer" />-->
-<!--</div> &lt;!&ndash; /container &ndash;&gt;-->
-<!--</body>-->
-<!--</html>-->
-
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/header :: header}">
     <title>Hello</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
-<script th:inline="javascript">
-    /*<![CDATA[*/
-    document.addEventListener("DOMContentLoaded", function () {
-        var messageElement = document.querySelector('.alert');
-        if (messageElement) {
-            setTimeout(function () {
-                messageElement.style.display = 'none';
-            }, 5000); // 5000 milliseconds (5 seconds)
-        }
-    });
-    /*]]>*/
-</script>
 <body>
 <div class="container">
     <div th:replace="~{fragments/bodyHeader :: bodyHeader}"/>
     <div th:if="${message}" class="alert alert-info alert-dismissible fade show mt-3" role="alert">
-        <span th:text="${message}">휴면 복구 완료</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <span class="text-start" th:text="${message}">수정 완료</span>
+        <button type="button" class="btn-close messageBtn" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     <div class="jumbotron">
-        <p class="lead">회원 기능</p>
+        <p class="lead my-4">회원 기능</p>
         <p>
+            <a class="btn btn-lg btn-secondary" href="/map/path">Service 1</a>
             <a class="btn btn-lg btn-secondary" href="/members/agree">회원 가입</a>
 
             <button class="btn btn-lg btn-secondary"
@@ -65,6 +22,8 @@
                     th:onclick="|location.href='@{/members/login}'|" type="button">
                 로그인
             </button>
+        </p>
+        <p>
             <a class="btn btn-lg btn-secondary" href="/members/findUserId">아이디 찾기</a>
             <a class="btn btn-lg btn-secondary" href="/members/findPassword">비밀번호 초기화</a>
         </p>
@@ -72,4 +31,5 @@
     <div th:replace="~{fragments/footer :: footer}"/>
 </div> <!-- /container -->
 </body>
+<script type="text/javascript" src="/js/messages.js"></script>
 </html>
