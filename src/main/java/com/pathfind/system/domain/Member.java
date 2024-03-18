@@ -10,6 +10,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -20,7 +21,8 @@ import java.util.regex.Pattern;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_id")
     private Long id; //Member 테이블 PK
 
@@ -101,20 +103,29 @@ public class Member {
     }
 
     private String getRandomPassword() {
+        SecureRandom random = new SecureRandom();
         String patternPassword = "(?=.*[0-9])(?=.*[a-zA-Z])(?=.*\\W)(?=\\S+$).{8,20}";
         StringBuilder randomPassword;
         boolean regexPassword;
         do {
             randomPassword = new StringBuilder();
             for (int i = 0; i < 14; i++) {
-                int nextType = (int) (Math.random() * 4);
-                if (nextType == 0) randomPassword.append((char) (48 + (int) (Math.random() * 10)));
-                else if (nextType == 1) randomPassword.append((char) (65 + (int) (Math.random() * 26)));
-                else if (nextType == 2) randomPassword.append((char) (97 + (int) (Math.random() * 26)));
-                else randomPassword.append((char) (33 + (int) (Math.random() * 94)));
+                int nextType = (int) (random.nextFloat() * 4);
+                if (nextType == 0) randomPassword.append((char) (48 + random.nextInt(10)));
+                else if (nextType == 1) randomPassword.append((char) (65 + random.nextInt(26)));
+                else if (nextType == 2) randomPassword.append((char) (97 + random.nextInt(26)));
+                else {
+                    while (true) {
+                        int c = 33 + random.nextInt(94);
+                        if (c != 34 && c != 39 && c != 92) {
+                            randomPassword.append(c);
+                            break;
+                        }
+                    }
+                }
             }
             regexPassword = Pattern.matches(patternPassword, randomPassword.toString());
-        } while(!regexPassword);
+        } while (!regexPassword);
         return randomPassword.toString();
     }
 

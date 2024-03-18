@@ -1,3 +1,7 @@
+/*
+ * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2) 구현체
+ * 최근 수정 일자 : 2024.03.18(월)
+ */
 package com.pathfind.system.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -10,6 +14,7 @@ import com.pathfind.system.domain.*;
 import com.pathfind.system.findPathDto.ShortestPathRoute;
 import com.pathfind.system.findPathService2Dto.FindPathRoom;
 import com.pathfind.system.findPathService2Dto.MemberLatLng;
+import com.pathfind.system.findPathService2Dto.RoomMemberInfo;
 import com.pathfind.system.repository.RoadEdgeRepository;
 import com.pathfind.system.repository.RoadVertexRepository;
 import com.pathfind.system.repository.SidewalkEdgeRepository;
@@ -17,12 +22,14 @@ import com.pathfind.system.repository.SidewalkVertexRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -39,78 +46,98 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     private final SidewalkVertexRepository sidewalkVertexRepository;
 
     @Override
-    public FindPathRoom findRoomById(String roomId) throws IOException {
-        logger.info("get room, roomId: {}", roomId);
-        String jsonStringRoom = redisUtil.getData(roomId);
-        return objectMapper.readValue(jsonStringRoom, FindPathRoom.class);
+    public List<FindPathRoom> findAllRoom() {
+        logger.info("Get all room");
+        ValueOperations<String, String> allData = redisUtil.getAllData();
+        Set<String> keys = allData.getOperations().keys("*");
+        if (keys == null) return null;
+        List<FindPathRoom> rooms = new ArrayList<>();
+        for (String key : keys) {
+            try {
+                rooms.add(objectMapper.readValue(allData.get(key), FindPathRoom.class));
+            } catch (JsonProcessingException e) {
+                logger.warn(e.getMessage());
+            }
+        }
+        logger.info("All room data: ");
+        for (FindPathRoom room : rooms) {
+            logger.info("{}", room);
+        }
+        return rooms;
     }
 
     @Override
-    public FindPathRoom createRoom(String nickname, String roomName) throws JsonProcessingException {
+    public FindPathRoom findRoomById(String roomId) throws IOException {
+        logger.info("Get room, roomId: {}", roomId);
+        String jsonStringRoom = redisUtil.getData(roomId);
+        return jsonStringRoom == null ? null : objectMapper.readValue(jsonStringRoom, FindPathRoom.class);
+    }
+
+    @Override
+    public FindPathRoom createRoom(String nickname, String roomName, Boolean isRoad) throws JsonProcessingException {
+        logger.info("Create room...");
         FindPathRoom findPathRoom = FindPathRoom.createFindPathRoom(roomName);
         while (redisUtil.getData(findPathRoom.getRoomId()) != null) findPathRoom.createRoomId();
-        findPathRoom.pushNewMember(nickname, null, null, false);
+        findPathRoom.pushNewMember(nickname, null, null, isRoad);
 
         String jsonStringRoom = objectMapper.writeValueAsString(findPathRoom);
-        logger.info("create jsonStringRoom: {}", jsonStringRoom);
+        logger.info("Create jsonStringRoom: {}", jsonStringRoom);
 
-        redisUtil.setData(findPathRoom.getRoomId(), jsonStringRoom);
+        redisUtil.setDataExpire(findPathRoom.getRoomId(), jsonStringRoom, 60 * 60 * 2L);
         return findPathRoom;
     }
 
     @Override
     public FindPathRoom changeRoomMemberLocation(String roomId, String sender, String message) throws IOException {
-        logger.info("change room member's location, roomId {}", roomId);
+        logger.info("Change room member's location, roomId {}", roomId);
         FindPathRoom findPathRoom = findRoomById(roomId);
         MemberLatLng memberLatLng = objectMapper.readValue(message, MemberLatLng.class);
         double memberLat = memberLatLng.getLatitude(), memberLng = memberLatLng.getLongitude(), dist = 1000000.0;
-        Integer senderIdx = findPathRoom.getMemberNickname().indexOf(sender), closestVertexId = -1;
+        RoomMemberInfo member = findPathRoom.findMemberByNickname(sender);
+        member.setLocation(memberLatLng);
 
-        logger.info("member({})'s current location - latitude: {}, longitude: {}", senderIdx, memberLat, memberLng);
-        logger.info("find closest vertexId...");
-        if (!findPathRoom.getIsRoad().get(senderIdx)) {
+        logger.info("Member({})'s current location - latitude: {}, longitude: {}", sender, memberLat, memberLng);
+        logger.info("Find closest vertexId...");
+        if (!member.getIsRoad()) {
             List<SidewalkVertex> SWVertices = sidewalkVertexRepository.findAll();
-            for (int i = 0; i < SWVertices.size(); i++) {
-                SidewalkVertex vertex = SWVertices.get(i);
+            for (SidewalkVertex vertex : SWVertices) {
                 double tmpDist = Math.pow(Math.abs(memberLat - vertex.getLatitude()), 2) + Math.pow(Math.abs(memberLng - vertex.getLongitude()), 2);
                 if (dist > tmpDist) {
-                    logger.info("vertexId: {}, distance difference: {}, minimum distance: {}", vertex.getId() - 1, tmpDist, dist);
+                    logger.info("VertexId: {}, distance difference: {}, minimum distance: {}", vertex.getId() - 1, tmpDist, dist);
                     dist = tmpDist;
-                    closestVertexId = vertex.getId().intValue() - 1;
+                    member.setClosestVertexId(vertex.getId() - 1);
                 }
             }
         } else {
             List<RoadVertex> RVertices = roadVertexRepository.findAll();
-            for (int i = 0; i < RVertices.size(); i++) {
-                RoadVertex vertex = RVertices.get(i);
+            for (RoadVertex vertex : RVertices) {
                 double tmpDist = Math.pow(Math.abs(memberLat - vertex.getLatitude()), 2) + Math.pow(Math.abs(memberLng - vertex.getLongitude()), 2);
                 if (dist > tmpDist) {
-                    logger.info("vertexId: {}, distance difference: {}, minimum distance: {}", vertex.getId() - 1, tmpDist, dist);
+                    logger.info("VertexId: {}, distance difference: {}, minimum distance: {}", vertex.getId() - 1, tmpDist, dist);
                     dist = tmpDist;
-                    closestVertexId = vertex.getId().intValue() - 1;
+                    member.setClosestVertexId(vertex.getId() - 1);
                 }
             }
         }
-        logger.info("member({})'s closest vertexId: {}", senderIdx, closestVertexId);
-        findPathRoom.changeMemberLocation(senderIdx, memberLatLng, closestVertexId.longValue());
+        logger.info("Member({})'s closest vertexId: {}", sender, member.getClosestVertexId());
         String jsonStringRoom = objectMapper.writeValueAsString(findPathRoom);
         redisUtil.setData(roomId, jsonStringRoom);
         return findPathRoom;
     }
 
     @Override
-    public String findRoadShortestRoute(FindPathRoom findPathRoom) throws JsonProcessingException {
-        Long start = findPathRoom.getClosestVertexId().get(0);
-        MemberLatLng startLatLng = findPathRoom.getMemberLocation().get(0);
+    public List<List<ShortestPathRoute>> findRoadShortestRoute(FindPathRoom findPathRoom) {
+        Long start = findPathRoom.getInvitedMember().get(0).getClosestVertexId();
+        MemberLatLng startLatLng = findPathRoom.getInvitedMember().get(0).getLocation();
         List<RoadVertex> vertices = roadVertexRepository.findAll();
         int numVertices = vertices.size();
-        logger.info("roadVertices size: {}", numVertices);
+        logger.info("RoadVertices size: {}", numVertices);
         Graph graph = new Graph(numVertices);
 
         List<RoadEdge> edges = roadEdgeRepository.findAll();
-        logger.info("roadEdges size: {}", edges.size());
+        logger.info("RoadEdges size: {}", edges.size());
         for (RoadEdge edge : edges) {
-            logger.info("edge 정보 : " + edge.getRoadVertex1() + " " + edge.getRoadVertex2() + " " + edge.getLength());
+            logger.info("Edge 정보 : " + edge.getRoadVertex1() + " " + edge.getRoadVertex2() + " " + edge.getLength());
             Objects object = vertices.get(Math.toIntExact(edge.getRoadVertex2() - 1)).getObject();
             boolean isBuilding = object != null && object.getObjectType() == ObjType.BUILDING;
             graph.addEdge(edge.getRoadVertex1() - 1, edge.getRoadVertex2() - 1, edge.getLength(), isBuilding);
@@ -124,10 +151,11 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         DijkstraResult dijkstraResult = Dijkstra.dijkstra(nodes, graph, start, -1L);
         List<List<ShortestPathRoute>> shortestRouteList = new ArrayList<>();
         logger.info("방장과 각 인원들의 경로 계산");
-        for (int i = 1; i < findPathRoom.getClosestVertexId().size(); i++) {
-            Long end = findPathRoom.getClosestVertexId().get(i);
+        for (int i = 1; i < findPathRoom.getInvitedMember().size(); i++) {
+            Long end = findPathRoom.getInvitedMember().get(i).getClosestVertexId();
+            if (end == null) continue;
             logger.info("방장, {}번째 사람의 경로", end);
-            MemberLatLng memberLatLng = findPathRoom.getMemberLocation().get(i);
+            MemberLatLng memberLatLng = findPathRoom.getInvitedMember().get(i).getLocation();
             List<ShortestPathRoute> routeInfo = new ArrayList<>();
             logger.info("시작 위치 - latitude: {}, longitude: {}", startLatLng.getLatitude(), startLatLng.getLongitude());
             List<Integer> shortestRoute = Dijkstra.getShortestRoute(dijkstraResult.getPath(), start, end);
@@ -140,20 +168,20 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
             shortestRouteList.add(routeInfo);
         }
 
-        return objectMapper.writeValueAsString(shortestRouteList);
+        return shortestRouteList;
     }
 
     @Override
-    public String findSidewalkShortestRoute(FindPathRoom findPathRoom) throws JsonProcessingException {
-        Long start = findPathRoom.getClosestVertexId().get(0);
-        MemberLatLng startLatLng = findPathRoom.getMemberLocation().get(0);
+    public List<List<ShortestPathRoute>> findSidewalkShortestRoute(FindPathRoom findPathRoom) {
+        Long start = findPathRoom.getInvitedMember().get(0).getClosestVertexId();
+        MemberLatLng startLatLng = findPathRoom.getInvitedMember().get(0).getLocation();
         List<SidewalkVertex> vertices = sidewalkVertexRepository.findAll();
         int numVertices = vertices.size();
-        logger.info("sidewalkVertices size: {}", numVertices);
+        logger.info("SidewalkVertices size: {}", numVertices);
         Graph graph = new Graph(numVertices);
 
         List<SidewalkEdge> edges = sidewalkEdgeRepository.findAll();
-        logger.info("sidewalkEdges size: {}", edges.size());
+        logger.info("SidewalkEdges size: {}", edges.size());
         for (SidewalkEdge edge : edges) {
             logger.info("edge 정보 : " + edge.getSidewalkVertex1() + " " + edge.getSidewalkVertex2() + " " + edge.getLength());
             Objects object = vertices.get(Math.toIntExact((edge.getSidewalkVertex2() - 1))).getObject();
@@ -169,11 +197,12 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         DijkstraResult dijkstraResult = Dijkstra.dijkstra(nodes, graph, start, -1L);
         List<List<ShortestPathRoute>> shortestRouteList = new ArrayList<>();
         logger.info("방장과 각 인원들의 경로 계산");
-        for (int i = 1; i < findPathRoom.getClosestVertexId().size(); i++) {
-            Long end = findPathRoom.getClosestVertexId().get(i);
+        for (int i = 1; i < findPathRoom.getInvitedMember().size(); i++) {
+            Long end = findPathRoom.getInvitedMember().get(i).getClosestVertexId();
+            if (end == null) continue;
             logger.info("방장, {}번째 사람의 경로", end);
             List<ShortestPathRoute> routeInfo = new ArrayList<>();
-            MemberLatLng memberLatLng = findPathRoom.getMemberLocation().get(i);
+            MemberLatLng memberLatLng = findPathRoom.getInvitedMember().get(i).getLocation();
             logger.info("시작 위치 - latitude: {}, longitude: {}", startLatLng.getLatitude(), startLatLng.getLongitude());
             List<Integer> shortestRoute = Dijkstra.getShortestRoute(dijkstraResult.getPath(), start, end);
             logger.info("끝 위치 - latitude: {}, longitude: {}", memberLatLng.getLatitude(), memberLatLng.getLongitude());
@@ -185,20 +214,105 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
             shortestRouteList.add(routeInfo);
         }
 
-        return objectMapper.writeValueAsString(shortestRouteList);
+        return shortestRouteList;
     }
 
     @Override
     public void deleteRoom(String roomId) {
-        logger.info("delete room, id: {}", roomId);
+        logger.info("Delete room, id: {}", roomId);
         redisUtil.deleteData(roomId);
     }
 
     @Override
-    public void inviteMember(String roomId, String nickname) throws IOException {
+    public FindPathRoom inviteMember(String roomId, String nickname) throws IOException {
+        logger.info("Invite member {} to room, roomId: {}", nickname, roomId);
         FindPathRoom room = findRoomById(roomId);
-        room.pushNewMember(nickname, null, null, false);
+        Boolean isRoad = room.getInvitedMember().get(0).getIsRoad();
+        room.pushNewMember(nickname, null, null, isRoad);
         String jsonStringRoom = objectMapper.writeValueAsString(room);
         redisUtil.setData(roomId, jsonStringRoom);
+        return room;
+    }
+
+    @Override
+    public boolean isMemberInRoom(String roomId, String nickname) throws IOException {
+        logger.info("Check {} is already invited at roomId {}", nickname, roomId);
+        FindPathRoom room = findRoomById(roomId);
+        for (RoomMemberInfo roomMemberInfo : room.getInvitedMember()) {
+            if (roomMemberInfo.getNickname().equals(nickname)) return true;
+        }
+        return false;
+    }
+
+    @Override
+    public FindPathRoom memberEnterRoom(String roomId, String nickname, String webSocketSessionId) throws IOException {
+        logger.info("{} enter the room, roomId: {}", nickname, roomId);
+        List<FindPathRoom> rooms = findAllRoom();
+        FindPathRoom leaveRoom = null;
+        for (FindPathRoom room : rooms) {
+            RoomMemberInfo member = room.findMemberByNickname(nickname);
+            //logger.info("get roomId: {}", room.getRoomId());
+            if (member == null) continue;
+            if (room.getRoomId().equals(roomId)) {
+                room.enterRoom(nickname, webSocketSessionId);
+                logger.info("Set {}'s isInRoom true at roomId: {}", nickname, room.getRoomId());
+                String jsonStringRoom = objectMapper.writeValueAsString(room);
+                redisUtil.setData(room.getRoomId(), jsonStringRoom);
+                continue;
+            }
+            if (member.getWebSocketSessionId() == null) continue;
+            leaveRoom = leaveRoom(room.getRoomId(), nickname);
+        }
+        return leaveRoom;
+    }
+
+    @Override
+    public FindPathRoom leaveRoom(String roomId, String nickname) throws IOException {
+        FindPathRoom room = findRoomById(roomId);
+        if (room == null) return null;
+        logger.info("{} leaves the room, roomId: {}", nickname, roomId);
+        room.leaveRoom(nickname);
+        if (room.isNoOneInRoom()) {
+            logger.info("Delete the room because of no one in the room, roomId: {}", roomId);
+            redisUtil.deleteData(roomId);
+            return null;
+        } else {
+            String jsonStringRoom = objectMapper.writeValueAsString(room);
+            redisUtil.setData(roomId, jsonStringRoom);
+            return room;
+        }
+    }
+
+    @Override
+    public FindPathRoom leaveRoom(String webSocketSessionId) throws IOException {
+        FindPathRoom room = findRoomByWebSocketSessionId(webSocketSessionId);
+        if (room == null) return null;
+        String roomId = room.getRoomId();
+        RoomMemberInfo member = room.findMemberByWebSocketSessionId(webSocketSessionId);
+        logger.info("{} leaves the room, roomId: {}", member.getNickname(), roomId);
+        room.leaveRoomByWebSocketSessionId(webSocketSessionId);
+        if (room.isNoOneInRoom()) {
+            logger.info("Delete the room because of no one in the room, roomId: {}", roomId);
+            redisUtil.deleteData(roomId);
+            return null;
+        } else {
+            String jsonStringRoom = objectMapper.writeValueAsString(room);
+            redisUtil.setData(roomId, jsonStringRoom);
+            return room;
+        }
+    }
+
+    @Override
+    public FindPathRoom findRoomByWebSocketSessionId(String webSocketSessionId) {
+        logger.info("Find room by webSockectSessionId");
+        List<FindPathRoom> rooms = findAllRoom();
+        FindPathRoom result = null;
+        for (FindPathRoom room : rooms) {
+            if (room.findMemberByWebSocketSessionId(webSocketSessionId) != null) {
+                result = room;
+                break;
+            }
+        }
+        return result;
     }
 }

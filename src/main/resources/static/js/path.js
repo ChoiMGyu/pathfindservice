@@ -24,7 +24,7 @@ function selectTransportation(transportation) {
 }
 
 function resetFindPathForm() {
-    resetError();
+    resetPathError();
     $("#carBtn").attr('class', 'form-control btn btn-outline-primary');
     $("#onFootBtn").attr('class', 'form-control btn btn-outline-primary');
     $("#transportation").val("");
@@ -80,7 +80,7 @@ function findPlace() {
     if (!isPlaceEmpty()) return;
     var searchContent = $("#searchRequestForm").val();
     console.log("검색 내용:", searchContent);
-    resetError();
+    resetPathError();
     // Ajax 요청 보내기
     $.ajax({
         type: "GET",
@@ -271,56 +271,59 @@ function setMapRoute(route, startObjectType, endObjectType) {
         //markers[i].infowindow.close();
     }
     markers = [];
-    if(route === undefined) return;
-    for (let i = 1; i < route.length; i++) {
-        let linePath = [
-            new kakao.maps.LatLng(route[i - 1].latitude, route[i - 1].longitude),
-            new kakao.maps.LatLng(route[i].latitude, route[i].longitude)
-        ]
-        let lineColor = '#db4040', lineType = 'solid';
-        if ((i === 1 && startObjectType === BUILDING) || (i === route.length - 1 && endObjectType === BUILDING)) {
-            lineColor = '#808080';
-            lineType = 'dashed';
+    //if (route === undefined) return;
+    // console.log(route);
+    for (let i = 0; i < route.length; i++) {
+        for (let j = 1; j < route[i].length; j++) {
+            let linePath = [
+                new kakao.maps.LatLng(route[i][j - 1].latitude, route[i][j - 1].longitude),
+                new kakao.maps.LatLng(route[i][j].latitude, route[i][j].longitude)
+            ]
+            let lineColor = '#db4040', lineType = 'solid';
+            if ((j === 1 && startObjectType === BUILDING) || (j === route[i].length - 1 && endObjectType === BUILDING)) {
+                lineColor = '#808080';
+                lineType = 'dashed';
+            }
+            let polyline = new kakao.maps.Polyline({
+                path: linePath, // 선을 구성하는 좌표배열 입니다
+                strokeWeight: 5, // 선의 두께 입니다
+                strokeColor: lineColor, // 선의 색깔입니다
+                strokeOpacity: 0.7, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
+                strokeStyle: lineType, // 선의 스타일입니다
+                clickable: false
+            });
+            polyline.setMap(map);
+            drawRoute.push(polyline);
         }
-        let polyline = new kakao.maps.Polyline({
-            path: linePath, // 선을 구성하는 좌표배열 입니다
-            strokeWeight: 5, // 선의 두께 입니다
-            strokeColor: lineColor, // 선의 색깔입니다
-            strokeOpacity: 0.7, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
-            strokeStyle: lineType, // 선의 스타일입니다
-            clickable: false
-        });
-        polyline.setMap(map);
-        drawRoute.push(polyline);
+        let startPoint = new kakao.maps.Marker({position: new kakao.maps.LatLng(route[i][0].latitude, route[i][0].longitude)});
+        startPoint.setMap(map);
+        markers.push(startPoint);
+
+        /*let startPointInfo = document.createElement('div');
+        startPointInfo.textContent = "출발";
+        startPointInfo.style.width = "100%";
+        startPointInfo.style.padding = "5px";
+        startPoint.infowindow = new kakao.maps.InfoWindow({content: startPointInfo});
+        startPoint.infowindow.open(map, startPoint);*/
+
+        let endPoint = new kakao.maps.Marker({position: new kakao.maps.LatLng(route[i][route[i].length - 1].latitude, route[i][route[i].length - 1].longitude)});
+        endPoint.setMap(map);
+        markers.push(endPoint);
+
+        /*let endPointInfo = document.createElement('div');
+        endPointInfo.textContent = "도착";
+        endPointInfo.style.width = "100%";
+        endPointInfo.style.padding = "5px";
+        endPoint.infowindow = new kakao.maps.InfoWindow({content: endPointInfo});
+        endPoint.infowindow.open(map, endPoint);*/
     }
-    let startPoint = new kakao.maps.Marker({position: new kakao.maps.LatLng(route[0].latitude, route[0].longitude)});
-    startPoint.setMap(map);
-    markers.push(startPoint);
-
-    /*let startPointInfo = document.createElement('div');
-    startPointInfo.textContent = "출발";
-    startPointInfo.style.width = "100%";
-    startPointInfo.style.padding = "5px";
-    startPoint.infowindow = new kakao.maps.InfoWindow({content: startPointInfo});
-    startPoint.infowindow.open(map, startPoint);*/
-
-    let endPoint = new kakao.maps.Marker({position: new kakao.maps.LatLng(route[route.length - 1].latitude, route[route.length - 1].longitude)});
-    endPoint.setMap(map);
-    markers.push(endPoint);
-
-    /*let endPointInfo = document.createElement('div');
-    endPointInfo.textContent = "도착";
-    endPointInfo.style.width = "100%";
-    endPointInfo.style.padding = "5px";
-    endPoint.infowindow = new kakao.maps.InfoWindow({content: endPointInfo});
-    endPoint.infowindow.open(map, endPoint);*/
 }
 
 // 서버에게 길찾기 수행을 요청하고 길찾기 결과를 반환받아 길찾기 결과 정보를 사용자에게 제공하는 함수이다.
 function findPath() {
     console.log("findPath() 호출됨")
     $("#findPathSection").attr('class', 'mb-5');
-    resetError();
+    resetPathError();
     $("#searchPlaceSection").attr('class', 'mt-3 mb-5');
     resetPlaceError();
     if (!isTransportationsEmpty() || !isStartEmpty() || !isEndEmpty()) return;
@@ -404,7 +407,8 @@ function findPath() {
         url: "/path?" + graphRequestForm,
         success: function (response) {
             console.log(response);
-            let route = response.path;
+            let route = [];
+            route.push(response.path);
             /*====================================================================================================*/
             /*길찾기 경로 지도에 표시*/
             //console.log('distance: ' + response.distance);
@@ -461,10 +465,12 @@ function findPath() {
             let maxLng = {latitude: 0, longitude: -180};
 
             for (let i = 0; i < route.length; i++) {
-                if (minLat.latitude > route[i].latitude) minLat = route[i];
-                if (maxLat.latitude < route[i].latitude) maxLat = route[i];
-                if (minLng.longitude > route[i].longitude) minLng = route[i];
-                if (maxLng.longitude < route[i].longitude) maxLng = route[i];
+                for(let j = 0; j < route[i].length; j++) {
+                    if (minLat.latitude > route[i][j].latitude) minLat = route[i][j];
+                    if (maxLat.latitude < route[i][j].latitude) maxLat = route[i][j];
+                    if (minLng.longitude > route[i][j].longitude) minLng = route[i][j];
+                    if (maxLng.longitude < route[i][j].longitude) maxLng = route[i][j];
+                }
             }
             let routeBounds = new kakao.maps.LatLngBounds();
             routeBounds.extend(new kakao.maps.LatLng(minLat.latitude, minLat.longitude));
@@ -529,7 +535,7 @@ function setBounds(response) {
     map.setBounds(bounds);
 }
 
-function resetError() {
+function resetPathError() {
     $("#startPoint").attr('class', "form-control");
     $("#endPoint").attr('class', "form-control");
     $("#transportation").attr('class', "form-control");
@@ -538,7 +544,7 @@ function resetError() {
 
 function isStartEmpty() {
     if ($("#startPoint").val() === "") {
-        resetError();
+        resetPathError();
         $("#startPoint").attr('class', "form-control fieldError").focus();
         $("#findPathError").text('출발지를 입력해 주세요.').show();
         return false;
@@ -548,7 +554,7 @@ function isStartEmpty() {
 
 function isEndEmpty() {
     if ($("#endPoint").val() === "") {
-        resetError();
+        resetPathError();
         $("#endPoint").attr('class', "form-control fieldError").focus();
         $("#findPathError").text('도착지를 입력해 주세요.').show();
         return false;
@@ -558,7 +564,7 @@ function isEndEmpty() {
 
 function isTransportationsEmpty() {
     if ($("#transportation").val() === "") {
-        resetError();
+        resetPathError();
         $("#transportation").attr('class', "form-control fieldError").focus();
         $("#findPathError").text('이동 수단을 선택해 주세요.').show();
         return false;

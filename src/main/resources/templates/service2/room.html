@@ -9,8 +9,13 @@
 <body style="padding: 0; height: 100vh">
 <div style="height: 10%;" th:replace="~{fragments/bodyHeader :: bodyHeader}"/>
 <div class="container-fluid row" style="height: 85%;">
+    <div id="notice" class="alert alert-info alert-dismissible fade show mt-3" role="alert" style="display: none">
+        <span id="message" class="text-start">수정 완료</span>
+        <button id="messageBtn" type="button" class="btn-close messageBtn" data-bs-dismiss="alert"
+                aria-label="Close"></button>
+    </div>
     <div class="h-100 d-inline-block col-2">
-        <section id="input latitude, longitude" class="mt-3 mb-5">
+        <section id="inputLatitudeLongitude" class="mt-3 mb-5">
             <div class="form-group">
                 <h5><b>위도, 경도 입력</b></h5>
                 <div class="input-group mb-1">
@@ -20,16 +25,25 @@
             </div>
         </section>
 
-        <section id="invite user" class="mt-3 mb-5">
-            <th:block th:if="${room.memberNickname[0] == session.loginMember.nickname}">
-                <div class="form-group">
-                    <h5><b>회원 초대</b></h5>
-                    <div class="input-group mb-1">
-                        <input type="text" id="nickname" class="form-control" th:for="nickname">
-                        <button class="btn btn-outline-primary" type="button" id="invite">초대</button>
-                    </div>
+        <section id="inviteMemberSection" class="mt-3 mb-5" style="display: none;">
+            <div class="form-group">
+                <h5><b>친구 초대</b></h5>
+                <div class="input-group">
+                    <label class="input-group-text w-25" th:for="nickname">닉네임</label>
+                    <input id="nickname" type="text" class="form-control" placeholder="닉네임을 입력하세요."
+                           aria-label="닉네임을 입력하세요" aria-describedby="nickname check">
+                    <button class="btn btn-outline-primary" type="button" onclick="inviteMember()">전송</button>
                 </div>
-            </th:block>
+                <small class="text-danger" style="margin: 0; display:none;" id="nicknameError"></small>
+            </div>
+        </section>
+
+        <section id="deleteRoomSection" class="mt-3 mb-5" style="display: none;">
+            <button id="deleteRoomBtn" class="btn btn-outline-primary" type="button">방 삭제</button>
+        </section>
+
+        <section id="leaveRoomSection" class="mt-3 mb-5">
+            <button id="leaveRoomBtn" class="btn btn-outline-primary" type="button">방 나가기</button>
         </section>
     </div>
     <div class="h-100 d-inline-block col-10" id="map"></div>
@@ -40,41 +54,117 @@
         src="//dapi.kakao.com/v2/maps/sdk.js?appkey=36d7d56dffc065ea26aa515b442d5b6f"></script>
 <script type="text/javascript" src="/js/apikey.js"></script>
 <script type="text/javascript" src="/js/path.js"></script>
+<script type="text/javascript" src="/js/messages.js"></script>
+<script type="text/javascript" src="/js/members.js"></script>
 <script type="text/javascript"
         src="//dapi.kakao.com/v2/maps/sdk.js?appkey=36d7d56dffc065ea26aa515b442d5b6f&libraries=services,clusterer,drawing"></script>
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <script th:inline="javascript">
+    function inviteMember() {
+        resetError();
+        let roomId = [[${room.roomId}]];
+        let inviteNickname = document.getElementById("nickname");
+        $.ajax({
+            type: "GET",
+            url: "/service2/room/invite",
+            data: {
+                roomId: roomId,
+                nickname: inviteNickname.value
+            },
+            success: function (response) {
+                if (response.isInvited === false) {
+                    $("#nicknameError").text(response.message).show();
+                    $("#nickname").attr('class', "form-control fieldError").focus();
+                    return;
+                }
+                $("#message").text(response.message);
+                bodyAlert();
+                inviteNickname.value = '';
+            },
+            error: function (error) {
+                console.log(error);
+                $("#nicknameError").text(error.responseJSON[0].message).show();
+                $("#nickname").attr('class', "form-control fieldError").focus();
+            }
+        });
+    }
+
     $(document).ready(function () {
 
         let roomName = [[${room.roomName}]];
         let roomId = [[${room.roomId}]];
         let nickname = [[${session.loginMember}]].nickname;
 
+        if(nickname === [[${room.invitedMember[0].nickname}]]) {
+            document.getElementById("inviteMemberSection").style.display = "block";
+            document.getElementById("deleteRoomSection").style.display = "block";
+        }
+
+        let roomIdInput = document.getElementById("roomId");
+
         console.log(roomName + ", " + roomId + ", " + nickname);
 
         let sockJs = new SockJS("/connection");
         //1. SockJS를 내부에 들고있는 stomp를 내어줌
-        let stomp = Stomp.over(sockJs);
-
+        let stomp = Stomp.over(sockJs); //sockJs.onClose();
         //2. connection이 맺어지면 실행
-        stomp.connect({}, function () {
-            console.log("STOMP Connection")
+        stomp.connect({ id:nickname, roomId:roomId }, function () { // { id:nickname, roomId:roomId }는 connect 헤더에 포함되는 정보이다. SendInformationController 의 handleWebSocketConnectListener 함수에서 사용된다.
+            console.log("STOMP Connection");
 
             //3. subscribe(path, callback)으로 메세지를 받을 수 있음
             stomp.subscribe("/sub/service2/room/" + roomId, function (chat) {
                 let content = JSON.parse(chat.body);
                 //console.log(content);
                 let sender = content.sender;
-                let message = JSON.parse(content.message);
-                let route = message[0];
-                console.log(route);
+                let response = JSON.parse(content.message);
+
+                if(response.manager === nickname) { // nickname에 해당하는 인원이 방장이 되면 방장이 사용할 수 있는 기능들을 보여준다.
+                    document.getElementById("inviteMemberSection").style.display = "block";
+                    document.getElementById("deleteRoomSection").style.display = "block";
+                }
+
+                console.log(response);
+
+                if (response.expired === true) { // 방의 시간이 만료된 경우 /service2/room/expired 으로 리다이렉트한다.
+                    let form = document.createElement("form");
+                    form.name = "expiredRoom";
+                    form.action = "/service2/room/expired";
+                    form.method = "get";
+                    form.style.display = 'none';
+
+                    let input1 = document.createElement("input");
+                    input1.value = roomName;
+                    input1.name = "roomName"
+                    form.appendChild(input1);
+
+                    let input2 = document.createElement("input");
+                    input2.value = response.message;
+                    input2.name = "reason";
+                    form.appendChild(input2);
+
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+
+                if (response.route === null) { // 일반 메시지가 전송되는 경우는 알림을 통해 띄운다.
+                    if (sender === nickname && response.isLeave === true) {
+                        location.href = "/";
+                    }
+                    $("#message").text(response.message);
+                    bodyAlert();
+                    return;
+                }
+
+                let route = response.route;
+
+                //console.log("route: " + route);
 
                 setMapRoute(route, null, null);
             });
 
             //4. send(path, header, message)로 메세지를 보낼 수 있음
-            //stomp.send('/pub/room/enter', {}, JSON.stringify({roomId: roomId, sender: nickname}))
+            //stomp.send('/pub/room/enter', {}, JSON.stringify({roomId: roomId, sender: nickname}));
         });
 
         $("#button-send").on("click", function (e) {
@@ -85,12 +175,17 @@
             msg.value = '';
         });
 
-        $("#invite").on("click", function (e) {
-            let msg = document.getElementById("nickname");
+        $("#leaveRoomBtn").on("click", function (e) {
+            //stomp.send('/pub/room/leave', {}, JSON.stringify({roomId: roomId, sender: nickname, message: null}));
+            stomp.disconnect(function () {
+                //alert("disconnect");
+                location.href = "/";
+            });
+        });
 
-            console.log(nickname + ":" + msg.value);
-            stomp.send('/pub/room/invite', {}, JSON.stringify({roomId: roomId, sender: nickname, message: msg.value}));
-            msg.value = '';
+        $("#deleteRoomBtn").on("click", function (e) {
+            console.log("delete room");
+            stomp.send('/pub/room/delete', {}, JSON.stringify({roomId: roomId, sender: nickname, message: null}));
         });
     });
 

@@ -9,17 +9,26 @@
     <!--    <div class="py-5 text-center">
             <h2>홈 화면</h2>
         </div>-->
+    <div th:if="${message}" class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+        <span class="text-start" th:text="${message}">수정 완료</span>
+        <button type="button" class="btn-close messageBtn" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
     <div class="jumbotron">
-        <h4 class="mb-3" th:text="|로그인: ${member.userId}|">로그인 사용자 이름</h4>
+        <h4 class="my-3" th:text="|로그인: ${member.userId}|">로그인 사용자 이름</h4>
         <hr class="my-4">
         <div class="row">
-            <div class="col">
+            <div class="col my-3">
+                <a class="btn btn-lg btn-secondary" href="/map/path">Service 1</a>
+            </div>
+            <div class="col my-3">
                 <a class="btn btn-lg btn-secondary" href="/service2/enter">Service 2</a>
             </div>
-            <div class="col">
+        </div>
+        <div class="row">
+            <div class="col my-3">
                 <a class="btn btn-lg btn-secondary" href="/members/myProfile">나의 프로필</a>
             </div>
-            <div class="col">
+            <div class="col my-3">
                 <form th:action="@{/members/logout}" method="post">
                     <button class="btn btn-lg btn-secondary mb-4" type="submit">
                         로그아웃
@@ -31,4 +40,5 @@
     <div th:replace="~{fragments/footer :: footer}"/>
 </div> <!-- /container -->
 </body>
+<script type="text/javascript" src="/js/messages.js"></script>
 </html>
