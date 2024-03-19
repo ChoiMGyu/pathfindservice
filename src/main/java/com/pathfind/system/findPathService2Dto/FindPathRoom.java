@@ -113,9 +113,8 @@ public class FindPathRoom {
         if (leaveMember != null) {
             for (int i = 0; i < getInvitedMember().size(); i++) {
                 String sessionId = getInvitedMember().get(i).getWebSocketSessionId();
-                String nextSessionId = getInvitedMember().get(i + 1).getWebSocketSessionId();
 
-                if (sessionId != null && sessionId.equals(webSocketSessionId) && i + 1 < getInvitedMember().size() && nextSessionId != null) {
+                if (sessionId != null && sessionId.equals(webSocketSessionId) && i + 1 < getInvitedMember().size() && getInvitedMember().get(i + 1).getWebSocketSessionId() != null) {
                     Collections.swap(getInvitedMember(), i, i + 1);
                 }
             }
@@ -125,9 +124,7 @@ public class FindPathRoom {
 
     public RoomMemberInfo findMemberByWebSocketSessionId(String webSocketSessionId) {
         for (RoomMemberInfo roomMemberInfo : invitedMember) {
-            String sessionId = roomMemberInfo.getWebSocketSessionId();
-
-            if (sessionId != null && sessionId.equals(webSocketSessionId))
+            if (roomMemberInfo.getWebSocketSessionId() != null && roomMemberInfo.getWebSocketSessionId().equals(webSocketSessionId))
                 return roomMemberInfo;
         }
         return null;
