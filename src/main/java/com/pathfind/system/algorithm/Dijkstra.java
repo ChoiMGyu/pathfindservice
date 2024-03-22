@@ -33,9 +33,9 @@ public class Dijkstra {
                 if (v.isBuilding() && v.getV() != endId) continue;
                 double alt = u.getDistance() + ((u.getId().equals(startId) && u.isBuilding()) || (v.getV() == endId && v.isBuilding()) ? 0 : v.getWeight());
                 //double alt = u.getDistance() + v.getWeight();
-                logger.info("u.getDistance : " + u.getDistance() + ", v.getWeight : " + v.getWeight());
+                //logger.info("u.getDistance : " + u.getDistance() + ", v.getWeight : " + v.getWeight());
                 if (alt < nodes.get(v.getV()).getDistance()) {
-                    logger.info("edge relaxation -> alt(u.getDistance() + v.getWeight()) : " + alt + " < nodes.get(v.getV()).getDistance() : " + nodes.get(v.getV()).getDistance());
+                    //logger.info("edge relaxation -> alt(u.getDistance() + v.getWeight()) : " + alt + " < nodes.get(v.getV()).getDistance() : " + nodes.get(v.getV()).getDistance());
                     nodes.get(v.getV()).setDistance(alt);
                     //pq.remove(nodes.get(v.getV()));
                     pq.offer(nodes.get(v.getV()));
@@ -56,9 +56,9 @@ public class Dijkstra {
             endToStart = path.get(endToStart);
             stack.push(endToStart);
         }
-        logger.info("find path start({}) to end({})", startId, endId);
+        //logger.info("find path start({}) to end({})", startId, endId);
         while (!stack.isEmpty()) {
-            logger.info("path: {}", stack.peek());
+            //logger.info("path: {}", stack.peek());
             result.add(stack.pop());
         }
 

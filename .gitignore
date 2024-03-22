@@ -44,3 +44,5 @@ EmailConfig.java
 MailSendServiceImpl.java
 
 apikey.js
+
+keystore.p12

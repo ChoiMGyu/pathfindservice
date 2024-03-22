@@ -59,7 +59,7 @@ public class FindPathRoomController {
 
         //logger.info("loginMember: {}", loginMember.getNickname());
 
-        return "/service2/service2Home";
+        return "service2/service2Home";
     }
 
     //채팅방 개설
@@ -83,7 +83,7 @@ public class FindPathRoomController {
         boolean regexUserId = Pattern.matches(patternUserId, form.getRoomName());
         if (!regexUserId) {
             result.rejectValue("roomName", "Format.roomName");
-            return "/service2/service2Home";
+            return "service2/service2Home";
         }
 
         FindPathRoom newRoom = findPathRoomService.createRoom(loginMember.getNickname(), form.getRoomName(), form.getTransportation().equals("도로"));
@@ -129,7 +129,7 @@ public class FindPathRoomController {
         model.addAttribute("room", room);
         model.addAttribute("inviteMemberVCRequest", new InviteMemberVCRequest());
 
-        return "/service2/room";
+        return "service2/room";
     }
 
     // 채팅방 초대
