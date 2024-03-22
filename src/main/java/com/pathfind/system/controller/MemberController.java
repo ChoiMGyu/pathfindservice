@@ -745,7 +745,7 @@ public class MemberController {
         }
 
         if (result.hasErrors()) {
-            return "/members/myProfile";
+            return "members/myProfile";
         }
 
         Optional<Member> newMember = memberService.updateNickname(member.getId(), nicknameForm.getNickname());
@@ -754,7 +754,7 @@ public class MemberController {
         logger.info("newMember: {}", newMember.get());*/
         if (newMember.isEmpty()) {
             result.rejectValue("nickname", "Nickname.exist");
-            return "/members/myProfile";
+            return "members/myProfile";
         }
 
         session.setAttribute(SessionConst.LOGIN_MEMBER, newMember.get());

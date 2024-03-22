@@ -42,7 +42,7 @@ public class FindPathServiceImpl implements FindPathService {
         List<RoadEdge> edges = roadEdgeRepository.findAll();
         logger.info("roadEdges size: {}", edges.size());
         for (RoadEdge edge : edges) {
-            logger.info("edge 정보 : " + edge.getRoadVertex1() + " " + edge.getRoadVertex2() + " " + edge.getLength());
+            //logger.info("edge 정보 : " + edge.getRoadVertex1() + " " + edge.getRoadVertex2() + " " + edge.getLength());
             Objects object = vertices.get(Math.toIntExact(edge.getRoadVertex2() - 1)).getObject();
             boolean isBuilding = object != null && object.getObjectType() == ObjType.BUILDING;
             graph.addEdge(edge.getRoadVertex1() - 1, edge.getRoadVertex2() - 1, edge.getLength(), isBuilding);
@@ -74,7 +74,7 @@ public class FindPathServiceImpl implements FindPathService {
         List<SidewalkEdge> edges = sidewalkEdgeRepository.findAll();
         logger.info("sidewalkEdges size: {}", edges.size());
         for (SidewalkEdge edge : edges) {
-            logger.info("edge 정보 : " + edge.getSidewalkVertex1() + " " + edge.getSidewalkVertex2() + " " + edge.getLength());
+            //logger.info("edge 정보 : " + edge.getSidewalkVertex1() + " " + edge.getSidewalkVertex2() + " " + edge.getLength());
             Objects object = vertices.get(Math.toIntExact((edge.getSidewalkVertex2() - 1))).getObject();
             boolean isBuilding = object != null && object.getObjectType() == ObjType.BUILDING;
             graph.addEdge(edge.getSidewalkVertex1() - 1, edge.getSidewalkVertex2() - 1, edge.getLength(), isBuilding);
