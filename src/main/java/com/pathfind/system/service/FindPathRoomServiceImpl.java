@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -128,8 +127,8 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
 
     @Override
     public List<List<ShortestPathRoute>> findRoadShortestRoute(FindPathRoom findPathRoom) {
-        Long start = findPathRoom.getInvitedMember().get(0).getClosestVertexId();
-        MemberLatLng startLatLng = findPathRoom.getInvitedMember().get(0).getLocation();
+        Long start = findPathRoom.getManager().getClosestVertexId();
+        MemberLatLng startLatLng = findPathRoom.getManager().getLocation();
         List<RoadVertex> vertices = roadVertexRepository.findAll();
         int numVertices = vertices.size();
         logger.info("RoadVertices size: {}", numVertices);
@@ -174,8 +173,8 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
 
     @Override
     public List<List<ShortestPathRoute>> findSidewalkShortestRoute(FindPathRoom findPathRoom) {
-        Long start = findPathRoom.getInvitedMember().get(0).getClosestVertexId();
-        MemberLatLng startLatLng = findPathRoom.getInvitedMember().get(0).getLocation();
+        Long start = findPathRoom.getManager().getClosestVertexId();
+        MemberLatLng startLatLng = findPathRoom.getManager().getLocation();
         List<SidewalkVertex> vertices = sidewalkVertexRepository.findAll();
         int numVertices = vertices.size();
         logger.info("SidewalkVertices size: {}", numVertices);
@@ -228,7 +227,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     public FindPathRoom inviteMember(String roomId, String nickname) throws IOException {
         logger.info("Invite member {} to room, roomId: {}", nickname, roomId);
         FindPathRoom room = findRoomById(roomId);
-        Boolean isRoad = room.getInvitedMember().get(0).getIsRoad();
+        Boolean isRoad = room.getManager().getIsRoad();
         room.pushNewMember(nickname, null, null, isRoad);
         String jsonStringRoom = objectMapper.writeValueAsString(room);
         redisUtil.setData(roomId, jsonStringRoom);

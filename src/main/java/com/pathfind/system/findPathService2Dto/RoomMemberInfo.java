@@ -30,7 +30,7 @@ public class RoomMemberInfo {
         this.location = location;
         this.closestVertexId = closestVertexId;
         this.isRoad = isRoad;
-        this.roomExitTime = LocalDateTime.MAX;
+        this.roomExitTime = RoomMemberValue.ROOM_EXIT_CANCEL;
     }
 
     public void leaveRoom() {
@@ -38,7 +38,7 @@ public class RoomMemberInfo {
         setClosestVertexId(null);
         setIsRoad(false);
         setWebSocketSessionId(null);
-        setRoomExitTime(LocalDateTime.MAX);
+        setRoomExitTime(RoomMemberValue.ROOM_EXIT_CANCEL);
     }
 
     public void enterRoom(String webSocketSessionId) {
@@ -50,14 +50,14 @@ public class RoomMemberInfo {
             setLocation(loc);
         }
         if(location.equals(loc)) {
-            if(roomExitTime.isEqual(LocalDateTime.MAX)) {
-                setRoomExitTime(LocalDateTime.now().plusMinutes(10L));
+            if(roomExitTime.isEqual(RoomMemberValue.ROOM_EXIT_CANCEL)) {
+                setRoomExitTime(LocalDateTime.now().plusMinutes(RoomMemberValue.ROOM_EXIT_TIME));
             }
         }
         else {
             setLocation(loc);
-            if(!roomExitTime.isEqual(LocalDateTime.MAX)) {
-                setRoomExitTime(LocalDateTime.MAX);
+            if(!roomExitTime.isEqual(RoomMemberValue.ROOM_EXIT_CANCEL)) {
+                setRoomExitTime(RoomMemberValue.ROOM_EXIT_CANCEL);
             }
         }
     }
