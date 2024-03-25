@@ -4,6 +4,11 @@
 <body>
 <div class="container">
     <div th:replace="~{fragments/bodyHeader :: bodyHeader}"/>
+    <div id="notice" class="alert alert-info alert-dismissible fade show mt-3" role="alert" style="display: none">
+        <span id="message" class="text-start">수정 완료</span>
+        <button id="messageBtn" type="button" class="btn-close messageBtn" data-bs-dismiss="alert"
+                aria-label="Close"></button>
+    </div>
     <section id="createRoomSection" class="my-4">
         <form id="createRoom" class="row g-3" th:object="${CreateRoomVCRequest}" action="/service2/create-room"
               method="post">
@@ -26,11 +31,14 @@
             <small id="thUserIdError" class="text-danger" style="margin: 0" th:if="${#fields.hasErrors('roomName')}"
                    th:errors="*{roomName}">Incorrect roomName</small>
             <div class="col-12">
-                <button type="submit" class="btn btn-outline-secondary">방 개설하기</button>
+                <button id="createRoomBtn" type="button" class="btn btn-outline-secondary" onclick="isMemberInCampusArea()">방 개설하기</button>
+                <!--<button id="createRoomBtn" type="submit" class="btn btn-outline-secondary">방 개설하기</button>-->
             </div>
         </form>
     </section>
     <div th:replace="~{fragments/footer :: footer}"/>
 </div> <!-- /container -->
 </body>
+<script type="text/javascript" src="/js/messages.js"></script>
+<script type="text/javascript" src="/js/memberLocation.js"></script>
 </html>

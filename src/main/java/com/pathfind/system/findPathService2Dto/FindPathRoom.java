@@ -11,6 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -21,13 +23,19 @@ public class FindPathRoom {
     private String roomId;
     private String roomName;
     private List<RoomMemberInfo> invitedMember;
+    private LocalDateTime roomDeletionTime;
 
     public static FindPathRoom createFindPathRoom(String roomName) {
         FindPathRoom newRoom = new FindPathRoom();
         newRoom.createRoomId();
         newRoom.changeRoomName(roomName);
         newRoom.invitedMember = new ArrayList<>(6); // 기본 사이즈가 6인 이유는 리스트의 size가 5가 되었을 때 capacity가 자동으로 늘어나는 것을 방지하기 위함이다.
+        newRoom.changeRoomDeletionTime(LocalDateTime.now().plusMinutes(5L));
         return newRoom;
+    }
+
+    private void changeRoomDeletionTime(LocalDateTime time) {
+        this.roomDeletionTime = time;
     }
 
     private void changeRoomName(String roomName) {
@@ -94,31 +102,43 @@ public class FindPathRoom {
         if (a != -1 && b != -1 && a < b) {
             Collections.swap(getInvitedMember(), a, b);
         }
+        if(a > 0) { // a가 0보다 크다는 말은 현재 방에 접속한 인원이 적어도 한 명 이상이라는 것이므로 방 삭제 시간을 LocalDateTime.MIN으로 바꾼다.
+            changeRoomDeletionTime(LocalDateTime.MAX);
+        }
     }
 
     public void leaveRoom(String nickname) {
+        int enterMemberNum = 0;
         RoomMemberInfo leaveMember = findMemberByNickname(nickname);
         if (leaveMember != null) {
             for (int i = 0; i < getInvitedMember().size(); i++) {
+                if(getInvitedMember().get(i).getWebSocketSessionId() != null) enterMemberNum++;
                 if (getInvitedMember().get(i).getNickname().equals(nickname) && i + 1 < getInvitedMember().size() && getInvitedMember().get(i + 1).getWebSocketSessionId() != null) {
                     Collections.swap(getInvitedMember(), i, i + 1);
                 }
             }
             leaveMember.leaveRoom();
+            if(enterMemberNum == 2) {
+                changeRoomDeletionTime(LocalDateTime.now().plusMinutes(5L));
+            }
         }
     }
 
     public void leaveRoomByWebSocketSessionId(String webSocketSessionId) {
+        int enterMemberNum = 0;
         RoomMemberInfo leaveMember = findMemberByWebSocketSessionId(webSocketSessionId);
         if (leaveMember != null) {
             for (int i = 0; i < getInvitedMember().size(); i++) {
                 String sessionId = getInvitedMember().get(i).getWebSocketSessionId();
-
+                if(sessionId != null) enterMemberNum++;
                 if (sessionId != null && sessionId.equals(webSocketSessionId) && i + 1 < getInvitedMember().size() && getInvitedMember().get(i + 1).getWebSocketSessionId() != null) {
                     Collections.swap(getInvitedMember(), i, i + 1);
                 }
             }
             leaveMember.leaveRoom();
+            if(enterMemberNum == 2) {
+                changeRoomDeletionTime(LocalDateTime.now().plusMinutes(5L));
+            }
         }
     }
 

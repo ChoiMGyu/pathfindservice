@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -94,7 +95,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         MemberLatLng memberLatLng = objectMapper.readValue(message, MemberLatLng.class);
         double memberLat = memberLatLng.getLatitude(), memberLng = memberLatLng.getLongitude(), dist = 1000000.0;
         RoomMemberInfo member = findPathRoom.findMemberByNickname(sender);
-        member.setLocation(memberLatLng);
+        member.changeLocation(memberLatLng);
 
         logger.info("Member({})'s current location - latitude: {}, longitude: {}", sender, memberLat, memberLng);
         logger.info("Find closest vertexId...");
