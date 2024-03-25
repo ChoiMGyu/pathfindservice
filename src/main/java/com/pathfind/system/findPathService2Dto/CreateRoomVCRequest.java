@@ -10,7 +10,7 @@ import lombok.Data;
 
 @Data
 public class CreateRoomVCRequest {
-    @Pattern(regexp = "^[ㄱ-ㅎ가-힣a-z0-9-_]{2,30}$", message = "방 이름은 특수문자를 제외한 2~30자리여야 합니다.")
+    @Pattern(regexp = "^[ㄱ-ㅎ가-힣a-zA-Z0-9-_]{2,30}$", message = "방 이름은 특수문자를 제외한 2~30자리여야 합니다.")
     public String roomName;
 
     @NotBlank

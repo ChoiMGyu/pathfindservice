@@ -14,6 +14,7 @@ public class MessageInfoVCResponse {
     public String manager;
     public boolean expired = false;
     public boolean leave = false;
+    public boolean isInCampus = true;
     public String message = null;
     public List<List<ShortestPathRoute>> route = null;
 }

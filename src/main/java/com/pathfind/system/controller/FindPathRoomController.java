@@ -79,7 +79,7 @@ public class FindPathRoomController {
             return "redirect:/";
         }
 
-        String patternUserId = "^[ㄱ-ㅎ가-힣a-z0-9-_]{2,30}$";
+        String patternUserId = "^[ㄱ-ㅎ가-힣a-zA-Z0-9-_\\s]{2,30}$";
         boolean regexUserId = Pattern.matches(patternUserId, form.getRoomName());
         if (!regexUserId) {
             result.rejectValue("roomName", "Format.roomName");
@@ -164,9 +164,9 @@ public class FindPathRoomController {
         return response;
     }
 
-    // 채팅방 시간 만료
-    @GetMapping("/room/expired")
-    public String leaveExpiredRoom(@RequestParam(value = "roomName") String roomName, @RequestParam(value = "reason") String reason, RedirectAttributes rttr) {
+    // 채팅방 퇴장
+    @GetMapping("/room/leave")
+    public String leaveRoom(@RequestParam(value = "roomName") String roomName, @RequestParam(value = "reason") String reason, RedirectAttributes rttr) {
         logger.info("Leave room, roomName: {}", roomName);
         rttr.addFlashAttribute("message", reason);
         return "redirect:/";

@@ -20,8 +20,11 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
+import org.springframework.web.socket.messaging.SessionSubscribeEvent;
+import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 @Controller
 @RequiredArgsConstructor
@@ -43,7 +46,7 @@ public class SendInformationController {
         String sessionId = headerAccessor.getSessionId();
         logger.info("roomId: {}, nickname: {}, websocketSessionId: {}", roomId, nickname, sessionId);
         FindPathRoom room = findPathRoomService.findRoomById(roomId);
-        if(room == null) return;
+        if (room == null) return;
 
         MessageInfoVCResponse responseEnterMessage = new MessageInfoVCResponse();
         responseEnterMessage.setMessage(nickname + "님이 길 찾기 방에 참여하였습니다.");
@@ -62,6 +65,20 @@ public class SendInformationController {
         responseLeaveMessage.setMessage(nickname + "님이 길 찾기 방에서 퇴장하였습니다.");
         MessageVCRequest leaveMessage = new MessageVCRequest(previousRoom.getRoomId(), nickname, objectMapper.writeValueAsString(responseLeaveMessage));
         template.convertAndSend("/sub/service2/room/" + previousRoom.getRoomId(), leaveMessage);
+    }
+
+    @EventListener
+    public void handleWebSocketSubscribeListener(SessionSubscribeEvent event) throws IOException {
+        logger.info("Subscribe event");
+        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+        logger.info("Subscribe header information: {}", headerAccessor);
+    }
+
+    @EventListener
+    public void handleWebSocketUnsubscribeListener(SessionUnsubscribeEvent event) throws IOException {
+        logger.info("Unsubscribe event");
+        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+        logger.info("Unsubscribe header information: {}", headerAccessor);
     }
 
     @EventListener
@@ -93,6 +110,7 @@ public class SendInformationController {
         MessageInfoVCResponse responseMessage = new MessageInfoVCResponse();
 
         if (room == null) {
+            logger.info("Room deleted because the time assigned for the room has expired. roomId: {}", message.getRoomId());
             responseMessage.setExpired(true);
             responseMessage.setMessage("방에 할당된 두 시간이 만료되어 방이 종료되었습니다.");
             message.setMessage(objectMapper.writeValueAsString(responseMessage));
@@ -103,6 +121,7 @@ public class SendInformationController {
         responseMessage.setManager(room.getInvitedMember().get(0).getNickname());
 
         if (room.findMemberByNickname(message.getSender()) == null) {
+            logger.info("{} leaves room, roomId: {}", message.getSender(), message.getRoomId());
             responseMessage.setMessage(message.getSender() + "님이 길 찾기 방에서 퇴장하였습니다.");
             responseMessage.setLeave(true);
             message.setMessage(objectMapper.writeValueAsString(responseMessage));
@@ -111,6 +130,25 @@ public class SendInformationController {
         }
 
         room = findPathRoomService.changeRoomMemberLocation(message.getRoomId(), message.getSender(), message.getMessage());
+
+        if (message.getSender().equals(room.getInvitedMember().get(0).getNickname())) {
+            if (LocalDateTime.now().isAfter(room.getRoomDeletionTime())) {
+                logger.info("Room deleted because no one came to the room for 5 minutes. roomId: {}", message.getRoomId());
+                responseMessage.setExpired(true);
+                responseMessage.setMessage("5분간 아무도 들어오지 않아 방이 종료되었습니다.");
+                message.setMessage(objectMapper.writeValueAsString(responseMessage));
+                template.convertAndSend("/sub/service2/room/" + message.getRoomId(), message);
+                return;
+            }
+        } else if (LocalDateTime.now().isAfter(room.findMemberByNickname(message.getSender()).getRoomExitTime())) {
+            logger.info("{} leaves room because he doesn't move for 10 minutes, roomId: {}", message.getSender(), message.getRoomId());
+            responseMessage.setLeave(true);
+            responseMessage.setMessage(message.getSender() + "님이 10분간 움직이지 않아 방에서 퇴장되었습니다.");
+            message.setMessage(objectMapper.writeValueAsString(responseMessage));
+            template.convertAndSend("/sub/service2/room/" + message.getRoomId(), message);
+            return;
+        }
+
         if (room.findMemberByNickname(message.getSender()).getIsRoad()) {
             responseMessage.setRoute(findPathRoomService.findRoadShortestRoute(room));
         } else {
@@ -122,7 +160,7 @@ public class SendInformationController {
     }
 
     @MessageMapping(value = "/room/delete")
-    public void leave(MessageVCRequest message) throws IOException {
+    public void deleteRoom(MessageVCRequest message) throws IOException {
         logger.info("{} delete the room, roomId: {}", message.getSender(), message.getRoomId());
         FindPathRoom room = findPathRoomService.findRoomById(message.getRoomId());
         //FindPathRoom room = findPathRoomService.leaveRoom(message.getRoomId(), message.getSender());
@@ -133,6 +171,18 @@ public class SendInformationController {
         message.setMessage(objectMapper.writeValueAsString(responseMessage));
         template.convertAndSend("/sub/service2/room/" + message.getRoomId(), message);
         findPathRoomService.deleteRoom(message.getRoomId());
+    }
+
+    @MessageMapping(value = "/room/sendMessage")
+    public void sendMessage(MessageVCRequest message) throws IOException {
+        logger.info("{} send message to the room, roomId: {}", message.getSender(), message.getRoomId());
+        FindPathRoom room = findPathRoomService.findRoomById(message.getRoomId());
+        if (room == null) return;
+        MessageInfoVCResponse responseMessage = new MessageInfoVCResponse();
+        responseMessage.setInCampus(false);
+        responseMessage.setMessage(message.getMessage());
+        message.setMessage(objectMapper.writeValueAsString(responseMessage));
+        template.convertAndSend("/sub/service2/room/" + message.getRoomId(), message);
     }
 
     /*@MessageMapping(value = "/room/enter")
