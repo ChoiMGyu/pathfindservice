@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,8 +28,8 @@ public class FindPathRoom {
         FindPathRoom newRoom = new FindPathRoom();
         newRoom.createRoomId();
         newRoom.changeRoomName(roomName);
-        newRoom.invitedMember = new ArrayList<>(6); // 기본 사이즈가 6인 이유는 리스트의 size가 5가 되었을 때 capacity가 자동으로 늘어나는 것을 방지하기 위함이다.
-        newRoom.changeRoomDeletionTime(LocalDateTime.now().plusMinutes(5L));
+        newRoom.invitedMember = new ArrayList<>(RoomValue.ROOM_MAX_MEMBER_NUM + 1); // 기본 사이즈가 6인 이유는 리스트의 size가 5가 되었을 때 capacity가 자동으로 늘어나는 것을 방지하기 위함이다.
+        newRoom.changeRoomDeletionTime(LocalDateTime.now().plusMinutes(RoomValue.ROOM_DELETION_TIME));
         return newRoom;
     }
 
@@ -46,7 +45,7 @@ public class FindPathRoom {
         StringBuilder randomPassword;
         randomPassword = new StringBuilder();
         SecureRandom random = new SecureRandom();
-        for (int i = 0; i < RoomIdLength.ROOM_ID_LENGTH; i++) {
+        for (int i = 0; i < RoomValue.ROOM_ID_LENGTH; i++) {
             int nextType = (int) (random.nextFloat() * 3);
             if (nextType == 0) randomPassword.append((char) (48 + random.nextInt(10)));
             else if (nextType == 1) randomPassword.append((char) (65 + random.nextInt(26)));
@@ -56,7 +55,7 @@ public class FindPathRoom {
     }
 
     public void pushNewMember(String newMember, MemberLatLng memberLatLng, Long vertexId, Boolean isRoad) {
-        if (getInvitedMember().size() == 5) {
+        if (getInvitedMember().size() == RoomValue.ROOM_MAX_MEMBER_NUM) {
             throw new CustomException(ErrorCode.ROOM_EXCEEDED, "방에 초대 가능한 인원은 최대 5명 입니다.");
         }
         getInvitedMember().add(new RoomMemberInfo(newMember, memberLatLng, vertexId, isRoad));
@@ -102,8 +101,8 @@ public class FindPathRoom {
         if (a != -1 && b != -1 && a < b) {
             Collections.swap(getInvitedMember(), a, b);
         }
-        if(a > 0) { // a가 0보다 크다는 말은 현재 방에 접속한 인원이 적어도 한 명 이상이라는 것이므로 방 삭제 시간을 LocalDateTime.MIN으로 바꾼다.
-            changeRoomDeletionTime(LocalDateTime.MAX);
+        if (a > 0) { // a가 0보다 크다는 말은 현재 방에 접속한 인원이 적어도 한 명 이상이라는 것이므로 방 삭제 시간을 LocalDateTime.MAX로 바꾼다.
+            changeRoomDeletionTime(RoomValue.ROOM_DELETE_CANCEL);
         }
     }
 
@@ -112,14 +111,14 @@ public class FindPathRoom {
         RoomMemberInfo leaveMember = findMemberByNickname(nickname);
         if (leaveMember != null) {
             for (int i = 0; i < getInvitedMember().size(); i++) {
-                if(getInvitedMember().get(i).getWebSocketSessionId() != null) enterMemberNum++;
+                if (getInvitedMember().get(i).getWebSocketSessionId() != null) enterMemberNum++;
                 if (getInvitedMember().get(i).getNickname().equals(nickname) && i + 1 < getInvitedMember().size() && getInvitedMember().get(i + 1).getWebSocketSessionId() != null) {
                     Collections.swap(getInvitedMember(), i, i + 1);
                 }
             }
             leaveMember.leaveRoom();
-            if(enterMemberNum == 2) {
-                changeRoomDeletionTime(LocalDateTime.now().plusMinutes(5L));
+            if (enterMemberNum == 2) {
+                changeRoomDeletionTime(LocalDateTime.now().plusMinutes(RoomValue.ROOM_DELETION_TIME));
             }
         }
     }
@@ -130,14 +129,14 @@ public class FindPathRoom {
         if (leaveMember != null) {
             for (int i = 0; i < getInvitedMember().size(); i++) {
                 String sessionId = getInvitedMember().get(i).getWebSocketSessionId();
-                if(sessionId != null) enterMemberNum++;
+                if (sessionId != null) enterMemberNum++;
                 if (sessionId != null && sessionId.equals(webSocketSessionId) && i + 1 < getInvitedMember().size() && getInvitedMember().get(i + 1).getWebSocketSessionId() != null) {
                     Collections.swap(getInvitedMember(), i, i + 1);
                 }
             }
             leaveMember.leaveRoom();
-            if(enterMemberNum == 2) {
-                changeRoomDeletionTime(LocalDateTime.now().plusMinutes(5L));
+            if (enterMemberNum == 2) {
+                changeRoomDeletionTime(LocalDateTime.now().plusMinutes(RoomValue.ROOM_DELETION_TIME));
             }
         }
     }
@@ -159,4 +158,9 @@ public class FindPathRoom {
         }
         return null;
     }*/
+
+    public RoomMemberInfo getManager() {
+        if (getInvitedMember() == null) return null;
+        return getInvitedMember().get(0);
+    }
 }
