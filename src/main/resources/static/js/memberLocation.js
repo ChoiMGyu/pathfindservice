@@ -74,12 +74,14 @@ function isMemberInCampusArea() {
             lng = position.coords.longitude; // 경도
             console.log(lat, lng);
             if (!_isMemberInCampusArea(lat, lng)) {
-                bodyAlert("회원님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 서비스 2를 이용하실 수 없습니다.");
+                let txt = "회원님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 서비스 2를 이용하실 수 없습니다.";
+                bodyAlert(txt);
                 return;
             }
             form.submit();
         }, showErrorMsg);
     } else {
-        bodyAlert("현재 웹 브라우저가 위치 제공을 지원하지 않습니다. 따라서 서비스 2를 이용하실 수 없습니다.");
+        let txt = "현재 웹 브라우저가 위치 제공을 지원하지 않습니다. 따라서 서비스 2를 이용하실 수 없습니다."
+        bodyAlert(txt);
     }
 }
