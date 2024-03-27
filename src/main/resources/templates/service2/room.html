@@ -150,7 +150,8 @@
                 let longitude = position.coords.longitude; // 경도
 
                 if (NotInCampusMessage === NOT_SENDED && !_isMemberInCampusArea(latitude, longitude)) {
-                    bodyAlert(nickname + "님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 경로가 올바르지 않을 수 있습니다.");
+                    let txt = nickname + "님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 경로가 올바르지 않을 수 있습니다.";
+                    bodyAlert(txt);
                 }
 
                 let sockJs = new SockJS("/connection");
@@ -174,7 +175,7 @@
                         let message = content.message;
                         let route = content.route;
                         let roomId = content.roomId;
-                        console.log("message: " + message);
+                        //console.log("message: " + message);
 
                         if (manager != null) {
                             giveAuthority(nickname, manager);
@@ -217,7 +218,7 @@
                                     if (!_isMemberInCampusArea(lat, lng)) {
                                         NotInCampusMessage = SENDED
                                         let txt = nickname + "님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 경로가 올바르지 않을 수 있습니다.";
-                                        stomp.send('/pub/room/sendMessage', {}, JSON.stringify({
+                                        stomp.send('/pub/room/out-campus', {}, JSON.stringify({
                                             roomId: roomId,
                                             sender: nickname,
                                             message: txt
@@ -227,7 +228,7 @@
                                     }
                                 }
                                 let msg = JSON.stringify({latitude: lat, longitude: lng});
-                                stomp.send('/pub/room/message', {}, JSON.stringify({
+                                stomp.send('/pub/room/route', {}, JSON.stringify({
                                     roomId: roomId,
                                     sender: nickname,
                                     message: msg

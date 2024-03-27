@@ -101,8 +101,8 @@ public class SendInformationController {
         template.convertAndSend("/sub/service2/room/" + room.getRoomId(), responseLeaveMessage);
     }
 
-    @MessageMapping(value = "/room/message")
-    public void message(MessageVCRequest message) throws IOException {
+    @MessageMapping(value = "/room/route")
+    public void getRoute(MessageVCRequest message) throws IOException {
         FindPathRoom room = findPathRoomService.findRoomById(message.getRoomId());
 
         if (room == null) {
@@ -175,8 +175,8 @@ public class SendInformationController {
         findPathRoomService.deleteRoom(message.getRoomId());
     }
 
-    @MessageMapping(value = "/room/sendMessage")
-    public void sendMessage(MessageVCRequest message) throws IOException {
+    @MessageMapping(value = "/room/out-campus")
+    public void sendNotInCampus(MessageVCRequest message) throws IOException {
         logger.info("{} send message to the room, roomId: {}", message.getSender(), message.getRoomId());
         FindPathRoom room = findPathRoomService.findRoomById(message.getRoomId());
         if (room == null) return;
