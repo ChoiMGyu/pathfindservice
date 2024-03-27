@@ -5,6 +5,10 @@
 package com.pathfind.system.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pathfind.system.findPathService2Domain.FindPathRoom;
+import com.pathfind.system.findPathService2Domain.MemberLatLng;
+import com.pathfind.system.findPathService2Domain.RoomMemberInfo;
+import com.pathfind.system.findPathService2Domain.TransportationType;
 import com.pathfind.system.findPathService2Dto.*;
 import com.pathfind.system.service.FindPathRoomService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +26,8 @@ import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Objects;
+
 
 @Controller
 @RequiredArgsConstructor
@@ -38,8 +44,10 @@ public class SendInformationController {
         logger.info("Connect event");
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         logger.info("Connect header information: {}", headerAccessor);
-        String roomId = headerAccessor.getNativeHeader("roomId").get(0);
-        String sender = headerAccessor.getNativeHeader("id").get(0);
+        String roomId = Objects.requireNonNull(headerAccessor.getNativeHeader("roomId")).get(0);
+        String sender = Objects.requireNonNull(headerAccessor.getNativeHeader("id")).get(0);
+        if(roomId == null || sender == null) return; // stomp Connect 메시지 헤더에 roomId와 id 값이 포함되어 있지 않으면 개발자가 의도한 것이 아니므로 함수를 종료한다.
+
         String sessionId = headerAccessor.getSessionId();
         logger.info("roomId: {}, nickname: {}, websocketSessionId: {}", roomId, sender, sessionId);
         FindPathRoom room = findPathRoomService.findRoomById(roomId);
@@ -58,7 +66,7 @@ public class SendInformationController {
         logger.info("{} leaves the room(roomId: {}) because of entering the new room(roomId: {})", sender, previousRoom.getRoomId(), roomId);
         MessageVCResponse responseLeaveMessage = MessageVCResponse.builder(roomId,MessageType.LEAVE)
                 .sender(sender)
-                .manager(room.getManager().getNickname())
+                .manager(room.getManagerNickname())
                 .message(sender+"님이 길 찾기 방에서 퇴장하였습니다.")
                 .build();
         template.convertAndSend("/sub/service2/room/" + previousRoom.getRoomId(), responseLeaveMessage);
@@ -95,7 +103,7 @@ public class SendInformationController {
 
         MessageVCResponse responseLeaveMessage = MessageVCResponse.builder(room.getRoomId(), MessageType.LEAVE)
                 .sender(member.getNickname())
-                .manager(room.getManager().getNickname())
+                .manager(room.getManagerNickname())
                 .message(member.getNickname()+"님이 길 찾기 방에서 퇴장하였습니다.")
                 .build();
         template.convertAndSend("/sub/service2/room/" + room.getRoomId(), responseLeaveMessage);
@@ -118,16 +126,16 @@ public class SendInformationController {
             logger.info("{} leaves room, roomId: {}", message.getSender(), message.getRoomId());
             MessageVCResponse responseLeaveMessage = MessageVCResponse.builder(message.getRoomId(),MessageType.LEAVE)
                     .sender(message.getSender())
-                    .manager(room.getManager().getNickname())
+                    .manager(room.getManagerNickname())
                     .message(message.getSender()+"님이 길 찾기 방에서 퇴장하였습니다.")
                     .build();
             template.convertAndSend("/sub/service2/room/" + message.getRoomId(), responseLeaveMessage);
             return;
         }
 
-        room = findPathRoomService.changeRoomMemberLocation(message.getRoomId(), message.getSender(), message.getMessage());
+        room = findPathRoomService.changeRoomMemberLocation(message.getRoomId(), message.getSender(), objectMapper.readValue(message.getMessage(), MemberLatLng.class));
 
-        if (message.getSender().equals(room.getManager().getNickname())) {
+        if (message.getSender().equals(room.getManagerNickname())) {
             if (LocalDateTime.now().isAfter(room.getRoomDeletionTime())) {
                 logger.info("Room deleted because no one came to the room for 5 minutes. roomId: {}", message.getRoomId());
                 MessageVCResponse responseExpiredMessage = MessageVCResponse.builder(message.getRoomId(), MessageType.ROOM_EXPIRED)
@@ -140,14 +148,14 @@ public class SendInformationController {
             logger.info("{} leaves room because he doesn't move for 10 minutes, roomId: {}", message.getSender(), message.getRoomId());
             MessageVCResponse responseLeaveMessage = MessageVCResponse.builder(message.getRoomId(), MessageType.LEAVE)
                     .sender(message.getSender())
-                    .manager(room.getManager().getNickname())
+                    .manager(room.getManagerNickname())
                     .message(message.getSender()+"님이 10분간 움직이지 않아 방에서 퇴장되었습니다.")
                     .build();
             template.convertAndSend("/sub/service2/room/" + message.getRoomId(), responseLeaveMessage);
             return;
         }
         MessageVCResponse responseRouteMessage;
-        if (room.findMemberByNickname(message.getSender()).getIsRoad()) {
+        if (room.findMemberByNickname(message.getSender()).getTransportationType() == TransportationType.ROAD) {
              responseRouteMessage = MessageVCResponse.builder(message.getRoomId(), MessageType.ROUTE)
                      .sender(message.getSender())
                      .route(findPathRoomService.findRoadShortestRoute(room))
@@ -195,7 +203,7 @@ public class SendInformationController {
 
         MessageInfoVCResponse responseEnterMessage = new MessageInfoVCResponse();
         responseEnterMessage.setMessage(message.getSender() + "님이 길 찾기 방에 참여하였습니다.");
-        responseEnterMessage.setManager(room.getManager().getNickname());
+        responseEnterMessage.setManager(room.getManagerNickname());
         message.setMessage(objectMapper.writeValueAsString(responseEnterMessage));
         template.convertAndSend("/sub/service2/room/" + message.getRoomId(), message);
         FindPathRoom previousRoom = findPathRoomService.memberEnterRoom(message.getRoomId(), message.getSender());
@@ -203,7 +211,7 @@ public class SendInformationController {
 
         logger.info("{} leaves the room(roomId: {}) because of entering the new room(roomId: {})", message.getSender(), previousRoom.getRoomId(), message.getRoomId());
         MessageInfoVCResponse responseLeaveMessage = new MessageInfoVCResponse();
-        responseLeaveMessage.setManager(previousRoom.getManager().getNickname());
+        responseLeaveMessage.setManager(previousRoom.getManagerNickname());
         responseLeaveMessage.setLeave(true);
         responseLeaveMessage.setMessage(message.getSender() + "님이 길 찾기 방에서 퇴장하였습니다.");
         message.setMessage(objectMapper.writeValueAsString(responseLeaveMessage));
@@ -216,7 +224,7 @@ public class SendInformationController {
         FindPathRoom room = findPathRoomService.leaveRoom(message.getRoomId(), message.getSender());
         if (room == null) return;
         MessageInfoVCResponse responseMessage = new MessageInfoVCResponse();
-        responseMessage.setManager(room.getManager().getNickname());
+        responseMessage.setManager(room.getManagerNickname());
         responseMessage.setLeave(true);
         responseMessage.setMessage(message.getSender() + "님이 길 찾기 방에서 퇴장하였습니다.");
         message.setMessage(objectMapper.writeValueAsString(responseMessage));

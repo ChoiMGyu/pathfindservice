@@ -6,10 +6,8 @@ package com.pathfind.system.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.pathfind.system.domain.Member;
-import com.pathfind.system.findPathService2Dto.CreateRoomVCRequest;
-import com.pathfind.system.findPathService2Dto.FindPathRoom;
-import com.pathfind.system.findPathService2Dto.InviteMemberVCRequest;
-import com.pathfind.system.findPathService2Dto.InviteMemberVCResponse;
+import com.pathfind.system.findPathService2Domain.FindPathRoom;
+import com.pathfind.system.findPathService2Dto.*;
 import com.pathfind.system.service.FindPathRoomService;
 import com.pathfind.system.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -86,7 +84,7 @@ public class FindPathRoomController {
             return "service2/service2Home";
         }
 
-        FindPathRoom newRoom = findPathRoomService.createRoom(loginMember.getNickname(), form.getRoomName(), form.getTransportation().equals("도로"));
+        FindPathRoom newRoom = findPathRoomService.createRoom(loginMember.getNickname(), form.getRoomName(), form.getTransportationType());
         return "redirect:/service2/room?roomId=" + newRoom.getRoomId();
     }
 
@@ -139,29 +137,23 @@ public class FindPathRoomController {
         String roomId = form.getRoomId(), nickname = form.getNickname();
         logger.info("Invite {} at room, roomId: {}", nickname, roomId);
         Member member = Member.createMember(null, null, nickname, null, null);
-        InviteMemberVCResponse response = new InviteMemberVCResponse();
 
         // nickname이 데이터베이스에 존재하는 것인지 여부를 확인한다.
         if (memberService.findByNickname(member).isEmpty()) {
             logger.info("{} isn't exist at DB", nickname);
-            response.setInvited(false);
-            response.setMessage("'" + nickname + "'은 존재하지 않는 닉네임 입니다.");
-            return response;
+            return new InviteMemberVCResponse(InviteType.NOT_INVITED, "'" + nickname + "'은 존재하지 않는 닉네임 입니다.");
         }
 
         // 이미 roomId에 해당하는 길찾기 방에 초대가 되어 있는지 여부를 확인한다.
-        if (findPathRoomService.isMemberInRoom(roomId, nickname)) {
+        if (findPathRoomService.checkMemberInvited(roomId, nickname)) {
             logger.info("{} is already invited at room, roomId {}", roomId, nickname);
-            response.setInvited(false);
-            response.setMessage("'" + nickname + "'님은 이미 초대되었습니다.");
-            return response;
+            return new InviteMemberVCResponse(InviteType.DUPLICATE_INVITE, "'" + nickname + "'님은 이미 초대되었습니다.");
         }
 
         FindPathRoom room = findPathRoomService.inviteMember(roomId, nickname);
-        response.setMessage("'" + nickname + "'님이 " + room.getRoomName() + "방에 초대되었습니다.");
         logger.info("{} is invited at room successfully, roomId: {}", nickname, roomId);
 
-        return response;
+        return new InviteMemberVCResponse(InviteType.INVITED, "'" + nickname + "'님이 " + room.getRoomName() + "방에 초대되었습니다.");
     }
 
     // 채팅방 퇴장

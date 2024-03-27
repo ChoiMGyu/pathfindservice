@@ -12,9 +12,7 @@ import com.pathfind.system.algorithm.Graph;
 import com.pathfind.system.algorithm.Node;
 import com.pathfind.system.domain.*;
 import com.pathfind.system.findPathDto.ShortestPathRoute;
-import com.pathfind.system.findPathService2Dto.FindPathRoom;
-import com.pathfind.system.findPathService2Dto.MemberLatLng;
-import com.pathfind.system.findPathService2Dto.RoomMemberInfo;
+import com.pathfind.system.findPathService2Domain.*;
 import com.pathfind.system.repository.RoadEdgeRepository;
 import com.pathfind.system.repository.RoadVertexRepository;
 import com.pathfind.system.repository.SidewalkEdgeRepository;
@@ -74,38 +72,36 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     }
 
     @Override
-    public FindPathRoom createRoom(String nickname, String roomName, Boolean isRoad) throws JsonProcessingException {
+    public FindPathRoom createRoom(String nickname, String roomName, TransportationType transportationType) throws JsonProcessingException {
         logger.info("Create room...");
         FindPathRoom findPathRoom = FindPathRoom.createFindPathRoom(roomName);
         while (redisUtil.getData(findPathRoom.getRoomId()) != null) findPathRoom.createRoomId();
-        findPathRoom.pushNewMember(nickname, null, null, isRoad);
+        findPathRoom.pushNewMember(nickname, null, null, transportationType);
 
         String jsonStringRoom = objectMapper.writeValueAsString(findPathRoom);
         logger.info("Create jsonStringRoom: {}", jsonStringRoom);
 
-        redisUtil.setDataExpire(findPathRoom.getRoomId(), jsonStringRoom, 60 * 60 * 2L);
+        redisUtil.setDataExpire(findPathRoom.getRoomId(), jsonStringRoom, RoomValue.ROOM_DURATION);
         return findPathRoom;
     }
 
     @Override
-    public FindPathRoom changeRoomMemberLocation(String roomId, String sender, String message) throws IOException {
+    public FindPathRoom changeRoomMemberLocation(String roomId, String sender, MemberLatLng memberLatLng) throws IOException {
         logger.info("Change room member's location, roomId {}", roomId);
-        FindPathRoom findPathRoom = findRoomById(roomId);
-        MemberLatLng memberLatLng = objectMapper.readValue(message, MemberLatLng.class);
+        FindPathRoom room = findRoomById(roomId);
+        room.changeMemberLocation(sender, memberLatLng);
         double memberLat = memberLatLng.getLatitude(), memberLng = memberLatLng.getLongitude(), dist = 1000000.0;
-        RoomMemberInfo member = findPathRoom.findMemberByNickname(sender);
-        member.changeLocation(memberLatLng);
 
         logger.info("Member({})'s current location - latitude: {}, longitude: {}", sender, memberLat, memberLng);
         logger.info("Find closest vertexId...");
-        if (!member.getIsRoad()) {
+        if (room.getMemberTransportationType(sender) == TransportationType.SIDEWALK) {
             List<SidewalkVertex> SWVertices = sidewalkVertexRepository.findAll();
             for (SidewalkVertex vertex : SWVertices) {
                 double tmpDist = Math.pow(Math.abs(memberLat - vertex.getLatitude()), 2) + Math.pow(Math.abs(memberLng - vertex.getLongitude()), 2);
                 if (dist > tmpDist) {
                     //logger.info("VertexId: {}, distance difference: {}, minimum distance: {}", vertex.getId() - 1, tmpDist, dist);
                     dist = tmpDist;
-                    member.setClosestVertexId(vertex.getId() - 1);
+                    room.changeMemberClosestVertexId(sender, vertex.getId() - 1);
                 }
             }
         } else {
@@ -115,14 +111,14 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
                 if (dist > tmpDist) {
                     //logger.info("VertexId: {}, distance difference: {}, minimum distance: {}", vertex.getId() - 1, tmpDist, dist);
                     dist = tmpDist;
-                    member.setClosestVertexId(vertex.getId() - 1);
+                    room.changeMemberClosestVertexId(sender, vertex.getId() - 1);
                 }
             }
         }
-        logger.info("Member({})'s closest vertexId: {}", sender, member.getClosestVertexId());
-        String jsonStringRoom = objectMapper.writeValueAsString(findPathRoom);
+        logger.info("Member({})'s closest vertexId: {}", sender, room.findMemberByNickname(sender).getClosestVertexId());
+        String jsonStringRoom = objectMapper.writeValueAsString(room);
         redisUtil.setData(roomId, jsonStringRoom);
-        return findPathRoom;
+        return room;
     }
 
     @Override
@@ -227,21 +223,18 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     public FindPathRoom inviteMember(String roomId, String nickname) throws IOException {
         logger.info("Invite member {} to room, roomId: {}", nickname, roomId);
         FindPathRoom room = findRoomById(roomId);
-        Boolean isRoad = room.getManager().getIsRoad();
-        room.pushNewMember(nickname, null, null, isRoad);
+        TransportationType transportationType = room.getManager().getTransportationType();
+        room.pushNewMember(nickname, null, null, transportationType);
         String jsonStringRoom = objectMapper.writeValueAsString(room);
         redisUtil.setData(roomId, jsonStringRoom);
         return room;
     }
 
     @Override
-    public boolean isMemberInRoom(String roomId, String nickname) throws IOException {
+    public boolean checkMemberInvited(String roomId, String nickname) throws IOException {
         logger.info("Check {} is already invited at roomId {}", nickname, roomId);
         FindPathRoom room = findRoomById(roomId);
-        for (RoomMemberInfo roomMemberInfo : room.getInvitedMember()) {
-            if (roomMemberInfo.getNickname().equals(nickname)) return true;
-        }
-        return false;
+        return room.checkMemberInvited(nickname);
     }
 
     @Override
@@ -260,27 +253,11 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
                 redisUtil.setData(room.getRoomId(), jsonStringRoom);
                 continue;
             }
-            if (member.getWebSocketSessionId() == null) continue;
-            leaveRoom = leaveRoom(room.getRoomId(), nickname);
+            if (member.getWebSocketSessionId() != null) {
+                leaveRoom = leaveRoom(member.getWebSocketSessionId());
+            }
         }
         return leaveRoom;
-    }
-
-    @Override
-    public FindPathRoom leaveRoom(String roomId, String nickname) throws IOException {
-        FindPathRoom room = findRoomById(roomId);
-        if (room == null) return null;
-        logger.info("{} leaves the room, roomId: {}", nickname, roomId);
-        room.leaveRoom(nickname);
-        if (room.isNoOneInRoom()) {
-            logger.info("Delete the room because of no one in the room, roomId: {}", roomId);
-            redisUtil.deleteData(roomId);
-            return null;
-        } else {
-            String jsonStringRoom = objectMapper.writeValueAsString(room);
-            redisUtil.setData(roomId, jsonStringRoom);
-            return room;
-        }
     }
 
     @Override

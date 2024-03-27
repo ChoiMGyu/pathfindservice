@@ -2,7 +2,7 @@
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2)의 길 찾기 방을 구현한 클래스이다.
  * 최근 수정 일자 : 2024.03.18(월)
  */
-package com.pathfind.system.findPathService2Dto;
+package com.pathfind.system.findPathService2Domain;
 
 import com.pathfind.system.exception.ErrorCode;
 import com.pathfind.system.exception.CustomException;
@@ -54,11 +54,11 @@ public class FindPathRoom {
         this.roomId = randomPassword.toString();
     }
 
-    public void pushNewMember(String newMember, MemberLatLng memberLatLng, Long vertexId, Boolean isRoad) {
+    public void pushNewMember(String newMember, MemberLatLng memberLatLng, Long vertexId, TransportationType transportationType) {
         if (getInvitedMember().size() == RoomValue.ROOM_MAX_MEMBER_NUM) {
             throw new CustomException(ErrorCode.ROOM_EXCEEDED, "방에 초대 가능한 인원은 최대 5명 입니다.");
         }
-        getInvitedMember().add(new RoomMemberInfo(newMember, memberLatLng, vertexId, isRoad));
+        getInvitedMember().add(new RoomMemberInfo(newMember, memberLatLng, vertexId, transportationType));
     }
 
     /*public void changeMemberLocation(int memberIdx, MemberLatLng memberLatLng, Long vertexId) {
@@ -106,23 +106,6 @@ public class FindPathRoom {
         }
     }
 
-    public void leaveRoom(String nickname) {
-        int enterMemberNum = 0;
-        RoomMemberInfo leaveMember = findMemberByNickname(nickname);
-        if (leaveMember != null) {
-            for (int i = 0; i < getInvitedMember().size(); i++) {
-                if (getInvitedMember().get(i).getWebSocketSessionId() != null) enterMemberNum++;
-                if (getInvitedMember().get(i).getNickname().equals(nickname) && i + 1 < getInvitedMember().size() && getInvitedMember().get(i + 1).getWebSocketSessionId() != null) {
-                    Collections.swap(getInvitedMember(), i, i + 1);
-                }
-            }
-            leaveMember.leaveRoom();
-            if (enterMemberNum == 2) {
-                changeRoomDeletionTime(LocalDateTime.now().plusMinutes(RoomValue.ROOM_DELETION_TIME));
-            }
-        }
-    }
-
     public void leaveRoomByWebSocketSessionId(String webSocketSessionId) {
         int enterMemberNum = 0;
         RoomMemberInfo leaveMember = findMemberByWebSocketSessionId(webSocketSessionId);
@@ -162,5 +145,30 @@ public class FindPathRoom {
     public RoomMemberInfo getManager() {
         if (getInvitedMember() == null) return null;
         return getInvitedMember().get(0);
+    }
+
+    public String getManagerNickname() {
+        if (getInvitedMember() == null) return null;
+        return getInvitedMember().get(0).getNickname();
+    }
+
+    public void changeMemberLocation(String nickname, MemberLatLng memberLatLng) {
+        RoomMemberInfo member = this.findMemberByNickname(nickname);
+        member.changeLocation(memberLatLng);
+    }
+
+    public TransportationType getMemberTransportationType(String nickname) {
+        return this.findMemberByNickname(nickname).getTransportationType();
+    }
+
+    public void changeMemberClosestVertexId(String nickname, long vertexId) {
+        this.findMemberByNickname(nickname).setClosestVertexId(vertexId);
+    }
+
+    public boolean checkMemberInvited(String nickname) {
+        for (RoomMemberInfo roomMemberInfo : getInvitedMember()) {
+            if (roomMemberInfo.getNickname().equals(nickname)) return true;
+        }
+        return false;
     }
 }

@@ -6,7 +6,9 @@ package com.pathfind.system.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.pathfind.system.findPathDto.ShortestPathRoute;
-import com.pathfind.system.findPathService2Dto.FindPathRoom;
+import com.pathfind.system.findPathService2Domain.FindPathRoom;
+import com.pathfind.system.findPathService2Domain.MemberLatLng;
+import com.pathfind.system.findPathService2Domain.TransportationType;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,9 +18,9 @@ public interface FindPathRoomService {
 
     public FindPathRoom findRoomById(String roomId) throws IOException;
 
-    public FindPathRoom createRoom(String nickname, String roomName, Boolean isRoad) throws JsonProcessingException;
+    public FindPathRoom createRoom(String nickname, String roomName, TransportationType transportationType) throws JsonProcessingException;
 
-    public FindPathRoom changeRoomMemberLocation(String roomId, String sender, String message) throws IOException;
+    public FindPathRoom changeRoomMemberLocation(String roomId, String sender, MemberLatLng memberLatLng) throws IOException;
 
     public List<List<ShortestPathRoute>> findRoadShortestRoute(FindPathRoom findPathRoom);
 
@@ -28,11 +30,9 @@ public interface FindPathRoomService {
 
     public FindPathRoom inviteMember(String roomId, String nickname) throws IOException;
 
-    public boolean isMemberInRoom(String roomId, String nickname) throws IOException;
+    public boolean checkMemberInvited(String roomId, String nickname) throws IOException;
 
     public FindPathRoom memberEnterRoom(String roomId, String nickname, String webSocketSessionId) throws IOException;
-
-    public FindPathRoom leaveRoom(String roomId, String nickname) throws IOException;
 
     public FindPathRoom leaveRoom(String webSocketSessionId) throws IOException;
 
