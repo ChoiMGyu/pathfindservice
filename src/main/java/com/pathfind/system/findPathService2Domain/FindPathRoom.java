@@ -153,16 +153,16 @@ public class FindPathRoom {
     }
 
     public void changeMemberLocation(String nickname, MemberLatLng memberLatLng) {
-        RoomMemberInfo member = this.findMemberByNickname(nickname);
+        RoomMemberInfo member = findMemberByNickname(nickname);
         member.changeLocation(memberLatLng);
     }
 
     public TransportationType getMemberTransportationType(String nickname) {
-        return this.findMemberByNickname(nickname).getTransportationType();
+        return findMemberByNickname(nickname).getTransportationType();
     }
 
     public void changeMemberClosestVertexId(String nickname, long vertexId) {
-        this.findMemberByNickname(nickname).setClosestVertexId(vertexId);
+        findMemberByNickname(nickname).setClosestVertexId(vertexId);
     }
 
     public boolean checkMemberInvited(String nickname) {
@@ -170,5 +170,9 @@ public class FindPathRoom {
             if (roomMemberInfo.getNickname().equals(nickname)) return true;
         }
         return false;
+    }
+
+    public String findNicknameByWebsocketSessionId(String webSocketSessionId) {
+        return findMemberByWebSocketSessionId(webSocketSessionId).getNickname();
     }
 }
