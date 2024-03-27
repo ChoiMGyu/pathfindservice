@@ -62,7 +62,8 @@
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <script th:inline="javascript">
-    let areaMessage = 0;
+    const SENDED = 1, NOT_SENDED = 2;
+    let NotInCampusMessage = NOT_SENDED;
 
     /**
      * 닉네임에 해당하는 회원을 초대하는데 사용되는 함수이다.
@@ -84,8 +85,7 @@
                     $("#nickname").attr('class', "form-control fieldError").focus();
                     return;
                 }
-                $("#message").text(response.message);
-                bodyAlert();
+                bodyAlert(response.message);
                 inviteNickname.value = '';
             },
             error: function (error) {
@@ -148,55 +148,55 @@
             navigator.geolocation.getCurrentPosition(function (position) {
                 let latitude = position.coords.latitude; // 위도
                 let longitude = position.coords.longitude; // 경도
-                if (!areaMessage && !_isMemberInCampusArea(latitude, longitude)) {
-                    let txt = nickname + "님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 경로가 올바르지 않을 수 있습니다.";
-                    $("#message").text(txt);
-                    bodyAlert();
+
+                if (NotInCampusMessage === NOT_SENDED && !_isMemberInCampusArea(latitude, longitude)) {
+                    bodyAlert(nickname + "님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 경로가 올바르지 않을 수 있습니다.");
                 }
 
                 let sockJs = new SockJS("/connection");
                 //1. SockJS를 내부에 들고있는 stomp를 내어줌
                 let stomp = Stomp.over(sockJs); //sockJs.onClose();
                 //2. connection이 맺어지면 실행
-                stomp.connect({id: nickname, roomId: roomId, reLoad: (self.window.name.indexOf("reLoadFlag"))}, function () { // { id:nickname, roomId:roomId }는 connect 헤더에 포함되는 정보이다. SendInformationController 의 handleWebSocketConnectListener 함수에서 사용된다.
+                stomp.connect({
+                    id: nickname,
+                    roomId: roomId,
+                    reLoad: (self.window.name.indexOf("reLoadFlag"))
+                }, function () { // { id:nickname, roomId:roomId }는 connect 헤더에 포함되는 정보이다. SendInformationController 의 handleWebSocketConnectListener 함수에서 사용된다.
                     console.log("STOMP Connection");
 
                     //3. subscribe(path, callback)으로 메세지를 받을 수 있음
                     stomp.subscribe("/sub/service2/room/" + roomId, function (chat) {
                         let content = JSON.parse(chat.body);
-                        //console.log(content);
+                        console.log(content);
                         let sender = content.sender;
-                        let response = JSON.parse(content.message);
+                        let manager = content.manager;
+                        let messageType = content.msgType;
+                        let message = content.message;
+                        let route = content.route;
+                        let roomId = content.roomId;
+                        console.log("message: " + message);
 
-                        giveAuthority(nickname, response.manager);
-
-                        if (response.expired === true) { // 방의 시간이 만료된 경우 /service2/room/leave 으로 리다이렉트한다.
-                            leaveRoom(roomName, response.message);
-                            return;
+                        if (manager != null) {
+                            giveAuthority(nickname, manager);
                         }
 
-                        if (response.route === null) { // 일반 메시지가 전송되는 경우는 알림을 통해 띄운다.
-                            if (sender === nickname && response.leave === true) {
-                                leaveRoom(roomName, response.message);
-                            }
-
-                            if (!areaMessage && response.isInCampus === false) {
-                                areaMessage = 1;
-                                /*$("#message").text(response.message);
-                                bodyAlert();
-                                return;*/
-                            }
-
-                            $("#message").text(response.message);
-                            bodyAlert();
-                            return;
+                        switch(messageType) {
+                            case "ENTER":
+                            case "NOT_IN_CAMPUS":
+                                    bodyAlert(message);
+                                break;
+                            case "LEAVE":
+                                if(sender === nickname) {
+                                    leaveRoom(roomName, message);
+                                }
+                                bodyAlert(message);
+                                break;
+                            case "ROOM_EXPIRED": // 방의 시간이 만료된 경우 /service2/room/leave 으로 리다이렉트한다.
+                                leaveRoom(roomName, message);
+                                break;
+                            case "ROUTE":
+                                setMapRoute(route);
                         }
-
-                        let route = response.route;
-
-                        //console.log("route: " + route);
-
-                        setMapRoute(route, null, null);
                     });
 
                     //4. send(path, header, message)로 메세지를 보낼 수 있음
@@ -213,8 +213,9 @@
                                 lat = position.coords.latitude; // 위도
                                 lng = position.coords.longitude; // 경도
                                 console.log(lat, lng);
-                                if (!areaMessage) {
+                                if (NotInCampusMessage === NOT_SENDED) {
                                     if (!_isMemberInCampusArea(lat, lng)) {
+                                        NotInCampusMessage = SENDED
                                         let txt = nickname + "님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 경로가 올바르지 않을 수 있습니다.";
                                         stomp.send('/pub/room/sendMessage', {}, JSON.stringify({
                                             roomId: roomId,
@@ -222,7 +223,7 @@
                                             message: txt
                                         }));
                                     } else {
-                                        areaMessage = 0;
+                                        NotInCampusMessage = NOT_SENDED;
                                     }
                                 }
                                 let msg = JSON.stringify({latitude: lat, longitude: lng});

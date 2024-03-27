@@ -59,8 +59,7 @@ function showErrorMsg(error) {
             txt = "위치 정보를 가져오는 데 알 수 없는 오류가 발생했습니다."
             break;
     }
-    $("#message").text(txt);
-    bodyAlert();
+    bodyAlert(txt);
 }
 
 /**
@@ -75,17 +74,12 @@ function isMemberInCampusArea() {
             lng = position.coords.longitude; // 경도
             console.log(lat, lng);
             if (!_isMemberInCampusArea(lat, lng)) {
-                let txt = "회원님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 서비스 2를 이용하실 수 없습니다.";
-                $("#message").text(txt);
-                bodyAlert();
+                bodyAlert("회원님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 서비스 2를 이용하실 수 없습니다.");
                 return;
             }
             form.submit();
         }, showErrorMsg);
     } else {
-        let txt = "현재 웹 브라우저가 위치 제공을 지원하지 않습니다. 따라서 서비스 2를 이용하실 수 없습니다.";
-        //console.log(txt);
-        $("#message").text(txt);
-        bodyAlert();
+        bodyAlert("현재 웹 브라우저가 위치 제공을 지원하지 않습니다. 따라서 서비스 2를 이용하실 수 없습니다.");
     }
 }

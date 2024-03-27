@@ -262,7 +262,7 @@ function deleteRecentSearch(idx) {
 }
 
 // 지도에 두 지점 간의 경로를 그리는 함수이다.
-function setMapRoute(route, startObjectType, endObjectType) {
+function setMapRoute(route, startObjectType = null, endObjectType = null) {
     for (let i = 0; i < drawRoute.length; i++) drawRoute[i].setMap(null);
     drawRoute = [];
     for (let i = 0; i < markers.length; i++) {
