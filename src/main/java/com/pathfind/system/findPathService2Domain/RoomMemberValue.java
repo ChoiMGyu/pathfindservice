@@ -1,4 +1,4 @@
-package com.pathfind.system.findPathService2Dto;
+package com.pathfind.system.findPathService2Domain;
 
 import java.time.LocalDateTime;
 

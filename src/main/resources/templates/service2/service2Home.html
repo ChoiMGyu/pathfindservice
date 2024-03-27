@@ -22,17 +22,17 @@
             <div class="form-group col-md-4">
                 <div class="input-group">
                     <label for="transportation" class="input-group-text">이동 수단</label>
-                    <select id="transportation" class="form-select" th:field="*{transportation}">
-                        <option selected value="도보">도보</option>
-                        <option value="도로">도로</option>
+                    <select id="transportation" class="form-select" th:field="*{transportationType}">
+                        <option selected value="SIDEWALK">도보</option>
+                        <option value="ROAD">도로</option>
                     </select>
                 </div>
             </div>
             <small id="thUserIdError" class="text-danger" style="margin: 0" th:if="${#fields.hasErrors('roomName')}"
                    th:errors="*{roomName}">Incorrect roomName</small>
             <div class="col-12">
-                <!--<button id="createRoomBtn" type="button" class="btn btn-outline-secondary" onclick="isMemberInCampusArea()">방 개설하기</button>-->
-                <button id="createRoomBtn" type="submit" class="btn btn-outline-secondary">방 개설하기</button>
+                <button id="createRoomBtn" type="button" class="btn btn-outline-secondary" onclick="isMemberInCampusArea()">방 개설하기</button>
+                <!--<button id="createRoomBtn" type="submit" class="btn btn-outline-secondary">방 개설하기</button>-->
             </div>
         </form>
     </section>

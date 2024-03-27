@@ -4,6 +4,7 @@
  */
 package com.pathfind.system.findPathService2Dto;
 
+import com.pathfind.system.findPathService2Domain.TransportationType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
@@ -14,5 +15,5 @@ public class CreateRoomVCRequest {
     public String roomName;
 
     @NotBlank
-    public String transportation;
+    public TransportationType transportationType;
 }

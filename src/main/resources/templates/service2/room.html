@@ -62,7 +62,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <script th:inline="javascript">
-    const SENDED = 1, NOT_SENDED = 2;
+    const SENDED = 1, NOT_SENDED = 2, INVITED = "INVITED", NOT_INVITED = "NOT_INVITED", DUPLICATE_INVITE = "DUPLICATE_INVITE";
     let NotInCampusMessage = NOT_SENDED;
 
     /**
@@ -80,7 +80,8 @@
                 nickname: inviteNickname.value
             },
             success: function (response) {
-                if (response.isInvited === false) {
+                console.log(response);
+                if (response.inviteType === NOT_INVITED || response.inviteType === DUPLICATE_INVITE) {
                     $("#nicknameError").text(response.message).show();
                     $("#nickname").attr('class', "form-control fieldError").focus();
                     return;
@@ -150,6 +151,7 @@
                 let longitude = position.coords.longitude; // 경도
 
                 if (NotInCampusMessage === NOT_SENDED && !_isMemberInCampusArea(latitude, longitude)) {
+                    NotInCampusMessage = SENDED;
                     let txt = nickname + "님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 경로가 올바르지 않을 수 있습니다.";
                     bodyAlert(txt);
                 }

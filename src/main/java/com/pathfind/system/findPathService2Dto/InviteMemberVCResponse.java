@@ -4,10 +4,12 @@
  */
 package com.pathfind.system.findPathService2Dto;
 
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class InviteMemberVCResponse {
-    public boolean isInvited = true;
+    public InviteType inviteType;
     public String message;
 }
