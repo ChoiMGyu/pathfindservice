@@ -8,7 +8,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-function bodyAlert() {
+function bodyAlert(message = "") {
+    $("#message").text(message);
     let messageElement = document.querySelector('.alert');
     messageElement.style.display = 'block';
     if (messageElement) {
