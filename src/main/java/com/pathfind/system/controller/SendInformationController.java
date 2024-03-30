@@ -7,25 +7,20 @@ package com.pathfind.system.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pathfind.system.findPathService2Domain.FindPathRoom;
 import com.pathfind.system.findPathService2Domain.MemberLatLng;
-import com.pathfind.system.findPathService2Domain.RoomMemberInfo;
 import com.pathfind.system.findPathService2Domain.TransportationType;
 import com.pathfind.system.findPathService2Dto.*;
 import com.pathfind.system.service.FindPathRoomService;
 import com.pathfind.system.service.SendStompMessageService;
-import jakarta.mail.Session;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
-import org.springframework.web.socket.messaging.SessionSubscribeEvent;
-import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -109,7 +104,7 @@ public class SendInformationController {
         logger.info("Disconnect header information: {}", headerAccessor);
         String sessionId = headerAccessor.getSessionId();
 
-        FindPathRoom room = findPathRoomService.findRoomByWebSocketSessionId(sessionId);
+        FindPathRoom room = findPathRoomService.findCurRoomByNickname(sessionId);
         if (room == null) return;
 
         String sender = room.findNicknameByWebsocketSessionId(sessionId);
