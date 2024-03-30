@@ -12,11 +12,13 @@ import com.pathfind.system.findPathService2Domain.TransportationType;
 import com.pathfind.system.findPathService2Dto.*;
 import com.pathfind.system.service.FindPathRoomService;
 import com.pathfind.system.service.SendStompMessageService;
+import jakarta.mail.Session;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
@@ -43,7 +45,7 @@ public class SendInformationController {
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) throws IOException {
-        logger.info("Connect event");
+        logger.info("한 명의 인원이 웹소켓에 연결될 때");
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         logger.info("Connect header information: {}", headerAccessor);
         String roomId = Objects.requireNonNull(headerAccessor.getNativeHeader("roomId")).get(0);
@@ -51,10 +53,8 @@ public class SendInformationController {
         // stomp Connect 메시지 헤더에 roomId와 id 값이 포함되어 있지 않으면 개발자가 의도한 것이 아니므로 함수를 종료한다.
         if (roomId == null || sender == null) return;
 
-        String sessionId = headerAccessor.getSessionId();
-        logger.info("roomId: {}, nickname: {}, websocketSessionId: {}", roomId, sender, sessionId);
-        FindPathRoom room = findPathRoomService.findRoomById(roomId);
-        if (room == null) return;
+        headerAccessor.getSessionAttributes().put("roomId", roomId);
+        headerAccessor.getSessionAttributes().put("sender", sender);
 
         sendStompMessageService.sendEnter(roomId, sender, sender + "님이 길 찾기 방에 참여하였습니다.");
         FindPathRoom previousRoom = findPathRoomService.memberEnterRoom(roomId, sender, sessionId);
@@ -63,6 +63,30 @@ public class SendInformationController {
         logger.info("{} leaves the room(roomId: {}) because of entering the new room(roomId: {})", sender, previousRoom.getRoomId(), roomId);
         sendStompMessageService.sendLeave(previousRoom.getRoomId(), sender, room.getManagerNickname(), sender + "님이 길 찾기 방에서 퇴장하였습니다.");
     }
+
+//    @EventListener
+//    public void handleWebSocketConnectListener(SessionConnectEvent event) throws IOException {
+//        logger.info("Connect event");
+//        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+//        //event.getMessage()의 헤더를 액세스하기
+//        logger.info("Connect header information: {}", headerAccessor);
+//        String roomId = Objects.requireNonNull(headerAccessor.getNativeHeader("roomId")).get(0);
+//        String sender = Objects.requireNonNull(headerAccessor.getNativeHeader("id")).get(0);
+//        // stomp Connect 메시지 헤더에 roomId와 id 값이 포함되어 있지 않으면 개발자가 의도한 것이 아니므로 함수를 종료한다.
+//        if (roomId == null || sender == null) return;
+//
+//        String sessionId = headerAccessor.getSessionId();
+//        logger.info("roomId: {}, nickname: {}, websocketSessionId: {}", roomId, sender, sessionId);
+//        FindPathRoom room = findPathRoomService.findRoomById(roomId);
+//        if (room == null) return;
+//
+//        sendStompMessageService.sendEnter(roomId, sender, sender + "님이 길 찾기 방에 참여하였습니다.");
+//        FindPathRoom previousRoom = findPathRoomService.memberEnterRoom(roomId, sender, sessionId);
+//        if (previousRoom == null) return;
+//
+//        logger.info("{} leaves the room(roomId: {}) because of entering the new room(roomId: {})", sender, previousRoom.getRoomId(), roomId);
+//        sendStompMessageService.sendLeave(previousRoom.getRoomId(), sender, room.getManagerNickname(), sender + "님이 길 찾기 방에서 퇴장하였습니다.");
+//    }
 
     /*@EventListener
     public void handleWebSocketSubscribeListener(SessionSubscribeEvent event) throws IOException {
