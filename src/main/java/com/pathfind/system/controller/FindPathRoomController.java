@@ -38,7 +38,7 @@ public class FindPathRoomController {
     // service2 메인 화면
     @GetMapping("/enter")
     public String enterService2(HttpServletRequest request, Model model, RedirectAttributes rttr) {
-        logger.info("Enter service2 defaultPage");
+        logger.info("Service2 처음 페이지 입장");
         HttpSession session = request.getSession(false);
         if (session == null) {
             rttr.addFlashAttribute("message", "사람간 길찾기 서비스 이용을 하시려면 로그인을 진행해 주세요.");
@@ -49,12 +49,13 @@ public class FindPathRoomController {
 
         //세션에 회원 데이터가 없으면 home
         if (loginMember == null) {
+            logger.info("로그인을 진행하지 않았을 때");
             rttr.addFlashAttribute("message", "사람간 길찾기 서비스 이용을 하시려면 로그인을 진행해 주세요.");
             return "redirect:/";
         }
 
         model.addAttribute("CreateRoomVCRequest", new CreateRoomVCRequest());
-
+        //정상적으로 방을 생성하였음(방이름, 이동수단을 매개변수)
         //logger.info("loginMember: {}", loginMember.getNickname());
 
         return "service2/service2Home";
@@ -84,7 +85,7 @@ public class FindPathRoomController {
             return "service2/service2Home";
         }
 
-        FindPathRoom newRoom = findPathRoomService.createRoom(loginMember.getNickname(), form.getRoomName(), form.getTransportationType());
+        FindPathRoom newRoom = findPathRoomService.createRoom(form.getRoomName(), form.getTransportationType());
         return "redirect:/service2/room?roomId=" + newRoom.getRoomId();
     }
 

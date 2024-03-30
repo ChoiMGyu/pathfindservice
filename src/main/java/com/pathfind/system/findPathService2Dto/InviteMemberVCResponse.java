@@ -10,6 +10,6 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class InviteMemberVCResponse {
-    public InviteType inviteType;
-    public String message;
+    private InviteType inviteType;
+    private String message;
 }

@@ -18,8 +18,8 @@ public class MessageVCResponse {
     private String sender;
     private String manager;
     private MessageType msgType;
-    private String message = null;
-    private List<List<ShortestPathRoute>> route = null;
+    private String message;
+    private List<List<ShortestPathRoute>> route;
 
     public static MessageVCResponseBuilder builder(String roomId, MessageType messageType) {
         return innerBuilder().roomId(roomId).msgType(messageType);
