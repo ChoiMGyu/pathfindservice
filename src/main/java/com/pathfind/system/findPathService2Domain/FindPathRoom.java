@@ -134,6 +134,7 @@ public class FindPathRoom {
             changeRoomDeletionTime(LocalDateTime.now().plusMinutes(RoomValue.ROOM_DELETION_TIME));
         }
         curMember.remove(findMemberByNickname(nickname));
+        if(!getCurMember().isEmpty()) changeOwnerName(getCurMember().get(0).getNickname());
     }
 
     public void leaveRoomInviteMember(String nickname) {
