@@ -18,4 +18,6 @@ public class CreateRoomVCRequest {
     @NotBlank
     private TransportationType transportationType; //도보 or 자동차
 
+    //roomName은 방 만들기에 사용이 되지만 transportaionType은 RoomMemberInfo에 사용이 되므로
+    //분리가 필요하지 않을까, 오히려 CreateRoomVC에는 nickname이 전달되어야 할 것이다
 }
