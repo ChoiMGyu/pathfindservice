@@ -72,9 +72,9 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     }
 
     @Override
-    public FindPathRoom createRoom(String nickname, String roomName) throws JsonProcessingException {
+    public FindPathRoom createRoom(String nickname, String roomName, TransportationType transportationType) throws JsonProcessingException {
         logger.info("Create room...");
-        FindPathRoom findPathRoom = FindPathRoom.createFindPathRoom(roomName);
+        FindPathRoom findPathRoom = FindPathRoom.createFindPathRoom(roomName, transportationType);
         while (redisUtil.getData(findPathRoom.getRoomId()) != null) findPathRoom.createRoomId();
         pushManagerInvited(findPathRoom, nickname);
 
@@ -99,7 +99,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
 
         logger.info("Member({})'s current location - latitude: {}, longitude: {}", sender, memberLat, memberLng);
         logger.info("Find closest vertexId...");
-        if (room.getMemberTransportationType(sender) == TransportationType.SIDEWALK) {
+        if (room.getTransportationType() == TransportationType.SIDEWALK) {
             List<SidewalkVertex> SWVertices = sidewalkVertexRepository.findAll();
             for (SidewalkVertex vertex : SWVertices) {
                 double tmpDist = Math.pow(Math.abs(memberLat - vertex.getLatitude()), 2) + Math.pow(Math.abs(memberLng - vertex.getLongitude()), 2);
@@ -128,8 +128,8 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
 
     @Override
     public List<List<ShortestPathRoute>> findRoadShortestRoute(FindPathRoom findPathRoom) {
-        Long start = findPathRoom.getManager().getClosestVertexId();
-        MemberLatLng startLatLng = findPathRoom.getManager().getLocation();
+        Long start = findPathRoom.getOwner().getClosestVertexId();
+        MemberLatLng startLatLng = findPathRoom.getOwner().getLocation();
         List<RoadVertex> vertices = roadVertexRepository.findAll();
         int numVertices = vertices.size();
         logger.info("RoadVertices size: {}", numVertices);
@@ -152,7 +152,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         DijkstraResult dijkstraResult = Dijkstra.dijkstra(nodes, graph, start, -1L);
         List<List<ShortestPathRoute>> shortestRouteList = new ArrayList<>();
         logger.info("방장과 각 인원들의 경로 계산");
-        for (int i = 1; i < findPathRoom.getInvitedMember().size(); i++) {
+        for (int i = 1; i < findPathRoom.getCurMember().size(); i++) {
             Long end = findPathRoom.getCurMember().get(i).getClosestVertexId();
             if (end == null) continue;
             //logger.info("방장, {}번째 사람의 경로", end);
@@ -174,8 +174,8 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
 
     @Override
     public List<List<ShortestPathRoute>> findSidewalkShortestRoute(FindPathRoom findPathRoom) {
-        Long start = findPathRoom.getManager().getClosestVertexId();
-        MemberLatLng startLatLng = findPathRoom.getManager().getLocation();
+        Long start = findPathRoom.getOwner().getClosestVertexId();
+        MemberLatLng startLatLng = findPathRoom.getOwner().getLocation();
         List<SidewalkVertex> vertices = sidewalkVertexRepository.findAll();
         int numVertices = vertices.size();
         logger.info("SidewalkVertices size: {}", numVertices);
@@ -198,7 +198,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         DijkstraResult dijkstraResult = Dijkstra.dijkstra(nodes, graph, start, -1L);
         List<List<ShortestPathRoute>> shortestRouteList = new ArrayList<>();
         logger.info("방장과 각 인원들의 경로 계산");
-        for (int i = 1; i < findPathRoom.getInvitedMember().size(); i++) {
+        for (int i = 1; i < findPathRoom.getCurMember().size(); i++) {
             Long end = findPathRoom.getCurMember().get(i).getClosestVertexId();
             if (end == null) continue;
             //logger.info("방장, {}번째 사람의 경로", end);
@@ -242,21 +242,13 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     }
 
     @Override
-    public void memberEnterRoom(String roomId, String nickname, RoomMemberType roomMemberType, TransportationType transportationType) throws IOException {
+    public void memberEnterRoom(String roomId, String nickname) throws IOException {
         logger.info("{} enter the room, roomId: {}", nickname, roomId);
-        List<FindPathRoom> rooms = findAllRoom();
-        for (FindPathRoom room : rooms) {
-            RoomMemberInfo member = room.findMemberByNickname(nickname);
-            //logger.info("get roomId: {}", room.getRoomId());
-            if (member == null) continue;
-            if (room.getRoomId().equals(roomId)) {
-                room.enterRoom(nickname, roomMemberType, null, null, transportationType);
-                logger.info("Set {}'s isInRoom true at roomId: {}", nickname, room.getRoomId());
-                String jsonStringRoom = objectMapper.writeValueAsString(room);
-                redisUtil.setData(room.getRoomId(), jsonStringRoom);
-                break;
-            }
-        }
+        FindPathRoom room = findRoomById(roomId);
+        if (room == null) return;
+        room.enterRoom(nickname, room.getOwnerNickname().equals(nickname) ? RoomMemberType.OWNER : RoomMemberType.NORMAL, null, null);
+        String jsonStringRoom = objectMapper.writeValueAsString(room);
+        redisUtil.setData(room.getRoomId(), jsonStringRoom);
     }
 
     @Override
@@ -267,15 +259,21 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         RoomMemberInfo member = room.findMemberByNickname(nickname);
         logger.info("{} leaves the room, roomId: {}", member.getNickname(), roomId);
         room.leaveRoomCurMember(nickname);
-        if (room.isNoOneInRoom()) {
-            logger.info("Delete the room because of no one in the room, roomId: {}", roomId);
-            redisUtil.deleteData(roomId);
-            return null;
-        } else {
-            String jsonStringRoom = objectMapper.writeValueAsString(room);
-            redisUtil.setData(roomId, jsonStringRoom);
-            return room;
-        }
+        String jsonStringRoom = objectMapper.writeValueAsString(room);
+        redisUtil.setData(roomId, jsonStringRoom);
+        return room;
+    }
+
+    @Override
+    public FindPathRoom leaveRoom(String nickname, String roomId) throws IOException {
+        FindPathRoom room = findRoomById(roomId);
+        if (room==null || !room.checkMemberCur(nickname)) return null;
+        RoomMemberInfo member = room.findMemberByNickname(nickname);
+        logger.info("{} leaves the room, roomId: {}", member.getNickname(), roomId);
+        room.leaveRoomCurMember(nickname);
+        String jsonStringRoom = objectMapper.writeValueAsString(room);
+        redisUtil.setData(roomId, jsonStringRoom);
+        return room;
     }
 
     @Override

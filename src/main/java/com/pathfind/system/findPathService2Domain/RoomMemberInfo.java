@@ -17,43 +17,27 @@ public class RoomMemberInfo {
     private RoomMemberType roomMemberType;
     private MemberLatLng location;
     private Long closestVertexId;
-    private TransportationType transportationType;
-    /**
-    * 웹 소켓 세션 아이디가 존재하면 현재 방에 접속한 인원이고, null이면 현재 접속하지 않은 인원으로 판단한다.
-    */
-    //private String webSocketSessionId;
     private LocalDateTime roomExitTime;
 
-    public RoomMemberInfo(String nickname, RoomMemberType roomMemberType, MemberLatLng location, Long closestVertexId, TransportationType transportationType) {
+    public RoomMemberInfo(String nickname, RoomMemberType roomMemberType, MemberLatLng location, Long closestVertexId) {
         this.nickname = nickname;
         this.roomMemberType = roomMemberType;
         this.location = location;
         this.closestVertexId = closestVertexId;
-        this.transportationType = transportationType;
         this.roomExitTime = RoomMemberValue.ROOM_EXIT_CANCEL;
     }
 
-    public void leaveRoom() {
-        setLocation(null);
-        setRoomMemberType(null);
-        setClosestVertexId(null);
-        setTransportationType(null);
-        //setWebSocketSessionId(null);
-        setRoomExitTime(RoomMemberValue.ROOM_EXIT_CANCEL);
-    }
-
     public void changeLocation(MemberLatLng loc) {
-        if(location==null) {
+        if (location == null) {
             setLocation(loc);
         }
-        if(location.equals(loc)) {
-            if(roomExitTime.isEqual(RoomMemberValue.ROOM_EXIT_CANCEL)) {
+        if (location.equals(loc)) {
+            if (roomExitTime.isEqual(RoomMemberValue.ROOM_EXIT_CANCEL)) {
                 setRoomExitTime(LocalDateTime.now().plusMinutes(RoomMemberValue.ROOM_EXIT_TIME));
             }
-        }
-        else {
+        } else {
             setLocation(loc);
-            if(!roomExitTime.isEqual(RoomMemberValue.ROOM_EXIT_CANCEL)) {
+            if (!roomExitTime.isEqual(RoomMemberValue.ROOM_EXIT_CANCEL)) {
                 setRoomExitTime(RoomMemberValue.ROOM_EXIT_CANCEL);
             }
         }

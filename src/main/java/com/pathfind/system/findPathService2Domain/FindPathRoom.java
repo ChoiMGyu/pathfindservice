@@ -10,11 +10,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.io.IOException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Getter
@@ -26,8 +24,9 @@ public class FindPathRoom {
     private List<String> invitedMember; //초대 회원
     private List<RoomMemberInfo> curMember; //현재 방에 존재하는 회원
     private LocalDateTime roomDeletionTime; //방 삭제 시간
+    private TransportationType transportationType; // 이동 수단
 
-    public static FindPathRoom createFindPathRoom(String roomName) {
+    public static FindPathRoom createFindPathRoom(String roomName, TransportationType transportationType) {
         FindPathRoom newRoom = new FindPathRoom();
         newRoom.createRoomId();
         newRoom.changeRoomName(roomName);
@@ -35,6 +34,7 @@ public class FindPathRoom {
         newRoom.curMember = new ArrayList<>(RoomValue.ROOM_MAX_MEMBER_NUM + 1);
         newRoom.invitedMember = new ArrayList<>(RoomValue.ROOM_MAX_MEMBER_NUM + 1); // 기본 사이즈가 6인 이유는 리스트의 size가 5가 되었을 때 capacity가 자동으로 늘어나는 것을 방지하기 위함이다.
         newRoom.changeRoomDeletionTime(LocalDateTime.now().plusMinutes(RoomValue.ROOM_DELETION_TIME));
+        newRoom.transportationType = transportationType;
         return newRoom;
     }
 
@@ -53,24 +53,14 @@ public class FindPathRoom {
 
     public boolean chkRoomInviteCnt() {
         //방의 초대 정원을 확인하는 함수
-        if(getInvitedMember().size() + 1 > RoomValue.ROOM_MAX_MEMBER_NUM) {
-            //방에 들어가지 못하는 상황
-            return false;
-        }
-        else {
-            //방에 들어갈 수 있는 상황
-            return true;
-        }
+        //방에 들어가지 못하는 상황
+        //방에 들어갈 수 있는 상황
+        return getInvitedMember().size() + 1 <= RoomValue.ROOM_MAX_MEMBER_NUM;
     }
 
     public boolean chkRoomCurCnt() {
         //방의 현재 정원을 확인하는 함수
-        if(getCurMember().size() + 1 > RoomValue.ROOM_MAX_MEMBER_NUM) {
-            return false;
-        }
-        else {
-            return true;
-        }
+        return getCurMember().size() + 1 <= RoomValue.ROOM_MAX_MEMBER_NUM;
     }
 
     public void createRoomId() {
@@ -97,14 +87,17 @@ public class FindPathRoom {
         getInvitedMember().add(nickname);
     }
 
-    public void enterRoom(String nickname, RoomMemberType roomMemberType, MemberLatLng location, Long closestVertexId, TransportationType transportationType) {
+    public void enterRoom(String nickname, RoomMemberType roomMemberType, MemberLatLng location, Long closestVertexId) {
         //현재 인원 리스트에 회원을 넣는 메소드
         //roomMemberType의 경우 curMember 리스트를 순회하며 방장이 있는지 확인 후 설정되는 변수
         if (!chkRoomCurCnt()) {
             throw new CustomException(ErrorCode.ROOM_EXCEEDED, "방의 최대 인원은 5명 입니다.");
         }
-        RoomMemberInfo roomMemberInfo = new RoomMemberInfo(nickname, roomMemberType, location, closestVertexId, transportationType);
+        RoomMemberInfo roomMemberInfo = new RoomMemberInfo(nickname, roomMemberType, location, closestVertexId);
         getCurMember().add(roomMemberInfo);
+        if (getCurMember().size() > 1) { // getCurMember().size()가 1보다 크다는 말은 현재 방에 접속한 인원이 적어도 한 명 이상이라는 것이므로 방 삭제 시간을 RoomValue.ROOM_DELETE_CANCEL로 바꾼다.
+            changeRoomDeletionTime(RoomValue.ROOM_DELETE_CANCEL);
+        }
     }
 
     public RoomMemberInfo findMemberByNickname(String nickname) {
@@ -118,8 +111,7 @@ public class FindPathRoom {
 
     public boolean isNoOneInRoom() {
         //현재 방에 아무도 없을 때
-        if (getCurMember().isEmpty()) return true;
-        else return false;
+        return getCurMember().isEmpty();
     }
 
 
@@ -147,23 +139,19 @@ public class FindPathRoom {
         invitedMember.remove(nickname);
     }
 
-    public RoomMemberInfo getManager() {
+    public RoomMemberInfo getOwner() {
         if (curMember.isEmpty()) return null;
         return findMemberByNickname(ownerName);
     }
 
-    public String getManagerNickname() {
-        if (curMember.isEmpty()) return null;
+    public String getOwnerNickname() {
+        //if (curMember.isEmpty()) return null;
         return ownerName;
     }
 
     public void changeMemberLocation(String nickname, MemberLatLng memberLatLng) {
         RoomMemberInfo member = findMemberByNickname(nickname);
         member.changeLocation(memberLatLng);
-    }
-
-    public TransportationType getMemberTransportationType(String nickname) {
-        return findMemberByNickname(nickname).getTransportationType();
     }
 
     public void changeMemberClosestVertexId(String nickname, long vertexId) {
