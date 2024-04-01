@@ -35,7 +35,7 @@ public interface FindPathRoomService {
 
     public void memberEnterRoom(String roomId, String nickname, RoomMemberType roomMemberType, TransportationType transportationType) throws IOException;
 
-    public FindPathRoom leaveRoom(String webSocketSessionId) throws IOException;
+    public FindPathRoom leaveRoom(String nickname) throws IOException;
 
-    public FindPathRoom findCurRoomByNickname(String webSocketSessionId);
+    public FindPathRoom findCurRoomByNickname(String nickname);
 }

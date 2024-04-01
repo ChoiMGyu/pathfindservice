@@ -74,6 +74,7 @@ public class FindPathRoomController {
 
         //세션에 회원 데이터가 없으면 home
         if (loginMember == null) {
+            logger.info("로그인 상태가 아니었을 때 Service2를 사용하려고 시도하였음.");
             rttr.addFlashAttribute("message", "사람간 길찾기 서비스 이용을 하시려면 로그인을 진행해 주세요.");
             return "redirect:/";
         }
@@ -81,15 +82,17 @@ public class FindPathRoomController {
         String patternUserId = "^[ㄱ-ㅎ가-힣a-zA-Z0-9-_\\s]{2,30}$";
         boolean regexUserId = Pattern.matches(patternUserId, form.getRoomName());
         if (!regexUserId) {
+            logger.info("방 제목을 {}으로 설정하였고, 제목 형식에 올바르지 않아 방 만들기가 거부되었음.", form.getRoomName());
             result.rejectValue("roomName", "Format.roomName");
             return "service2/service2Home";
         }
 
-        FindPathRoom newRoom = findPathRoomService.createRoom(form.getRoomName(), form.getTransportationType());
+        FindPathRoom newRoom = findPathRoomService.createRoom(loginMember.getNickname(), form.getRoomName());
+        //loginMember가 방장이 되어 그 방의 초대 리스트에 들어가게 된다
         return "redirect:/service2/room?roomId=" + newRoom.getRoomId();
     }
 
-    //채팅방 조회
+    //채팅방 입장
     @GetMapping("/room")
     public String getRoom(@RequestParam(value = "roomId") String roomId, Model model, HttpServletRequest request, RedirectAttributes rttr) throws IOException {
         logger.info("get service2 room, roomId : {}", roomId);
@@ -113,12 +116,14 @@ public class FindPathRoomController {
 
         // roomId에 해당하는 방이 없다면 redirect:/
         if (room == null) {
+            logger.info("{}라는 방이 없음", roomId);
             rttr.addFlashAttribute("message", "방 아이디 '" + roomId + "'에 해당하는 방이 존재하지 않습니다.");
             return "redirect:/";
         }
 
         //길찾기 방에 회원에 초대받지 않았다면 redirect:/
-        if (room.findMemberByNickname(loginMember.getNickname()) == null) {
+        if (!room.checkMemberInvited(loginMember.getNickname())) {
+            logger.info("{}가 길찾기방에 초대되지 않아서 입장에 실패하였음", loginMember.getNickname());
             rttr.addFlashAttribute("message", "방 이름 '" + room.getRoomName() + "'에 해당하는 방에 초대받지 못했습니다.");
             return "redirect:/";
         }
@@ -135,7 +140,8 @@ public class FindPathRoomController {
     @ResponseBody
     @GetMapping("/room/invite")
     public InviteMemberVCResponse invite(@Valid InviteMemberVCRequest form) throws IOException {
-        String roomId = form.getRoomId(), nickname = form.getNickname();
+        String roomId = form.getRoomId();
+        String nickname = form.getNickname();
         logger.info("Invite {} at room, roomId: {}", nickname, roomId);
         Member member = Member.createMember(null, null, nickname, null, null);
 
