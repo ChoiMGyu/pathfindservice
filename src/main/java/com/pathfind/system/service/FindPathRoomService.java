@@ -19,7 +19,7 @@ public interface FindPathRoomService {
 
     public FindPathRoom findRoomById(String roomId) throws IOException;
 
-    public FindPathRoom createRoom(String nickname, String roomName) throws JsonProcessingException;
+    public FindPathRoom createRoom(String nickname, String roomName, TransportationType transportationType) throws JsonProcessingException;
 
     public FindPathRoom changeRoomMemberLocation(String roomId, String sender, MemberLatLng memberLatLng) throws IOException;
 
@@ -33,9 +33,11 @@ public interface FindPathRoomService {
 
     public boolean checkMemberInvited(String roomId, String nickname) throws IOException;
 
-    public void memberEnterRoom(String roomId, String nickname, RoomMemberType roomMemberType, TransportationType transportationType) throws IOException;
+    public void memberEnterRoom(String roomId, String nickname) throws IOException;
 
     public FindPathRoom leaveRoom(String nickname) throws IOException;
+
+    public FindPathRoom leaveRoom(String nickname, String roomId) throws IOException;
 
     public FindPathRoom findCurRoomByNickname(String nickname);
 }

@@ -140,7 +140,7 @@
         let roomId = [[${room.roomId}]];
         let nickname = [[${session.loginMember}]].nickname;
 
-        giveAuthority(nickname, [[${room.invitedMember[0].nickname}]]);
+        giveAuthority(nickname, [[${room.ownerName}]]);
 
         console.log(roomName + ", " + roomId + ", " + nickname);
 
@@ -160,11 +160,7 @@
                 //1. SockJS를 내부에 들고있는 stomp를 내어줌
                 let stomp = Stomp.over(sockJs); //sockJs.onClose();
                 //2. connection이 맺어지면 실행
-                stomp.connect({
-                    id: nickname,
-                    roomId: roomId,
-                    reLoad: (self.window.name.indexOf("reLoadFlag"))
-                }, function () { // { id:nickname, roomId:roomId }는 connect 헤더에 포함되는 정보이다. SendInformationController 의 handleWebSocketConnectListener 함수에서 사용된다.
+                stomp.connect({ sender: nickname, roomId: roomId }, function () { // { id:nickname, roomId:roomId }는 connect 헤더에 포함되는 정보이다. SendInformationController 의 handleWebSocketConnectListener 함수에서 사용된다.
                     console.log("STOMP Connection");
 
                     //3. subscribe(path, callback)으로 메세지를 받을 수 있음
@@ -220,21 +216,13 @@
                                     if (!_isMemberInCampusArea(lat, lng)) {
                                         NotInCampusMessage = SENDED
                                         let txt = nickname + "님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 경로가 올바르지 않을 수 있습니다.";
-                                        stomp.send('/pub/room/out-campus', {}, JSON.stringify({
-                                            roomId: roomId,
-                                            sender: nickname,
-                                            message: txt
-                                        }));
+                                        stomp.send('/pub/room/out-campus', {}, JSON.stringify({ roomId: roomId, sender: nickname, message: txt }));
                                     } else {
                                         NotInCampusMessage = NOT_SENDED;
                                     }
                                 }
                                 let msg = JSON.stringify({latitude: lat, longitude: lng});
-                                stomp.send('/pub/room/route', {}, JSON.stringify({
-                                    roomId: roomId,
-                                    sender: nickname,
-                                    message: msg
-                                }));
+                                stomp.send('/pub/room/route', {}, JSON.stringify({ roomId: roomId, sender: nickname, message: msg }));
                                 timerId = setTimeout(getRoute, delay);
                             }, (e) => {
                                 let txt = "위치 정보 제공 동의를 하지 않으면 서비스 2를 이용하실 수 없습니다.";
@@ -253,28 +241,19 @@
                     let msg = document.getElementById("msg");
 
                     console.log(nickname + ":" + msg.value);
-                    stomp.send('/pub/room/message', {}, JSON.stringify({
-                        roomId: roomId,
-                        sender: nickname,
-                        message: msg.value
-                    }));
+                    stomp.send('/pub/room/message', {}, JSON.stringify({ roomId: roomId, sender: nickname, message: msg.value }));
                     msg.value = '';
                 });
 
                 $("#leaveRoomBtn").on("click", function (e) {
                     stomp.disconnect(function () {
-                        self.window.name = "";
                         location.href = "/";
                     });
                 });
 
                 $("#deleteRoomBtn").on("click", function (e) {
                     console.log("delete room");
-                    stomp.send('/pub/room/delete', {}, JSON.stringify({
-                        roomId: roomId,
-                        sender: nickname,
-                        message: null
-                    }));
+                    stomp.send('/pub/room/delete', {}, JSON.stringify({ roomId: roomId, sender: nickname, message: null }));
                 });
 
             }, (e) => {
@@ -286,27 +265,5 @@
             leaveRoom(roomName, txt);
         }
     });
-
-    console.log("reLoadFlag: ", self.window.name.indexOf("reLoadFlag"));
-    console.log("self.window.name: ", self.window.name);
-    if (self.window.name.indexOf("reLoadFlag") !== 0) {
-        self.window.name = "reLoadFlag";
-        //alert("first Load");
-    } else {
-        //alert("reload");
-    }
-
-    // 브라우저 종료, 뒤로가기, 새로고침 될 때 적용할 이벤트 함수. 브라우저 종료 시 길찾기 방 웹소켓 서버에서도 나갈 수 있게 구현할 예정.
-    /*$(window).on("beforeunload", function () {
-        if(self.window.name.indexOf("reLoadFlag") === 0) {
-            //self.window.name = "";
-            //alert("reload")
-        }
-        return "브라우저 종료 시 해당 길찾기 방에서 나가게 됩니다.";
-    });*/
-    /*$(window).on("unload", function () {
-        //event.preventDefault();
-        return "길찾기 방 종료";
-    });*/
 </script>
 </html>

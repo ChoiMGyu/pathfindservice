@@ -87,7 +87,7 @@ public class FindPathRoomController {
             return "service2/service2Home";
         }
 
-        FindPathRoom newRoom = findPathRoomService.createRoom(loginMember.getNickname(), form.getRoomName());
+        FindPathRoom newRoom = findPathRoomService.createRoom(loginMember.getNickname(), form.getRoomName(), form.getTransportationType());
         //loginMember가 방장이 되어 그 방의 초대 리스트에 들어가게 된다
         return "redirect:/service2/room?roomId=" + newRoom.getRoomId();
     }
