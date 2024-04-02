@@ -19,7 +19,7 @@ public class RoadEdgeRepositoryImpl implements RoadEdgeRepository {
 
     @Override
     public List<RoadEdge> findAll() {
-        logger.info("모든 도로 간선을 반환");
+        //logger.info("모든 도로 간선을 반환");
         return em.createQuery("select re from RoadEdge re", RoadEdge.class)
                 .getResultList();
     }

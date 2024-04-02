@@ -35,7 +35,7 @@ public class FindPathRepositoryImpl implements FindPathRepository {
 
     @Override
     public List<RoadEdge> findRoadEdgeAll() {
-        logger.info("모든 간선을 반환");
+        //logger.info("모든 간선을 반환");
         List<RoadEdge> edgeList = em.createQuery("select re from RoadEdge re", RoadEdge.class).getResultList();
         return edgeList;
     }

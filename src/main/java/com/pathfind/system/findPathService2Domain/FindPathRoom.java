@@ -95,6 +95,10 @@ public class FindPathRoom {
         }
         RoomMemberInfo roomMemberInfo = new RoomMemberInfo(nickname, roomMemberType, location, closestVertexId);
         getCurMember().add(roomMemberInfo);
+        if(checkMemberInvited(nickname)) {
+            //초대 멤버 리스트에 포함되어 있을 경우
+            invitedMember.remove(nickname);
+        }
         if (getCurMember().size() > 1) { // getCurMember().size()가 1보다 크다는 말은 현재 방에 접속한 인원이 적어도 한 명 이상이라는 것이므로 방 삭제 시간을 RoomValue.ROOM_DELETE_CANCEL로 바꾼다.
             changeRoomDeletionTime(RoomValue.ROOM_DELETE_CANCEL);
         }

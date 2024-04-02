@@ -18,7 +18,7 @@ public class SidewalkVertexRepositoryImpl implements SidewalkVertexRepository {
     private final EntityManager em;
     @Override
     public List<SidewalkVertex> findAll() {
-        logger.info("모든 도보 정점을 반환");
+        //logger.info("모든 도보 정점을 반환");
         return em.createQuery("select sv from SidewalkVertex sv", SidewalkVertex.class)
                 .getResultList();
     }
