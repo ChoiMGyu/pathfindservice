@@ -33,6 +33,8 @@ public interface FindPathRoomService {
 
     public boolean checkMemberInvited(String roomId, String nickname) throws IOException;
 
+    public boolean checkMemberCur(String roomId, String nickname) throws IOException;
+
     public void memberEnterRoom(String roomId, String nickname) throws IOException;
 
     public FindPathRoom leaveRoom(String nickname) throws IOException;

@@ -18,7 +18,7 @@ public class SidewalkEdgeRepositoryImpl implements SidewalkEdgeRepository {
     private final EntityManager em;
     @Override
     public List<SidewalkEdge> findAll() {
-        logger.info("모든 도보 간선을 반환");
+        //logger.info("모든 도보 간선을 반환");
         return em.createQuery("select se from SidewalkEdge se", SidewalkEdge.class)
                 .getResultList();
     }

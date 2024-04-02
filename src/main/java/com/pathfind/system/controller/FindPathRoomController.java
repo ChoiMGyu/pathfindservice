@@ -157,6 +157,11 @@ public class FindPathRoomController {
             return new InviteMemberVCResponse(InviteType.DUPLICATE_INVITE, "'" + nickname + "'님은 이미 초대되었습니다.");
         }
 
+        if(findPathRoomService.checkMemberCur(roomId, nickname) && findPathRoomService.findRoomById(roomId).getOwnerName().equals(nickname)) {
+            logger.info("{} is already connected at room, roomId {}", roomId, nickname);
+            return new InviteMemberVCResponse(InviteType.SELF_INVITED, "자기 자신을 초대할 수 없습니다.");
+        }
+
         FindPathRoom room = findPathRoomService.inviteMember(roomId, nickname);
         logger.info("{} is invited at room successfully, roomId: {}", nickname, roomId);
 

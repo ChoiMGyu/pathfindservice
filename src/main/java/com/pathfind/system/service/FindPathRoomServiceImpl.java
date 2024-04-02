@@ -92,13 +92,13 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
 
     @Override
     public FindPathRoom changeRoomMemberLocation(String roomId, String sender, MemberLatLng memberLatLng) throws IOException {
-        logger.info("Change room member's location, roomId {}", roomId);
+        //logger.info("Change room member's location, roomId {}", roomId);
         FindPathRoom room = findRoomById(roomId);
         room.changeMemberLocation(sender, memberLatLng);
         double memberLat = memberLatLng.getLatitude(), memberLng = memberLatLng.getLongitude(), dist = 1000000.0;
 
-        logger.info("Member({})'s current location - latitude: {}, longitude: {}", sender, memberLat, memberLng);
-        logger.info("Find closest vertexId...");
+        //logger.info("Member({})'s current location - latitude: {}, longitude: {}", sender, memberLat, memberLng);
+        //logger.info("Find closest vertexId...");
         if (room.getTransportationType() == TransportationType.SIDEWALK) {
             List<SidewalkVertex> SWVertices = sidewalkVertexRepository.findAll();
             for (SidewalkVertex vertex : SWVertices) {
@@ -120,7 +120,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
                 }
             }
         }
-        logger.info("Member({})'s closest vertexId: {}", sender, room.findMemberByNickname(sender).getClosestVertexId());
+        //logger.info("Member({})'s closest vertexId: {}", sender, room.findMemberByNickname(sender).getClosestVertexId());
         String jsonStringRoom = objectMapper.writeValueAsString(room);
         redisUtil.setData(roomId, jsonStringRoom);
         return room;
@@ -132,11 +132,11 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         MemberLatLng startLatLng = findPathRoom.getOwner().getLocation();
         List<RoadVertex> vertices = roadVertexRepository.findAll();
         int numVertices = vertices.size();
-        logger.info("RoadVertices size: {}", numVertices);
+        //logger.info("RoadVertices size: {}", numVertices);
         Graph graph = new Graph(numVertices);
 
         List<RoadEdge> edges = roadEdgeRepository.findAll();
-        logger.info("RoadEdges size: {}", edges.size());
+        //logger.info("RoadEdges size: {}", edges.size());
         for (RoadEdge edge : edges) {
             //logger.info("Edge 정보 : " + edge.getRoadVertex1() + " " + edge.getRoadVertex2() + " " + edge.getLength());
             Objects object = vertices.get(Math.toIntExact(edge.getRoadVertex2() - 1)).getObject();
@@ -151,7 +151,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         }
         DijkstraResult dijkstraResult = Dijkstra.dijkstra(nodes, graph, start, -1L);
         List<List<ShortestPathRoute>> shortestRouteList = new ArrayList<>();
-        logger.info("방장과 각 인원들의 경로 계산");
+        //logger.info("방장과 각 인원들의 경로 계산");
         for (int i = 1; i < findPathRoom.getCurMember().size(); i++) {
             Long end = findPathRoom.getCurMember().get(i).getClosestVertexId();
             if (end == null) continue;
@@ -178,11 +178,11 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         MemberLatLng startLatLng = findPathRoom.getOwner().getLocation();
         List<SidewalkVertex> vertices = sidewalkVertexRepository.findAll();
         int numVertices = vertices.size();
-        logger.info("SidewalkVertices size: {}", numVertices);
+        //logger.info("SidewalkVertices size: {}", numVertices);
         Graph graph = new Graph(numVertices);
 
         List<SidewalkEdge> edges = sidewalkEdgeRepository.findAll();
-        logger.info("SidewalkEdges size: {}", edges.size());
+        //logger.info("SidewalkEdges size: {}", edges.size());
         for (SidewalkEdge edge : edges) {
             //logger.info("edge 정보 : " + edge.getSidewalkVertex1() + " " + edge.getSidewalkVertex2() + " " + edge.getLength());
             Objects object = vertices.get(Math.toIntExact((edge.getSidewalkVertex2() - 1))).getObject();
@@ -197,7 +197,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         }
         DijkstraResult dijkstraResult = Dijkstra.dijkstra(nodes, graph, start, -1L);
         List<List<ShortestPathRoute>> shortestRouteList = new ArrayList<>();
-        logger.info("방장과 각 인원들의 경로 계산");
+        //logger.info("방장과 각 인원들의 경로 계산");
         for (int i = 1; i < findPathRoom.getCurMember().size(); i++) {
             Long end = findPathRoom.getCurMember().get(i).getClosestVertexId();
             if (end == null) continue;
@@ -239,6 +239,13 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         logger.info("Check {} is already invited at roomId {}", nickname, roomId);
         FindPathRoom room = findRoomById(roomId);
         return room.checkMemberInvited(nickname);
+    }
+
+    @Override
+    public boolean checkMemberCur(String roomId, String nickname) throws IOException {
+        logger.info("Check {} is already connect at roomId {}", nickname, roomId);
+        FindPathRoom room = findRoomById(roomId);
+        return room.checkMemberCur(nickname);
     }
 
     @Override

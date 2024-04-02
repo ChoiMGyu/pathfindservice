@@ -19,7 +19,7 @@ public class RoadVertexRepositoryImpl implements RoadVertexRepository {
 
     @Override
     public List<RoadVertex> findAll() {
-        logger.info("모든 도로 정점을 반환");
+        //logger.info("모든 도로 정점을 반환");
         return em.createQuery("select rv from RoadVertex rv" +
                         " join fetch rv.object", RoadVertex.class)
                 .getResultList();
