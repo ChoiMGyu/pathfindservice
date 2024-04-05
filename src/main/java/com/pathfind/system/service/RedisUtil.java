@@ -1,9 +1,10 @@
 /*
  * 클래스 기능 : redis DB로의 삽입, 삭제 등을 구현한 클래스
- * 최근 수정 일자 : 2024.03.18(수)
+ * 최근 수정 일자 : 2024.04.04(수)
  */
 package com.pathfind.system.service;
 
+import com.pathfind.system.findPathService2Domain.RoomValue;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,24 @@ public class RedisUtil {
     public void setData(String key, String value) {//지정된 키(key)에 값을 저장하는 메서드
         logger.info("RedisUtil setData - key : " + key + " value : " + value);
         ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
-        valueOperations.set(key, value);
+
+        Long expire = redisTemplate.getExpire(key);
+        logger.info("expire: {}", expire);
+        while(expire == null) {
+            expire = redisTemplate.getExpire(key);
+        }
+
+        if(expire == 0L) return;
+
+        if(expire == -1L || expire == -2L) {
+            if(key.length() == RoomValue.ROOM_ID_LENGTH) return;
+            valueOperations.set(key, value);
+        }
+        else {
+            valueOperations.set(key, value, Duration.ofSeconds(expire));
+        }
+        /*RedisScript script = RedisScript.of("return redis.call('SET', KEYS[1], ARGV[1], 'KEEPTTL')");
+        redisTemplate.execute(script, Collections.singletonList(key), value);*/
     }
 
     public void setDataExpire(String key, String value, long duration) {//지정된 키(key)에 값을 저장하고, 지정된 시간(duration) 후에 데이터가 만료되도록 설정하는 메서드
