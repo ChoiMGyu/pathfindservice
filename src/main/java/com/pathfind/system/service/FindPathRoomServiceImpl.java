@@ -72,6 +72,37 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     }
 
     @Override
+    public ArrayList<String> getCurRoomList(String roomId) throws IOException {
+        logger.info("roomId {}에 있는 현재 유저들의 리스트 반환", roomId);
+        ArrayList<String> result = new ArrayList<>();
+
+        FindPathRoom findPathRoom = findRoomById(roomId);
+        for(int i = 0; i < findPathRoom.getCurMember().size(); i++) {
+            result.add(findPathRoom.getCurMember().get(i).getNickname());
+        }
+
+        return result;
+    }
+
+    @Override
+    public ArrayList<String> getRoomInviteList(String roomId) throws IOException {
+        logger.info("roomId {}에 있는 초대 유저들의 리스트 반환", roomId);
+
+        FindPathRoom findPathRoom = findRoomById(roomId);
+
+        return new ArrayList<>(findPathRoom.getInvitedMember());
+    }
+
+    @Override
+    public void deleteListUser(String roomId, String nickname) throws IOException {
+        logger.info("roomId {}에 있는 nickname {}인 유저를 현재 인원에서 삭제", roomId, nickname);
+
+        FindPathRoom findPathRoom = findRoomById(roomId);
+
+        findPathRoom.leaveRoomCurMember(nickname);
+    }
+
+    @Override
     public FindPathRoom createRoom(String nickname, String roomName, TransportationType transportationType) throws JsonProcessingException {
         logger.info("Create room...");
         FindPathRoom findPathRoom = FindPathRoom.createFindPathRoom(roomName, transportationType);

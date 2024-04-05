@@ -7,6 +7,7 @@ package com.pathfind.system.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.pathfind.system.domain.Member;
 import com.pathfind.system.findPathService2Domain.FindPathRoom;
+import com.pathfind.system.findPathService2Domain.RoomMemberInfo;
 import com.pathfind.system.findPathService2Dto.*;
 import com.pathfind.system.service.FindPathRoomService;
 import com.pathfind.system.service.MemberService;
@@ -16,6 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -23,6 +25,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 @Controller
@@ -175,4 +179,30 @@ public class FindPathRoomController {
         rttr.addFlashAttribute("message", reason);
         return "redirect:/";
     }
+
+    @GetMapping("/room/curUserlist")
+    @ResponseBody
+    public ArrayList<String> curUserlist(@RequestParam(value = "roomId") String roomId) throws IOException {
+        logger.info("현재 roomId {}에 있는 모든 user를 보여주기", roomId);
+
+        return findPathRoomService.getCurRoomList(roomId);
+    }
+
+    @GetMapping("/room/inviteUserlist")
+    @ResponseBody
+    public ArrayList<String> inviteUserlist(@RequestParam(value = "roomId") String roomId) throws IOException {
+        logger.info("roomId {}에 초대된 user를 보여주기", roomId);
+
+        return findPathRoomService.getRoomInviteList(roomId);
+    }
+
+//    @PostMapping("/room/deleteMember")
+//    @ResponseBody
+//    public ResponseEntity<String> deleteCurMember(@RequestParam(value = "nickname") String nickname, @RequestParam(value = "roomId") String roomId) throws IOException {
+//        logger.info("roomId {}에 있는 nickname {}의 유저를 삭제", roomId, nickname);
+//
+//        findPathRoomService.deleteListUser(roomId, nickname);
+//
+//        return ResponseEntity.ok("사용자 삭제 성공");
+//    }
 }
