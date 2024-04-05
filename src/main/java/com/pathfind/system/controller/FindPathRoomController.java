@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2)의 페이지들을 렌더링하는 클래스이다.
- * 최근 수정 일자 : 2024.03.18(월)
+ * 최근 수정 일자 : 2024.04.04(월)
  */
 package com.pathfind.system.controller;
 
@@ -8,8 +8,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.pathfind.system.domain.Member;
 import com.pathfind.system.findPathService2Domain.FindPathRoom;
 import com.pathfind.system.findPathService2Dto.*;
+import com.pathfind.system.notificationServiceDomain.NotificationType;
 import com.pathfind.system.service.FindPathRoomService;
 import com.pathfind.system.service.MemberService;
+import com.pathfind.system.service.NotificationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -33,6 +35,7 @@ public class FindPathRoomController {
     private static final Logger logger = LoggerFactory.getLogger(FindPathRoomController.class);
 
     private final FindPathRoomService findPathRoomService;
+    private final NotificationService notificationService;
     private final MemberService memberService;
 
     // service2 메인 화면
@@ -129,7 +132,7 @@ public class FindPathRoomController {
         }
 
         //findPathRoomService.memberEnterRoom(roomId, loginMember.getNickname());
-
+        notificationService.deleteNotificationByRoomIdAndNickname(room.getRoomId(), loginMember.getNickname());
         model.addAttribute("room", room);
         model.addAttribute("inviteMemberVCRequest", new InviteMemberVCRequest());
 
@@ -139,7 +142,7 @@ public class FindPathRoomController {
     // 채팅방 초대
     @ResponseBody
     @GetMapping("/room/invite")
-    public InviteMemberVCResponse invite(@Valid InviteMemberVCRequest form) throws IOException {
+    public InviteMemberVCResponse invite(@Valid InviteMemberVCRequest form, HttpServletRequest request) throws IOException {
         String roomId = form.getRoomId();
         String nickname = form.getNickname();
         logger.info("Invite {} at room, roomId: {}", nickname, roomId);
@@ -163,6 +166,16 @@ public class FindPathRoomController {
         }
 
         FindPathRoom room = findPathRoomService.inviteMember(roomId, nickname);
+        if(!room.getOwnerNickname().equals(nickname)) {
+            String path = request.getHeader("REFERER");
+            logger.info("path: {}", path);
+            notificationService.sendInviteNotification(room.getOwnerNickname() + "님이 " + room.getRoomName() + "방으로 회원님을 초대했습니다.",
+                    room.getOwnerNickname(),
+                    nickname,
+                    NotificationType.INVITE,
+                    path,
+                    roomId);
+        }
         logger.info("{} is invited at room successfully, roomId: {}", nickname, roomId);
 
         return new InviteMemberVCResponse(InviteType.INVITED, "'" + nickname + "'님이 " + room.getRoomName() + "방에 초대되었습니다.");

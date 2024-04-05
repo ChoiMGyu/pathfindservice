@@ -7,7 +7,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 </head>
 <body style="padding: 0; height: 100vh">
-<div style="height: 10%;" th:replace="~{fragments/bodyHeader :: bodyHeader}"/>
+<div style="height: 10%;" th:replace="~{fragments/bodyHeader :: bodyHeader(${session.loginMember})}"></div>
 <div class="container-fluid row" style="height: 85%;">
     <div id="notice" class="alert alert-info alert-dismissible fade show mt-3" role="alert" style="display: none">
         <span id="message" class="text-start">수정 완료</span>

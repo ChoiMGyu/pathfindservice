@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/header :: header}"/>
 <body>
 <div class="container">
-    <div th:replace="~{fragments/bodyHeader :: bodyHeader}"/>
+    <div th:replace="~{fragments/bodyHeader :: bodyHeader(${session.loginMember})}"></div>
     <div class="header p-5 bg-body-tertiary rounded-3">
         <div class="text-center">
             <div th:if="${message}" class="alert alert-info alert-dismissible fade show mt-3" role="alert">

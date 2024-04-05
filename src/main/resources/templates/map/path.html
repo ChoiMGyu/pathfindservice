@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 </head>
 <body style="padding: 0; height: 100vh">
-<div style="height: 10%;" th:replace="~{fragments/bodyHeader :: bodyHeader}"/>
+<div style="height: 10%;" th:replace="~{fragments/bodyHeader :: bodyHeader(${session.loginMember})}"></div>
 <div class="container-fluid row" style="height: 85%;">
     <div class="h-100 d-inline-block col-2">
         <section id="searchPlaceSection" class="mt-3 mb-5">
