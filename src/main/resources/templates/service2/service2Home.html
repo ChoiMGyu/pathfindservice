@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/header :: header}"/>
 <body>
 <div class="container">
-    <div th:replace="~{fragments/bodyHeader :: bodyHeader}"/>
+    <div th:replace="~{fragments/bodyHeader :: bodyHeader(${session.loginMember})}"></div>
     <div id="notice" class="alert alert-info alert-dismissible fade show mt-3" role="alert" style="display: none">
         <span id="message" class="text-start">수정 완료</span>
         <button id="messageBtn" type="button" class="btn-close messageBtn" data-bs-dismiss="alert"

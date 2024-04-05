@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2) 구현체
- * 최근 수정 일자 : 2024.03.18(월)
+ * 최근 수정 일자 : 2024.04.04(월)
  */
 package com.pathfind.system.service;
 
@@ -42,6 +42,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     private final RoadVertexRepository roadVertexRepository;
     private final SidewalkEdgeRepository sidewalkEdgeRepository;
     private final SidewalkVertexRepository sidewalkVertexRepository;
+    private final NotificationService notificationService;
 
     @Override
     public List<FindPathRoom> findAllRoom() {
@@ -94,6 +95,8 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     public FindPathRoom changeRoomMemberLocation(String roomId, String sender, MemberLatLng memberLatLng) throws IOException {
         //logger.info("Change room member's location, roomId {}", roomId);
         FindPathRoom room = findRoomById(roomId);
+        if(room == null) return null;
+
         room.changeMemberLocation(sender, memberLatLng);
         double memberLat = memberLatLng.getLatitude(), memberLng = memberLatLng.getLongitude(), dist = 1000000.0;
 
@@ -221,6 +224,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     @Override
     public void deleteRoom(String roomId) {
         logger.info("Delete room, id: {}", roomId);
+        notificationService.deleteAllNotificationByRoomId(roomId);
         redisUtil.deleteData(roomId);
     }
 

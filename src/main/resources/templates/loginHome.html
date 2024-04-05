@@ -5,7 +5,7 @@
 </head>
 <body>
 <div class="container">
-    <div th:replace="~{fragments/bodyHeader :: bodyHeader}"/>
+    <div th:replace="~{fragments/bodyHeader :: bodyHeader(${session.loginMember})}"></div>
     <!--    <div class="py-5 text-center">
             <h2>홈 화면</h2>
         </div>-->

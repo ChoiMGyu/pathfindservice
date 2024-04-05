@@ -1,8 +1,37 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<div class="header" style="margin: 0;" th:fragment="bodyHeader">
-<!--    <ul class="nav nav-pills pull-right">
+<div class="header" style="margin: 0;" th:fragment="bodyHeader(session.loginMember)">
+    <!--<ul class="nav nav-pills pull-right">
         <li><a href="/">메인 화면</a></li>
     </ul>-->
-    <a href="/"><h3 class="text-muted">MAP Application</h3></a>
+    <!--<a href="/" class="text-muted navbar-brand">MAP Application</a>-->
+    <nav class="navbar navbar-expand pt-0">
+        <div class="container-fluid">
+            <section id="navbarWebSiteNameSection">
+                <a class="navbar-brand fs-3 text-muted" href="/">MAP Application</a>
+            </section>
+
+            <section id="notationSection" class="text-end">
+                <th:block th:if="${session.loginMember != null}">
+                    <button class="btn btn-secondary position-relative bg-transparent border-0 p-0"
+                            data-bs-toggle="dropdown" aria-expanded="false"
+                            onclick="changeAllReadTypeToReadByNickname($('#headerUserNickname').attr('value'))">🔔
+                        <span class="position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-danger p-1"
+                              id="newNotifications" style="display: none"></span>
+                    </button>
+                    <div class="list-group">
+                        <ul id="notifications" class="dropdown-menu dropdown-menu-end p-0">
+                            <li id="defaultNotification" class="list-group-item list-group-item-action" value="READ">알림이 없습니다.</li>
+                        </ul>
+                    </div>
+                    <div id="headerUserNickname" th:value="${session.loginMember.getNickname()}"></div>
+                </th:block>
+            </section>
+        </div>
+    </nav>
+
+    <th:block th:if="${session.loginMember != null}">
+        <script type="text/javascript" src="/js/bodyHeader.js"></script>
+        <script type="text/javascript" src="/js/bootstrap.bundle.js"></script>
+    </th:block>
 </div>
