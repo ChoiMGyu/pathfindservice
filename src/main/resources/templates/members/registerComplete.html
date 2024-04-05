@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/header :: header}"/>
 <body>
 <div class="container">
-    <div th:replace="~{fragments/bodyHeader :: bodyHeader}"/>
+    <div th:replace="~{fragments/bodyHeader :: bodyHeader(${session.loginMember})}"></div>
     <div class="d-flex justify-content-center">
         <p class="mb-3">회원 가입을 축하드립니다!</p>
     </div>

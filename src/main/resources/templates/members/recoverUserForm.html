@@ -22,7 +22,7 @@
 </head>
 <body>
 <div class="container">
-    <div th:replace="fragments/bodyHeader :: bodyHeader"/>
+    <div th:replace="fragments/bodyHeader :: bodyHeader(${session.loginMember})"></div>
     <div class="py-5 text-center">
         <h2>휴면 계정 복구</h2>
         <p class="recovery-message" th:text="'당신의 계정 ' + ${userId} + '은 휴면 상태입니다.'"></p>
