@@ -34,9 +34,8 @@ public class NotificationRepositoryImpl implements NotificationRepository {
         logger.info("Save notification...");
         List<Notification> notifications = findAllNotificationCacheByNickname(nickname);
         notifications.add(notification);
-        String jsonStringNotifications;
         try {
-            jsonStringNotifications = objectMapper.writeValueAsString(notifications);
+            String jsonStringNotifications = objectMapper.writeValueAsString(notifications);
             redisUtil.setData(nickname + "Notification", jsonStringNotifications);
         } catch (JsonProcessingException e) {
             logger.warn(e.getMessage());
@@ -46,9 +45,8 @@ public class NotificationRepositoryImpl implements NotificationRepository {
     @Override
     public void saveAllNotificationCache(String nickname, List<Notification> notifications) {
         logger.info("Save all notifications...");
-        String jsonStringNotifications;
         try {
-            jsonStringNotifications = objectMapper.writeValueAsString(notifications);
+            String jsonStringNotifications = objectMapper.writeValueAsString(notifications);
             redisUtil.setData(nickname + "Notification", jsonStringNotifications);
         } catch (JsonProcessingException e) {
             logger.warn(e.getMessage());
@@ -97,12 +95,7 @@ public class NotificationRepositoryImpl implements NotificationRepository {
         if (notifications.isEmpty()) {
             deleteAllNotificationCacheByNickname(nickname);
         } else {
-            try {
-                String jsonStringNotificationList = objectMapper.writeValueAsString(notifications);
-                redisUtil.setData(nickname + "Notification", jsonStringNotificationList);
-            } catch (JsonProcessingException e) {
-                logger.warn(e.getMessage());
-            }
+            saveAllNotificationCache(nickname, notifications);
         }
     }
 }
