@@ -12,12 +12,19 @@ import com.pathfind.system.findPathService2Domain.RoomMemberType;
 import com.pathfind.system.findPathService2Domain.TransportationType;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public interface FindPathRoomService {
     public List<FindPathRoom> findAllRoom();
 
     public FindPathRoom findRoomById(String roomId) throws IOException;
+
+    public ArrayList<String> getCurRoomList(String roomId) throws IOException;
+
+    public ArrayList<String> getRoomInviteList(String roomId) throws IOException;
+
+    public void deleteListUser(String roomId, String nickname) throws IOException;
 
     public FindPathRoom createRoom(String nickname, String roomName, TransportationType transportationType) throws JsonProcessingException;
 
