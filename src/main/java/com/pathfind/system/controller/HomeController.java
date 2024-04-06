@@ -1,11 +1,10 @@
 /*
  * 클래스 기능 : 로그인 여부에 따라 다른 홈화면을 제공하는 controller
- * 최근 수정 일자 : 2024.01.20(토)
+ * 최근 수정 일자 : 2024.04.06(토)
  */
 package com.pathfind.system.controller;
 
 import com.pathfind.system.domain.Member;
-import jakarta.mail.Session;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @Slf4j
@@ -23,7 +22,11 @@ public class HomeController {
     private static final Logger logger = LoggerFactory.getLogger(MemberController.class);
 
     @GetMapping("/")
-    public String homeLogin(HttpServletRequest request, Model model) {
+    public String homeLogin(@RequestParam(value = "message", required = false) String message, HttpServletRequest request, Model model) {
+        if (message != null) {
+            model.addAttribute("message", message);
+        }
+
         HttpSession session = request.getSession(false);
         if (session == null) {
             return "home";
