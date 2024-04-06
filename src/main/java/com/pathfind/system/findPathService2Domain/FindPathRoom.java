@@ -169,4 +169,8 @@ public class FindPathRoom {
     public boolean checkMemberCur(String nickname) {
         return curMember.contains(findMemberByNickname(nickname));
     }
+
+    public int getCurMemberNum() {
+        return curMember.size();
+    }
 }
