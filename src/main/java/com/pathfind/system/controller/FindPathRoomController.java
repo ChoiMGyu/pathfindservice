@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2)의 페이지들을 렌더링하는 클래스이다.
- * 최근 수정 일자 : 2024.04.04(월)
+ * 최근 수정 일자 : 2024.04.06(월)
  */
 package com.pathfind.system.controller;
 
@@ -13,6 +13,7 @@ import com.pathfind.system.service.FindPathRoomService;
 import com.pathfind.system.service.MemberService;
 import com.pathfind.system.service.NotificationService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,12 +21,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
-import java.util.regex.Pattern;
+import java.util.Objects;
 
 @Controller
 @RequiredArgsConstructor
@@ -57,7 +57,7 @@ public class FindPathRoomController {
             return "redirect:/";
         }
 
-        model.addAttribute("CreateRoomVCRequest", new CreateRoomVCRequest());
+        //model.addAttribute("CreateRoomVCRequest", new CreateRoomVCRequest());
         //정상적으로 방을 생성하였음(방이름, 이동수단을 매개변수)
         //logger.info("loginMember: {}", loginMember.getNickname());
 
@@ -65,34 +65,30 @@ public class FindPathRoomController {
     }
 
     //채팅방 개설
+    @ResponseBody
     @PostMapping(value = "/create-room")
-    public String createRoom(@ModelAttribute(value = "CreateRoomVCRequest") CreateRoomVCRequest form, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) throws JsonProcessingException {
+    public String createRoom(@ModelAttribute(value = "CreateRoomVCRequest") @Valid CreateRoomVCRequest form, HttpServletRequest request, HttpServletResponse response) throws IOException {
         logger.info("Create service2 room , name: {}", form.getRoomName());
         HttpSession session = request.getSession(false);
+        String path = request.getHeader("REFERER").substring(0, request.getHeader("REFERER").indexOf("/service2"));
+        //logger.info("URL: {}", path);
         if (session == null) {
-            rttr.addFlashAttribute("message", "사람간 길찾기 서비스 이용을 하시려면 로그인을 진행해 주세요.");
-            return "redirect:/";
+            response.sendError(400, "사람간 길찾기 서비스 이용을 하시려면 로그인을 진행해 주세요.");
+            return path;
         }
-        Member loginMember = (Member) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        Member loginMember = (Member) Objects.requireNonNull(session).getAttribute(SessionConst.LOGIN_MEMBER);
 
         //세션에 회원 데이터가 없으면 home
         if (loginMember == null) {
             logger.info("로그인 상태가 아니었을 때 Service2를 사용하려고 시도하였음.");
-            rttr.addFlashAttribute("message", "사람간 길찾기 서비스 이용을 하시려면 로그인을 진행해 주세요.");
-            return "redirect:/";
-        }
-
-        String patternUserId = "^[ㄱ-ㅎ가-힣a-zA-Z0-9-_\\s]{2,30}$";
-        boolean regexUserId = Pattern.matches(patternUserId, form.getRoomName());
-        if (!regexUserId) {
-            logger.info("방 제목을 {}으로 설정하였고, 제목 형식에 올바르지 않아 방 만들기가 거부되었음.", form.getRoomName());
-            result.rejectValue("roomName", "Format.roomName");
-            return "service2/service2Home";
+            response.sendError(400, "사람간 길찾기 서비스 이용을 하시려면 로그인을 진행해 주세요.");
+            return path;
         }
 
         FindPathRoom newRoom = findPathRoomService.createRoom(loginMember.getNickname(), form.getRoomName(), form.getTransportationType());
         //loginMember가 방장이 되어 그 방의 초대 리스트에 들어가게 된다
-        return "redirect:/service2/room?roomId=" + newRoom.getRoomId();
+        //logger.info("go to: {}", path + "/service2/room?roomId=" + newRoom.getRoomId());
+        return path + "/service2/room?roomId=" + newRoom.getRoomId();
     }
 
     //채팅방 입장
@@ -131,10 +127,8 @@ public class FindPathRoomController {
             return "redirect:/";
         }
 
-        //findPathRoomService.memberEnterRoom(roomId, loginMember.getNickname());
         notificationService.deleteNotificationByRoomIdAndNickname(room.getRoomId(), loginMember.getNickname());
         model.addAttribute("room", room);
-        model.addAttribute("inviteMemberVCRequest", new InviteMemberVCRequest());
 
         return "service2/room";
     }
@@ -160,13 +154,13 @@ public class FindPathRoomController {
             return new InviteMemberVCResponse(InviteType.DUPLICATE_INVITE, "'" + nickname + "'님은 이미 초대되었습니다.");
         }
 
-        if(findPathRoomService.checkMemberCur(roomId, nickname) && findPathRoomService.findRoomById(roomId).getOwnerName().equals(nickname)) {
+        if (findPathRoomService.checkMemberCur(roomId, nickname) && findPathRoomService.findRoomById(roomId).getOwnerName().equals(nickname)) {
             logger.info("{} is already connected at room, roomId {}", roomId, nickname);
             return new InviteMemberVCResponse(InviteType.SELF_INVITED, "자기 자신을 초대할 수 없습니다.");
         }
 
         FindPathRoom room = findPathRoomService.inviteMember(roomId, nickname);
-        if(!room.getOwnerNickname().equals(nickname)) {
+        if (!room.getOwnerNickname().equals(nickname)) {
             String path = request.getHeader("REFERER");
             logger.info("path: {}", path);
             notificationService.sendInviteNotification(room.getOwnerNickname() + "님이 " + room.getRoomName() + "방으로 회원님을 초대했습니다.",
