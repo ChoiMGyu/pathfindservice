@@ -1,3 +1,7 @@
+/*
+ * 클래스 기능 : Stomp 메시지 전송 서비스 구현체
+ * 최근 수정 일자 : 2024.04.07(월)
+ */
 package com.pathfind.system.service;
 
 import com.pathfind.system.findPathDto.ShortestPathRoute;
