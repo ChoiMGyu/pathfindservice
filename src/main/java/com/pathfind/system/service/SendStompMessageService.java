@@ -6,9 +6,9 @@ import java.util.List;
 
 public interface SendStompMessageService {
 
-    void sendEnter(String roomId, String sender, String message);
+    void sendEnter(String roomId, String sender, String message, int curMemberNum);
 
-    void sendLeave(String roomId, String sender, String manager, String message);
+    void sendLeave(String roomId, String sender, String manager, String message, int curMemberNum);
 
     void sendExpired(String roomId, String message);
 

@@ -19,6 +19,7 @@ public class MessageVCResponse {
     private String manager;
     private MessageType msgType;
     private String message;
+    private int curMemberNum;
     private List<List<ShortestPathRoute>> route;
 
     public static MessageVCResponseBuilder builder(String roomId, MessageType messageType) {

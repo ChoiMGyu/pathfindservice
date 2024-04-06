@@ -15,6 +15,10 @@
                 aria-label="Close"></button>
     </div>
     <div class="h-100 d-inline-block col-2">
+        <section id="curMemberNumberSection" class="mt-3 mb-5">
+            <h5><b id="curMemberNumber"></b></h5>
+        </section>
+
         <section id="inputLatitudeLongitude" class="mt-3 mb-5">
             <div class="form-group">
                 <h5><b>위도, 경도 입력</b></h5>
@@ -62,7 +66,9 @@
                     <small id="roomNameError" class="text-danger col-md-12 mt-0" style="display: none;">msg</small>
                     <div class="col-12">
                         <!--<button id="createRoomBtn" type="button" class="btn btn-outline-secondary" onclick="isMemberInCampusArea() createService2Room();">방 개설하기</button>-->
-                        <button id="createRoomBtn" type="button" class="btn btn-outline-secondary" onclick="createService2Room();">방 개설하기</button>
+                        <button id="createRoomBtn" type="button" class="btn btn-outline-secondary"
+                                onclick="createService2Room();">방 개설하기
+                        </button>
                     </div>
                 </form>
             </div>
@@ -203,6 +209,7 @@
                         let manager = content.manager;
                         let messageType = content.msgType;
                         let message = content.message;
+                        let curMemberNum = content.curMemberNum;
                         let route = content.route;
                         let roomId = content.roomId;
                         //console.log("message: " + message);
@@ -213,6 +220,7 @@
 
                         switch (messageType) {
                             case "ENTER":
+                                $("#curMemberNumber").text("현재 인원 수: " + curMemberNum + "명");
                             case "NOT_IN_CAMPUS":
                                 bodyAlert(message);
                                 break;
@@ -221,6 +229,7 @@
                                     leaveRoom(roomName, message);
                                 }
                                 bodyAlert(message);
+                                $("#curMemberNumber").text("현재 인원 수: " + curMemberNum + "명");
                                 break;
                             case "ROOM_EXPIRED": // 방의 시간이 만료된 경우 /service2/room/leave 으로 리다이렉트한다.
                                 leaveRoom(roomName, message);

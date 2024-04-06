@@ -253,13 +253,15 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     }
 
     @Override
-    public void memberEnterRoom(String roomId, String nickname) throws IOException {
+    public FindPathRoom memberEnterRoom(String roomId, String nickname) throws IOException {
         logger.info("{} enter the room, roomId: {}", nickname, roomId);
         FindPathRoom room = findRoomById(roomId);
-        if (room == null) return;
+        if (room == null) return null;
         room.enterRoom(nickname, room.getOwnerNickname().equals(nickname) ? RoomMemberType.OWNER : RoomMemberType.NORMAL, null, null);
         String jsonStringRoom = objectMapper.writeValueAsString(room);
         redisUtil.setData(room.getRoomId(), jsonStringRoom);
+
+        return room;
     }
 
     @Override

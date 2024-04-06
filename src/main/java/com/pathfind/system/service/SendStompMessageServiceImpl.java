@@ -16,20 +16,22 @@ public class SendStompMessageServiceImpl implements SendStompMessageService {
     private final SimpMessagingTemplate template;
 
     @Override
-    public void sendEnter(String roomId, String sender, String message) {
+    public void sendEnter(String roomId, String sender, String message, int curMemberNum) {
         MessageVCResponse response = MessageVCResponse.builder(roomId, MessageType.ENTER)
                 .sender(sender)
                 .message(message)
+                .curMemberNum(curMemberNum)
                 .build();
         template.convertAndSend("/sub/service2/room/" + roomId, response);
     }
 
     @Override
-    public void sendLeave(String roomId, String sender, String manager, String message) {
+    public void sendLeave(String roomId, String sender, String manager, String message, int curMemberNum) {
         MessageVCResponse response = MessageVCResponse.builder(roomId, MessageType.LEAVE)
                 .sender(sender)
                 .manager(manager)
                 .message(message)
+                .curMemberNum(curMemberNum)
                 .build();
         template.convertAndSend("/sub/service2/room/" + roomId, response);
     }
