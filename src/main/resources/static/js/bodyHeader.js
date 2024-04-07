@@ -48,7 +48,7 @@ $(document).ready(function () {
             $("#newNotifications").show();
         }
         $("#defaultNotification").hide();
-        console.log(notification);
+        //console.log(notification);
         $("#notifications").prepend(
             "<li onselectstart='return false' class='notificationItem' value='" + notification.readType + "'>" +
             "   <a class='list-group-item list-group-item-action' href=" + notification.url + ">" +

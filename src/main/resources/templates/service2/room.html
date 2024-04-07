@@ -15,6 +15,12 @@
                 aria-label="Close"></button>
     </div>
     <div class="h-100 d-inline-block col-2">
+        <section onselectstart='return false' id="roomRemainingTimeSection" class="mt-3 mb-5">
+            <h5><b id="roomRemainingTime">방 사용 만료 시각</b></h5>
+            <h5><b id="remainingTimeV1"></b></h5>
+            <h5><b id="remainingTimeV2" style="display: none"></b></h5>
+        </section>
+
         <section id="curMemberNumberSection" class="mt-3 mb-5">
             <h5><b id="curMemberNumber"></b></h5>
         </section>
@@ -101,7 +107,10 @@
 <script th:inline="javascript">
     const SENDED = 1, NOT_SENDED = 2, INVITED = "INVITED", NOT_INVITED = "NOT_INVITED",
         DUPLICATE_INVITE = "DUPLICATE_INVITE";
+
     let NotInCampusMessage = NOT_SENDED;
+
+    let serverRoomDeletionTime;
 
     /**
      * 닉네임에 해당하는 회원을 초대하는데 사용되는 함수이다.
@@ -172,6 +181,52 @@
         form.submit();
     }
 
+    /**
+     * 방 사용 잔여 시간을 계산하는 함수이다.
+     */
+    function getRoomRemainingTimeV2() {
+        if (serverRoomDeletionTime !== undefined) {
+            //console.log("현재 시간: "+(new Date()).toString()+"방 삭제 시간: "+serverRoomDeletionTime.toString());
+            let remainingTime = serverRoomDeletionTime - new Date();
+            //console.log(remainingTime);
+            let h = Math.floor(remainingTime / 1000 / 60 / 60).toString().padStart(2, "0");
+            remainingTime %= 1000 * 60 * 60;
+            let m = Math.floor(remainingTime / 1000 / 60).toString().padStart(2, "0");
+            remainingTime %= m * 1000 * 60;
+            let s = Math.floor(remainingTime / 1000).toString().padStart(2, "0");
+            let timeStr = h + "시간 " + m + "분 " + s + "초";
+            $("#remainingTimeV2").text(timeStr);
+        }
+    }
+
+    /**
+     * 방 사용 삭제 시각을 표기하는 함수이다.
+     */
+    function setRoomRemainingTimeV1(time) {
+        let y = time.getFullYear().toString().padStart(4, "0");
+        let month = (time.getMonth() + 1).toString().padStart(2, "0");
+        let d = time.getDate().toString().padStart(2, "0");
+        let h = time.getHours().toString().padStart(2, "0");
+        let m = time.getMinutes().toString().padStart(2, "0");
+        let s = time.getSeconds().toString().padStart(2, "0");
+        $("#remainingTimeV1").text(y + "년 " + month + "월 " + d + "일 " + h + "시 " + m + "분 " + s + "초");
+    }
+
+    /**
+     * roomRemainingTimeSection 클릭 시 방 만료 시간의 타입을 변경해 표기하는 역할을 한다.
+     */
+    $("#roomRemainingTimeSection").click(function () {
+        if ($("#remainingTimeV2").css("display") === "none") {
+            $("#remainingTimeV1").hide();
+            $("#remainingTimeV2").show();
+            $("#roomRemainingTime").text("방 사용 잔여 시간");
+        } else {
+            $("#remainingTimeV2").hide();
+            $("#remainingTimeV1").show();
+            $("#roomRemainingTime").text("방 사용 만료 시각");
+        }
+    })
+
     $(document).ready(function () {
 
         let roomName = [[${room.roomName}]];
@@ -194,6 +249,8 @@
                     bodyAlert(txt);
                 }
 
+                setInterval(getRoomRemainingTimeV2, 100); // getRoomRemainingTimeV2를 0.1초마다 실행해 방의 잔여 시간을 업데이트한다.
+
                 let sockJs = new SockJS("/connection");
                 //1. SockJS를 내부에 들고있는 stomp를 내어줌
                 let stomp = Stomp.over(sockJs); //sockJs.onClose();
@@ -210,6 +267,7 @@
                         let messageType = content.msgType;
                         let message = content.message;
                         let curMemberNum = content.curMemberNum;
+                        let roomRemainingTime = content.roomRemainingTime;
                         let route = content.route;
                         let roomId = content.roomId;
                         //console.log("message: " + message);
@@ -217,10 +275,13 @@
                         if (manager != null) {
                             giveAuthority(nickname, manager);
                         }
-
+                        /*console.log(new Date());
+                        console.log(new Date(roomRemainingTime));*/
                         switch (messageType) {
                             case "ENTER":
                                 $("#curMemberNumber").text("현재 인원 수: " + curMemberNum + "명");
+                                serverRoomDeletionTime = new Date(roomRemainingTime);
+                                setRoomRemainingTimeV1(serverRoomDeletionTime);
                             case "NOT_IN_CAMPUS":
                                 bodyAlert(message);
                                 break;
@@ -230,6 +291,8 @@
                                 }
                                 bodyAlert(message);
                                 $("#curMemberNumber").text("현재 인원 수: " + curMemberNum + "명");
+                                serverRoomDeletionTime = new Date(roomRemainingTime);
+                                setRoomRemainingTimeV1(serverRoomDeletionTime);
                                 break;
                             case "ROOM_EXPIRED": // 방의 시간이 만료된 경우 /service2/room/leave 으로 리다이렉트한다.
                                 leaveRoom(roomName, message);
