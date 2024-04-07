@@ -7,6 +7,7 @@ package com.pathfind.system.findPathService2Dto;
 import com.pathfind.system.findPathDto.ShortestPathRoute;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -20,6 +21,7 @@ public class MessageVCResponse {
     private MessageType msgType;
     private String message;
     private int curMemberNum;
+    private LocalDateTime roomRemainingTime;
     private List<List<ShortestPathRoute>> route;
 
     public static MessageVCResponseBuilder builder(String roomId, MessageType messageType) {
