@@ -82,19 +82,17 @@
         src="//dapi.kakao.com/v2/maps/sdk.js?appkey=36d7d56dffc065ea26aa515b442d5b6f&libraries=services,clusterer,drawing"></script>
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-<script type="text/javascript" src="/js/bootstrap.bundle.js"></script> <!-- Bootstrap Dropdown을 사용하기 위해 -->
-<script  src="http://code.jquery.com/jquery-latest.min.js"></script> <!-- 가장 최신의 JQuery 가져오기 -->
 <script th:inline="javascript">
     const SENDED = 1, NOT_SENDED = 2, INVITED = "INVITED", NOT_INVITED = "NOT_INVITED", DUPLICATE_INVITE = "DUPLICATE_INVITE";
     let NotInCampusMessage = NOT_SENDED;
 
-    function getUserList() {
-        //현재 방에 있는 인원을 출력하는 함수
+    function getUserList(sender) {
+        //현재 방에 있는 인원을 출력하는 함수(방장)
         resetError();
         var $userlist = $("#userlist"); //jquery id가 "userlist"인 object 가져오기
         const url = new URL(location.href).searchParams;
         const roomId = url.get('roomId');
-        //console.log("getUserList()가 호출됨, roomId는 다음과 같음 : " + roomId);
+        //console.log("sender 출력 : " + sender);
         $.ajax({
             type: "GET",
             url: "/service2/room/curUserlist",
@@ -104,10 +102,52 @@
             success: function (data) {
                 var users = "";
                 for (let i = 0; i < data.length; i++) {
-                    //console.log("data를 출력 data[i] : "+data[i]);
-                    users += "<li class='dropdown-item'>" + data[i] + "<button class='btn btn-primary userlist-btn' >퇴장</button> </li>"
+                    var encodedNickname = encodeURIComponent(data[i]);
+                    var sep = encodedNickname;
+                    //조건에 따라 강제 퇴장 버튼을 출력
+                    if(sender === encodedNickname) {
+                        users += "<li class='dropdown-item'>" + data[i] + "</li>"
+                    }
+                    else {
+                        users += "<li><hr class='dropdown-divider'></li>"
+                        users += "<li class='dropdown-item'>" + data[i] + "&nbsp;&nbsp;&nbsp;<button onclick='deleteCurMember(\"" + encodedNickname + "\")' class='btn btn-primary btn-sm'>퇴장</button>"
+                            + "&nbsp;&nbsp;&nbsp;<button id='" + encodedNickname + "' class='btn btn-primary btn-sm'>임명</button>"
+                            + "</li>"
+                    }
                 }
-                //console.log("users 출력 : " + users);
+                $userlist.html(users); //jquery html id="userlist"의 내용을 수정
+                // for (let i = 0; i < data.length; i++) {
+                //     var EncodedNickname = encodeURIComponent(data[i]);
+                //     $("#" + EncodedNickname).click(function () {
+                //         changeOwner(EncodedNickname);
+                //     });
+                // }
+            }
+        })
+    }
+
+    function getUserListNormal() {
+        //현재 방에 있는 인원을 출력하는 함수(일반유저)
+        resetError();
+        var $userlist = $("#userlist"); //jquery id가 "userlist"인 object 가져오기
+        const url = new URL(location.href).searchParams;
+        const roomId = url.get('roomId');
+        //console.log("sender 출력 : " + sender);
+        $.ajax({
+            type: "GET",
+            url: "/service2/room/curUserlist",
+            data: {
+                "roomId": roomId
+            },
+            success: function (data) {
+                var users = "";
+                for (let i = 0; i < data.length; i++) {
+                    //조건에 따라 강제 퇴장 버튼을 출력
+                    users += "<li class='dropdown-item'>" + data[i] + "</li>"
+                    if(i !== data.length - 1) {
+                        users += "<li><hr class='dropdown-divider'></li>"
+                    }
+                }
                 $userlist.html(users); //jquery html id="userlist"의 내용을 수정
             }
         })
@@ -139,8 +179,10 @@
     }
 
     function deleteCurMember(nickname) {
+        //현재 방에 초대된 인원을 강제 퇴장시키는 함수 (nickname을 parameter로 던지는 것은 보안 문제가 있을 수 있으므로 수정 필요)
         const url = new URL(location.href).searchParams;
         const roomId = url.get('roomId');
+        //console.log("roomId 확인 : " + roomId + " nickname 확인 : " + nickname);
         $.ajax({
             type: "POST",
             url: "/service2/room/deleteMember",
@@ -148,14 +190,34 @@
                 "roomId": roomId,
                 "nickname": nickname
             },
-            success: function (data) {
-                var users = "";
-                for (let i = 0; i < data.length; i++) {
-                    //console.log("data를 출력 data[i] : "+data[i]);
-                    users += "<li class='dropdown-item'>" + data[i] + "</li>"
-                }
-                //console.log("users 출력 : " + users);
-                $invitelist.html(users); //jquery html id="invitelist"의 내용을 수정
+            success: function(response) {
+                console.log("Member deleted successfully", response);
+            },
+            error: function(xhr, status, error) {
+                console.error("Error deleting member", xhr, status, error);
+            }
+        })
+
+    }
+
+    function changeOwner(nickname) {
+        //현재 방의 방장을 교체하는 함수
+        console.log("방장 교체 함수 호출");
+        const url = new URL(location.href).searchParams;
+        const roomId = url.get('roomId');
+        //console.log("roomId 확인 : " + roomId + " nickname 확인 : " + nickname);
+        $.ajax({
+            type: "POST",
+            url: "/service2/room/changeOwner",
+            data: {
+                "roomId": roomId,
+                "nickname": nickname
+            },
+            success: function(response) {
+                console.log("Owner changed successfully", response);
+            },
+            error: function(xhr, status, error) {
+                console.error("Error changing owner", xhr, status, error);
             }
         })
     }
@@ -197,13 +259,15 @@
      */
     function giveAuthority(nickname, currentManager) {
         if (nickname === currentManager) {
-            document.getElementById("inviteMemberSection").style.display = "block";
-            document.getElementById("deleteRoomSection").style.display = "block";
-            document.getElementById("inviteUserlistSection").style.display = "block"
+            // document.getElementById("inviteMemberSection").style.display = "block";
+            // document.getElementById("deleteRoomSection").style.display = "block";
+            // document.getElementById("inviteUserlistSection").style.display = "block";
+            $("#inviteMemberSection, #deleteRoomSection, #inviteUserlistSection").show();
         } else {
-            document.getElementById("inviteMemberSection").style.display = "none";
-            document.getElementById("deleteRoomSection").style.display = "none";
-            document.getElementById("inviteUserlistSection").style.display = "none"
+            // document.getElementById("inviteMemberSection").style.display = "none";
+            // document.getElementById("deleteRoomSection").style.display = "none";
+            // document.getElementById("inviteUserlistSection").style.display = "none";
+            $("#inviteMemberSection, #deleteRoomSection, #inviteUserlistSection").hide();
         }
     }
 
@@ -239,7 +303,7 @@
 
         giveAuthority(nickname, [[${room.ownerName}]]);
 
-        console.log(roomName + ", " + roomId + ", " + nickname);
+        //console.log(roomName + ", " + roomId + ", " + nickname);
 
         if (navigator.geolocation) {
             // GeoLocation을 이용해서 접속 위치를 얻어옵니다
@@ -258,14 +322,15 @@
                 let stomp = Stomp.over(sockJs); //sockJs.onClose();
                 //2. connection이 맺어지면 실행
                 stomp.connect({ sender: nickname, roomId: roomId }, function () { // { id:nickname, roomId:roomId }는 connect 헤더에 포함되는 정보이다. SendInformationController 의 handleWebSocketConnectListener 함수에서 사용된다.
-                    console.log("STOMP Connection");
+                    //console.log("STOMP Connection");
                     if([[${room.ownerName}]] !== nickname) {
                         $('#inviteUserlistSection').hide();
                     }
+                    let owner = [[${room.ownerName}]];
                     //3. subscribe(path, callback)으로 메세지를 받을 수 있음
                     stomp.subscribe("/sub/service2/room/" + roomId, function (chat) {
                         let content = JSON.parse(chat.body);
-                        console.log(content);
+                        //console.log(content);
                         let sender = content.sender;
                         let manager = content.manager;
                         let messageType = content.msgType;
@@ -274,11 +339,22 @@
                         let roomId = content.roomId;
                         //console.log("message: " + message);
 
-                        getUserList(); //userlist 업데이트
-                        getInviteList();
+                        console.log("owner 출력 : " + owner);
+                        if(owner === nickname) {
+                            console.log("방장 userlist");
+                            getUserList(owner); //userlist 업데이트(방장)
+                        }
+                        else {
+                            console.log("일반유저 userlist")
+                            getUserListNormal(); //userlist 업데이트(일반유저)
+                        }
+                        getInviteList(); //invitelist 업데이트
 
+                        // $('.changeOwner').click(function () {
+                        //     console.log("버튼이 눌렸습니다");
+                        // })
                         if (manager != null) {
-                            //이 조건문에 진입할때가 언제인지
+                            owner = manager;
                             giveAuthority(nickname, manager);
                         }
 
@@ -314,7 +390,7 @@
                             navigator.geolocation.getCurrentPosition(function (position) {
                                 lat = position.coords.latitude; // 위도
                                 lng = position.coords.longitude; // 경도
-                                console.log(lat, lng);
+                                //console.log(lat, lng);
                                 if (NotInCampusMessage === NOT_SENDED) {
                                     if (!_isMemberInCampusArea(lat, lng)) {
                                         NotInCampusMessage = SENDED
@@ -343,7 +419,7 @@
                 $("#button-send").on("click", function (e) {
                     let msg = document.getElementById("msg");
 
-                    console.log(nickname + ":" + msg.value);
+                    //console.log(nickname + ":" + msg.value);
                     stomp.send('/pub/room/message', {}, JSON.stringify({ roomId: roomId, sender: nickname, message: msg.value }));
                     msg.value = '';
                 });
@@ -355,7 +431,7 @@
                 });
 
                 $("#deleteRoomBtn").on("click", function (e) {
-                    console.log("delete room");
+                    //console.log("delete room");
                     stomp.send('/pub/room/delete', {}, JSON.stringify({ roomId: roomId, sender: nickname, message: null }));
                 });
 

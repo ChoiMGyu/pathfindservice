@@ -1,15 +1,12 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2) 인터페이스
- * 최근 수정 일자 : 2024.03.18(월)
+ * 최근 수정 일자 : 2024.04.07(일)
  */
 package com.pathfind.system.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.pathfind.system.findPathDto.ShortestPathRoute;
-import com.pathfind.system.findPathService2Domain.FindPathRoom;
-import com.pathfind.system.findPathService2Domain.MemberLatLng;
-import com.pathfind.system.findPathService2Domain.RoomMemberType;
-import com.pathfind.system.findPathService2Domain.TransportationType;
+import com.pathfind.system.findPathService2Domain.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,11 +17,13 @@ public interface FindPathRoomService {
 
     public FindPathRoom findRoomById(String roomId) throws IOException;
 
-    public ArrayList<String> getCurRoomList(String roomId) throws IOException;
+    public ArrayList<RoomMemberInfo> getCurRoomList(String roomId) throws IOException;
 
     public ArrayList<String> getRoomInviteList(String roomId) throws IOException;
 
-    public void deleteListUser(String roomId, String nickname) throws IOException;
+    public ArrayList<String> deleteListUser(String roomId, String nickname) throws IOException;
+
+    //public void changeOwnerName(String roomId, String nickname) throws IOException;
 
     public FindPathRoom createRoom(String nickname, String roomName, TransportationType transportationType) throws JsonProcessingException;
 
