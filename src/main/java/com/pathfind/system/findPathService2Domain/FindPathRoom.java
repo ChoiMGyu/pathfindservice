@@ -24,6 +24,7 @@ public class FindPathRoom {
     private ArrayList<String> invitedMember; //초대 회원
     private ArrayList<RoomMemberInfo> curMember; //현재 방에 존재하는 회원
     private LocalDateTime roomDeletionTime; //방 삭제 시간
+    private LocalDateTime roomExpirationTime; // 방 만료 시간
     private TransportationType transportationType; // 이동 수단
 
     public static FindPathRoom createFindPathRoom(String roomName, TransportationType transportationType) {
@@ -34,6 +35,7 @@ public class FindPathRoom {
         newRoom.curMember = new ArrayList<>(RoomValue.ROOM_MAX_MEMBER_NUM + 1);
         newRoom.invitedMember = new ArrayList<>(RoomValue.ROOM_MAX_MEMBER_NUM + 1); // 기본 사이즈가 6인 이유는 리스트의 size가 5가 되었을 때 capacity가 자동으로 늘어나는 것을 방지하기 위함이다.
         newRoom.changeRoomDeletionTime(LocalDateTime.now().plusMinutes(RoomValue.ROOM_DELETION_TIME));
+        newRoom.changeRoomExpirationTime(LocalDateTime.now().plusSeconds(RoomValue.ROOM_DURATION));
         newRoom.transportationType = transportationType;
         return newRoom;
     }
@@ -45,6 +47,10 @@ public class FindPathRoom {
 
     private void changeRoomDeletionTime(LocalDateTime time) {
         this.roomDeletionTime = time;
+    }
+
+    private void changeRoomExpirationTime(LocalDateTime time) {
+        this.roomExpirationTime = time;
     }
 
     private void changeRoomName(String roomName) {
@@ -168,5 +174,13 @@ public class FindPathRoom {
 
     public boolean checkMemberCur(String nickname) {
         return curMember.contains(findMemberByNickname(nickname));
+    }
+
+    public int getCurMemberNum() {
+        return curMember.size();
+    }
+
+    public LocalDateTime getRoomRemainingTime() {
+        return getRoomDeletionTime().isAfter(getRoomExpirationTime()) ? getRoomExpirationTime() : getRoomDeletionTime();
     }
 }

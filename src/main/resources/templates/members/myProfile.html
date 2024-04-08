@@ -2,14 +2,11 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/header :: header}"/>
 <body>
-<div class="container">
+<div class="container position-relative p-0">
     <div th:replace="~{fragments/bodyHeader :: bodyHeader(${session.loginMember})}"></div>
+    <div th:replace="~{fragments/bodyAlert :: bodyAlert(${message})}"></div>
     <div class="header p-5 bg-body-tertiary rounded-3">
         <div class="text-center">
-            <div th:if="${message}" class="alert alert-info alert-dismissible fade show mt-3" role="alert">
-                <span class="text-start" th:text="${message}">수정 완료</span>
-                <button id="messageBtn" type="button" class="btn-close messageBtn" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
             <h2 class="text-body-emphasis mb-3">나의 프로필</h2>
             <table class="table rounded-top-3 overflow-hidden">
                 <tr>
@@ -71,5 +68,4 @@
     <div th:replace="~{fragments/footer :: footer}"/>
 </div> <!-- /container -->
 </body>
-<script type="text/javascript" src="/js/messages.js"></script>
 </html>

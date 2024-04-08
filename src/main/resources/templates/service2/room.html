@@ -1,20 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      xmlns="http://www.w3.org/1999/html">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns="http://www.w3.org/1999/html" style="height: 100%">
 <head th:replace="~{fragments/header :: header}">
     <title>find path service2</title>
     <link rel="stylesheet" href="/css/map.css">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 </head>
-<body style="padding: 0; height: 100vh">
+<body style="padding: 0; height: 100%">
 <div style="height: 10%;" th:replace="~{fragments/bodyHeader :: bodyHeader(${session.loginMember})}"></div>
-<div class="container-fluid row" style="height: 85%;">
-    <div id="notice" class="alert alert-info alert-dismissible fade show mt-3" role="alert" style="display: none">
-        <span id="message" class="text-start">수정 완료</span>
-        <button id="messageBtn" type="button" class="btn-close messageBtn" data-bs-dismiss="alert"
-                aria-label="Close"></button>
-    </div>
+<main class="container-fluid row" style="height: 85%;">
+    <div th:replace="~{fragments/bodyAlert :: bodyAlert(${message})}"></div>
     <div class="dropdown">
         <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             현재 유저
@@ -36,6 +31,16 @@
     </section>
 
     <div class="h-100 d-inline-block col-2">
+        <section onselectstart='return false' id="roomRemainingTimeSection" class="mt-3 mb-5">
+            <h5><b id="roomRemainingTime">방 사용 만료 시각</b></h5>
+            <h5><b id="remainingTimeV1"></b></h5>
+            <h5><b id="remainingTimeV2" style="display: none"></b></h5>
+        </section>
+
+        <section id="curMemberNumberSection" class="mt-3 mb-5">
+            <h5><b id="curMemberNumber"></b></h5>
+        </section>
+
         <section id="inputLatitudeLongitude" class="mt-3 mb-5">
             <div class="form-group">
                 <h5><b>위도, 경도 입력</b></h5>
@@ -50,12 +55,44 @@
             <div class="form-group">
                 <h5><b>친구 초대</b></h5>
                 <div class="input-group">
-                    <label class="input-group-text w-25" th:for="nickname">닉네임</label>
+                    <label class="input-group-text w-25" for="nickname">닉네임</label>
                     <input id="nickname" type="text" class="form-control" placeholder="닉네임을 입력하세요."
                            aria-label="닉네임을 입력하세요" aria-describedby="nickname check">
                     <button class="btn btn-outline-primary" type="button" onclick="inviteMember()">전송</button>
                 </div>
                 <small class="text-danger" style="margin: 0; display:none;" id="nicknameError"></small>
+            </div>
+        </section>
+
+        <section id="createRoomSection" class="mt-3 mb-5">
+            <button class="btn btn-outline-primary " type="button" data-bs-toggle="dropdown"
+                    data-bs-auto-close="outside">새 방 만들기
+            </button>
+            <div class="dropdown-menu p-2">
+                <form id="createRoom" class="row position-relative g-3" action="/service2/create-room" method="post">
+                    <div class="form-group col-md-8">
+                        <div class="input-group">
+                            <label for="roomName" class="input-group-text w-25">방 이름</label>
+                            <input type="text" class="form-control" id="roomName" name="roomName">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <div class="input-group">
+                            <label for="transportation" class="input-group-text">이동 수단</label>
+                            <select id="transportation" class="form-select">
+                                <option selected value="SIDEWALK">도보</option>
+                                <option value="ROAD">도로</option>
+                            </select>
+                        </div>
+                    </div>
+                    <small id="roomNameError" class="text-danger col-md-12 mt-0" style="display: none;">msg</small>
+                    <div class="col-12">
+                        <!--<button id="createRoomBtn" type="button" class="btn btn-outline-secondary" onclick="isMemberInCampusArea() createService2Room();">방 개설하기</button>-->
+                        <button id="createRoomBtn" type="button" class="btn btn-outline-secondary"
+                                onclick="createService2Room();">방 개설하기
+                        </button>
+                    </div>
+                </form>
             </div>
         </section>
 
@@ -67,24 +104,28 @@
             <button id="leaveRoomBtn" class="btn btn-outline-primary" type="button">방 나가기</button>
         </section>
     </div>
-    <div class="h-100 d-inline-block col-10" id="map"></div>
-</div> <!-- /container -->
+    <div class="d-inline-block col-10" id="map"></div>
+</main> <!-- /container -->
 <div style="height: 5%;" th:replace="~{fragments/footer :: footer}"/>
 </body>
 <script id="apikey" type="text/javascript"
         src="//dapi.kakao.com/v2/maps/sdk.js?appkey=36d7d56dffc065ea26aa515b442d5b6f"></script>
 <script type="text/javascript" src="/js/apikey.js"></script>
 <script type="text/javascript" src="/js/path.js"></script>
-<script type="text/javascript" src="/js/messages.js"></script>
 <script type="text/javascript" src="/js/members.js"></script>
 <script type="text/javascript" src="/js/memberLocation.js"></script>
+<script type="text/javascript" src="/js/createService2Room.js"></script>
 <script type="text/javascript"
         src="//dapi.kakao.com/v2/maps/sdk.js?appkey=36d7d56dffc065ea26aa515b442d5b6f&libraries=services,clusterer,drawing"></script>
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <script th:inline="javascript">
-    const SENDED = 1, NOT_SENDED = 2, INVITED = "INVITED", NOT_INVITED = "NOT_INVITED", DUPLICATE_INVITE = "DUPLICATE_INVITE";
+    const SENDED = 1, NOT_SENDED = 2, INVITED = "INVITED", NOT_INVITED = "NOT_INVITED",
+        DUPLICATE_INVITE = "DUPLICATE_INVITE";
+
     let NotInCampusMessage = NOT_SENDED;
+
+    let serverRoomDeletionTime;
 
     function getUserList(sender) {
         //현재 방에 있는 인원을 출력하는 함수(방장)
@@ -295,6 +336,52 @@
         form.submit();
     }
 
+    /**
+     * 방 사용 잔여 시간을 계산하는 함수이다.
+     */
+    function getRoomRemainingTimeV2() {
+        if (serverRoomDeletionTime !== undefined) {
+            //console.log("현재 시간: "+(new Date()).toString()+"방 삭제 시간: "+serverRoomDeletionTime.toString());
+            let remainingTime = serverRoomDeletionTime - new Date();
+            //console.log(remainingTime);
+            let h = Math.floor(remainingTime / 1000 / 60 / 60).toString().padStart(2, "0");
+            remainingTime %= 1000 * 60 * 60;
+            let m = Math.floor(remainingTime / 1000 / 60).toString().padStart(2, "0");
+            remainingTime %= m * 1000 * 60;
+            let s = Math.floor(remainingTime / 1000).toString().padStart(2, "0");
+            let timeStr = h + "시간 " + m + "분 " + s + "초";
+            $("#remainingTimeV2").text(timeStr);
+        }
+    }
+
+    /**
+     * 방 사용 삭제 시각을 표기하는 함수이다.
+     */
+    function setRoomRemainingTimeV1(time) {
+        let y = time.getFullYear().toString().padStart(4, "0");
+        let month = (time.getMonth() + 1).toString().padStart(2, "0");
+        let d = time.getDate().toString().padStart(2, "0");
+        let h = time.getHours().toString().padStart(2, "0");
+        let m = time.getMinutes().toString().padStart(2, "0");
+        let s = time.getSeconds().toString().padStart(2, "0");
+        $("#remainingTimeV1").text(y + "년 " + month + "월 " + d + "일 " + h + "시 " + m + "분 " + s + "초");
+    }
+
+    /**
+     * roomRemainingTimeSection 클릭 시 방 만료 시간의 타입을 변경해 표기하는 역할을 한다.
+     */
+    $("#roomRemainingTimeSection").click(function () {
+        if ($("#remainingTimeV2").css("display") === "none") {
+            $("#remainingTimeV1").hide();
+            $("#remainingTimeV2").show();
+            $("#roomRemainingTime").text("방 사용 잔여 시간");
+        } else {
+            $("#remainingTimeV2").hide();
+            $("#remainingTimeV1").show();
+            $("#roomRemainingTime").text("방 사용 만료 시각");
+        }
+    })
+
     $(document).ready(function () {
 
         let roomName = [[${room.roomName}]];
@@ -317,6 +404,8 @@
                     bodyAlert(txt);
                 }
 
+                setInterval(getRoomRemainingTimeV2, 100); // getRoomRemainingTimeV2를 0.1초마다 실행해 방의 잔여 시간을 업데이트한다.
+
                 let sockJs = new SockJS("/connection");
                 //1. SockJS를 내부에 들고있는 stomp를 내어줌
                 let stomp = Stomp.over(sockJs); //sockJs.onClose();
@@ -335,6 +424,8 @@
                         let manager = content.manager;
                         let messageType = content.msgType;
                         let message = content.message;
+                        let curMemberNum = content.curMemberNum;
+                        let roomRemainingTime = content.roomRemainingTime;
                         let route = content.route;
                         let roomId = content.roomId;
                         //console.log("message: " + message);
@@ -357,17 +448,24 @@
                             owner = manager;
                             giveAuthority(nickname, manager);
                         }
-
-                        switch(messageType) {
+                        /*console.log(new Date());
+                        console.log(new Date(roomRemainingTime));*/
+                        switch (messageType) {
                             case "ENTER":
+                                $("#curMemberNumber").text("현재 인원 수: " + curMemberNum + "명");
+                                serverRoomDeletionTime = new Date(roomRemainingTime);
+                                setRoomRemainingTimeV1(serverRoomDeletionTime);
                             case "NOT_IN_CAMPUS":
-                                    bodyAlert(message);
+                                bodyAlert(message);
                                 break;
                             case "LEAVE":
-                                if(sender === nickname) {
+                                if (sender === nickname) {
                                     leaveRoom(roomName, message);
                                 }
                                 bodyAlert(message);
+                                $("#curMemberNumber").text("현재 인원 수: " + curMemberNum + "명");
+                                serverRoomDeletionTime = new Date(roomRemainingTime);
+                                setRoomRemainingTimeV1(serverRoomDeletionTime);
                                 break;
                             case "ROOM_EXPIRED": // 방의 시간이 만료된 경우 /service2/room/leave 으로 리다이렉트한다.
                                 leaveRoom(roomName, message);
@@ -395,13 +493,21 @@
                                     if (!_isMemberInCampusArea(lat, lng)) {
                                         NotInCampusMessage = SENDED
                                         let txt = nickname + "님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 경로가 올바르지 않을 수 있습니다.";
-                                        stomp.send('/pub/room/out-campus', {}, JSON.stringify({ roomId: roomId, sender: nickname, message: txt }));
+                                        stomp.send('/pub/room/out-campus', {}, JSON.stringify({
+                                            roomId: roomId,
+                                            sender: nickname,
+                                            message: txt
+                                        }));
                                     } else {
                                         NotInCampusMessage = NOT_SENDED;
                                     }
                                 }
                                 let msg = JSON.stringify({latitude: lat, longitude: lng});
-                                stomp.send('/pub/room/route', {}, JSON.stringify({ roomId: roomId, sender: nickname, message: msg }));
+                                stomp.send('/pub/room/route', {}, JSON.stringify({
+                                    roomId: roomId,
+                                    sender: nickname,
+                                    message: msg
+                                }));
                                 timerId = setTimeout(getRoute, delay);
                             }, (e) => {
                                 let txt = "위치 정보 제공 동의를 하지 않으면 서비스 2를 이용하실 수 없습니다.";
@@ -419,8 +525,12 @@
                 $("#button-send").on("click", function (e) {
                     let msg = document.getElementById("msg");
 
-                    //console.log(nickname + ":" + msg.value);
-                    stomp.send('/pub/room/message', {}, JSON.stringify({ roomId: roomId, sender: nickname, message: msg.value }));
+                    console.log(nickname + ":" + msg.value);
+                    stomp.send('/pub/room/message', {}, JSON.stringify({
+                        roomId: roomId,
+                        sender: nickname,
+                        message: msg.value
+                    }));
                     msg.value = '';
                 });
 
@@ -431,8 +541,12 @@
                 });
 
                 $("#deleteRoomBtn").on("click", function (e) {
-                    //console.log("delete room");
-                    stomp.send('/pub/room/delete', {}, JSON.stringify({ roomId: roomId, sender: nickname, message: null }));
+                    console.log("delete room");
+                    stomp.send('/pub/room/delete', {}, JSON.stringify({
+                        roomId: roomId,
+                        sender: nickname,
+                        message: null
+                    }));
                 });
 
             }, (e) => {

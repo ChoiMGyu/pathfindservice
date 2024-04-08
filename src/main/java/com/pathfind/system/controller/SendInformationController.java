@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : stomp websocket에서 /pub으로 발행된 메시지를 받아 가공하여 같은 방의 인원들에게 전달하는 클래스이다.
- * 최근 수정 일자 : 2024.03.18(월)
+ * 최근 수정 일자 : 2024.04.07(월)
  */
 package com.pathfind.system.controller;
 
@@ -75,7 +75,7 @@ public class SendInformationController {
             return;
         }
 
-        sendStompMessageService.sendLeave(beforeHasRoom.getRoomId(), sender, beforeHasRoom.getOwnerName(), sender + "님이 길 찾기 방에서 퇴장하였습니다.");
+        sendStompMessageService.sendLeave(beforeHasRoom.getRoomId(), sender, beforeHasRoom.getOwnerName(), sender + "님이 길 찾기 방에서 퇴장하였습니다.", beforeHasRoom.getCurMemberNum(), beforeHasRoom.getRoomRemainingTime());
     }
 
     @EventListener
@@ -86,8 +86,8 @@ public class SendInformationController {
         String roomId = Objects.requireNonNull(headerAccessor.getSessionAttributes()).get("roomId").toString();
         logger.info("{}가 {}에 subscribe하였음", sender, roomId);
 
-        findPathRoomService.memberEnterRoom(roomId, sender);
-        sendStompMessageService.sendEnter(roomId, sender, sender + "님이 길 찾기 방에 참여하였습니다.");
+        FindPathRoom room = findPathRoomService.memberEnterRoom(roomId, sender);
+        sendStompMessageService.sendEnter(roomId, sender, sender + "님이 길 찾기 방에 참여하였습니다.", room.getCurMemberNum(), room.getRoomRemainingTime());
     }
 
     @EventListener
@@ -121,7 +121,7 @@ public class SendInformationController {
         }
 
         logger.info("방 인원들에게 퇴장 메시지를 전송합니다.");
-        sendStompMessageService.sendLeave(roomId, sender, curRoom.getOwnerName(), sender + "님이 길 찾기 방에서 퇴장하였습니다.");
+        sendStompMessageService.sendLeave(roomId, sender, curRoom.getOwnerName(), sender + "님이 길 찾기 방에서 퇴장하였습니다.", curRoom.getCurMemberNum(), curRoom.getRoomRemainingTime());
         //sender가 나가도 방에 인원이 남아있으므로 퇴장 메시지를 전송한다
     }
 
@@ -138,7 +138,7 @@ public class SendInformationController {
 
         if (room.findMemberByNickname(message.getSender()) == null) {
             logger.info("{} leaves room, roomId: {}", message.getSender(), message.getRoomId());
-            sendStompMessageService.sendLeave(message.getRoomId(), message.getSender(), room.getOwnerNickname(), message.getSender() + "님이 길 찾기 방에서 퇴장하였습니다.");
+            sendStompMessageService.sendLeave(message.getRoomId(), message.getSender(), room.getOwnerNickname(), message.getSender() + "님이 길 찾기 방에서 퇴장하였습니다.", room.getCurMemberNum(), room.getRoomRemainingTime());
             return;
         }
 
@@ -152,7 +152,8 @@ public class SendInformationController {
             }
         } else if (LocalDateTime.now().isAfter(room.findMemberByNickname(message.getSender()).getRoomExitTime())) {
             logger.info("{} leaves room because he doesn't move for 10 minutes, roomId: {}", message.getSender(), message.getRoomId());
-            sendStompMessageService.sendLeave(message.getRoomId(), message.getSender(), room.getOwnerNickname(), message.getSender() + "님이 10분간 움직이지 않아 방에서 퇴장되었습니다.");
+            room = findPathRoomService.leaveRoom(message.getSender(), message.getRoomId());
+            sendStompMessageService.sendLeave(message.getRoomId(), message.getSender(), room.getOwnerNickname(), message.getSender() + "님이 10분간 움직이지 않아 방에서 퇴장되었습니다.", room.getCurMemberNum(), room.getRoomRemainingTime());
             return;
         }
 
