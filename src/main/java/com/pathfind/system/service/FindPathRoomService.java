@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2) 인터페이스
- * 최근 수정 일자 : 2024.04.07(일)
+ * 최근 수정 일자 : 2024.04.07(월)
  */
 package com.pathfind.system.service;
 
@@ -41,7 +41,7 @@ public interface FindPathRoomService {
 
     public boolean checkMemberCur(String roomId, String nickname) throws IOException;
 
-    public void memberEnterRoom(String roomId, String nickname) throws IOException;
+    public FindPathRoom memberEnterRoom(String roomId, String nickname) throws IOException;
 
     public FindPathRoom leaveRoom(String nickname) throws IOException;
 

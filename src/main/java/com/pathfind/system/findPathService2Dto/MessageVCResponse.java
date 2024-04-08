@@ -1,12 +1,13 @@
 /*
  * 클래스 기능 : stomp websocket 에서 주고 받는 메시지 포멧을 정의한 dto 이다.
- * 최근 수정 일자 : 2024.03.18(월)
+ * 최근 수정 일자 : 2024.04.06(월)
  */
 package com.pathfind.system.findPathService2Dto;
 
 import com.pathfind.system.findPathDto.ShortestPathRoute;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -19,6 +20,8 @@ public class MessageVCResponse {
     private String manager;
     private MessageType msgType;
     private String message;
+    private int curMemberNum;
+    private LocalDateTime roomRemainingTime;
     private List<List<ShortestPathRoute>> route;
 
     public static MessageVCResponseBuilder builder(String roomId, MessageType messageType) {
