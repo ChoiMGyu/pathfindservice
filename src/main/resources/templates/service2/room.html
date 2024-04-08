@@ -1,19 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      xmlns="http://www.w3.org/1999/html">
+      xmlns="http://www.w3.org/1999/html" style="height: 100%">
 <head th:replace="~{fragments/header :: header}">
     <title>find path service2</title>
     <link rel="stylesheet" href="/css/map.css">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 </head>
-<body style="padding: 0; height: 100vh">
+<body style="padding: 0; height: 100%">
 <div style="height: 10%;" th:replace="~{fragments/bodyHeader :: bodyHeader(${session.loginMember})}"></div>
-<div class="container-fluid row" style="height: 85%;">
-    <div id="notice" class="alert alert-info alert-dismissible fade show mt-3" role="alert" style="display: none">
-        <span id="message" class="text-start">수정 완료</span>
-        <button id="messageBtn" type="button" class="btn-close messageBtn" data-dismiss="modal"
-                aria-label="Close"></button>
-    </div>
+<main class="container-fluid row" style="height: 85%;">
+    <div th:replace="~{fragments/bodyAlert :: bodyAlert(${message})}"></div>
     <div class="h-100 d-inline-block col-2">
         <section onselectstart='return false' id="roomRemainingTimeSection" class="mt-3 mb-5">
             <h5><b id="roomRemainingTime">방 사용 만료 시각</b></h5>
@@ -88,15 +84,14 @@
             <button id="leaveRoomBtn" class="btn btn-outline-primary" type="button">방 나가기</button>
         </section>
     </div>
-    <div class="h-100 d-inline-block col-10" id="map"></div>
-</div> <!-- /container -->
+    <div class="d-inline-block col-10" id="map"></div>
+</main> <!-- /container -->
 <div style="height: 5%;" th:replace="~{fragments/footer :: footer}"/>
 </body>
 <script id="apikey" type="text/javascript"
         src="//dapi.kakao.com/v2/maps/sdk.js?appkey=36d7d56dffc065ea26aa515b442d5b6f"></script>
 <script type="text/javascript" src="/js/apikey.js"></script>
 <script type="text/javascript" src="/js/path.js"></script>
-<script type="text/javascript" src="/js/messages.js"></script>
 <script type="text/javascript" src="/js/members.js"></script>
 <script type="text/javascript" src="/js/memberLocation.js"></script>
 <script type="text/javascript" src="/js/createService2Room.js"></script>
@@ -261,7 +256,7 @@
                     //3. subscribe(path, callback)으로 메세지를 받을 수 있음
                     stomp.subscribe("/sub/service2/room/" + roomId, function (chat) {
                         let content = JSON.parse(chat.body);
-                        console.log(content);
+                        //console.log(content);
                         let sender = content.sender;
                         let manager = content.manager;
                         let messageType = content.msgType;
