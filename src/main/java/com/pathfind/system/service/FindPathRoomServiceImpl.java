@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2) 구현체
- * 최근 수정 일자 : 2024.04.04(월)
+ * 최근 수정 일자 : 2024.04.07(일)
  */
 package com.pathfind.system.service;
 
@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -67,17 +68,44 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
 
     @Override
     public FindPathRoom findRoomById(String roomId) throws IOException {
-        logger.info("Get room, roomId: {}", roomId);
+        //logger.info("Get room, roomId: {}", roomId);
         String jsonStringRoom = redisUtil.getData(roomId);
         return jsonStringRoom == null ? null : objectMapper.readValue(jsonStringRoom, FindPathRoom.class);
     }
 
     @Override
-    public ArrayList<String> getCurRoomList(String roomId) throws IOException {
-        logger.info("roomId {}에 있는 현재 유저들의 리스트 반환", roomId);
-        ArrayList<String> result = new ArrayList<>();
+    public ArrayList<RoomMemberInfo> getCurRoomList(String roomId) throws IOException {
+        //logger.info("roomId {}에 있는 현재 유저들의 리스트 반환", roomId);
 
         FindPathRoom findPathRoom = findRoomById(roomId);
+
+        return findPathRoom.getCurMember();
+    }
+
+    @Override
+    public ArrayList<String> getRoomInviteList(String roomId) throws IOException {
+        //logger.info("roomId {}에 있는 초대 유저들의 리스트 반환", roomId);
+
+        FindPathRoom findPathRoom = findRoomById(roomId);
+        //logger.info("getRoomInviteList 객체 : " + findPathRoom);
+
+        return new ArrayList<>(findPathRoom.getInvitedMember());
+    }
+
+    @Override
+    public ArrayList<String> deleteListUser(String roomId, String nickname) throws IOException {
+        logger.info("roomId {}에 있는 nickname {}인 유저를 현재 인원에서 삭제", roomId, nickname);
+
+        FindPathRoom findPathRoom = findRoomById(roomId);
+
+        //logger.info("deleteListUser 객체 : " + findPathRoom);
+
+        findPathRoom.leaveRoomCurMember(nickname);
+
+        String jsonStringRoom = objectMapper.writeValueAsString(findPathRoom);
+        redisUtil.setData(roomId, jsonStringRoom);
+
+        ArrayList<String> result = new ArrayList<>();
         for(int i = 0; i < findPathRoom.getCurMember().size(); i++) {
             result.add(findPathRoom.getCurMember().get(i).getNickname());
         }
@@ -85,23 +113,20 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         return result;
     }
 
-    @Override
-    public ArrayList<String> getRoomInviteList(String roomId) throws IOException {
-        logger.info("roomId {}에 있는 초대 유저들의 리스트 반환", roomId);
-
-        FindPathRoom findPathRoom = findRoomById(roomId);
-
-        return new ArrayList<>(findPathRoom.getInvitedMember());
-    }
-
-    @Override
-    public void deleteListUser(String roomId, String nickname) throws IOException {
-        logger.info("roomId {}에 있는 nickname {}인 유저를 현재 인원에서 삭제", roomId, nickname);
-
-        FindPathRoom findPathRoom = findRoomById(roomId);
-
-        findPathRoom.leaveRoomCurMember(nickname);
-    }
+//    @Override
+//    public void changeOwnerName(String roomId, String nickname) throws IOException {
+//        FindPathRoom findPathRoom = findRoomById(roomId);
+//
+//        logger.info("roomId {}의 방장을 {}에서 {}로 교체", roomId, findPathRoom.getOwnerName(), nickname);
+//
+//        //RoomMemberInfo lastOwner = findPathRoom.findMemberByNickname(findPathRoom.getOwnerName());
+//        //findPathRoom.getCurMember().remove(0);
+//        findPathRoom.changeOwnerName(nickname);
+//        //findPathRoom.getCurMember().add(lastOwner);
+//
+//        String jsonStringRoom = objectMapper.writeValueAsString(findPathRoom);
+//        redisUtil.setData(roomId, jsonStringRoom);
+//    }
 
     @Override
     public FindPathRoom createRoom(String nickname, String roomName, TransportationType transportationType) throws JsonProcessingException {

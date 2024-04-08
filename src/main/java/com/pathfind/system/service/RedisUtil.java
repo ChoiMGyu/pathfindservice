@@ -23,23 +23,23 @@ public class RedisUtil {
     private static final Logger logger = LoggerFactory.getLogger(RedisUtil.class);
 
     public ValueOperations<String, String> getAllData() { // 모든 데이터를 Redis에서 가져오는 메서드
-        logger.info("RedisUtil get all data");
+        //logger.info("RedisUtil get all data");
         return redisTemplate.opsForValue();
     }
 
     public String getData(String key) {//지정된 키(key)에 해당하는 데이터를 Redis에서 가져오는 메서드
-        logger.info("RedisUtil getData - key : " + key);
+        //logger.info("RedisUtil getData - key : " + key);
         ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
-        logger.info("RedisUtil getData return : " + valueOperations.get(key));
+        //logger.info("RedisUtil getData return : " + valueOperations.get(key));
         return valueOperations.get(key);
     }
 
     public void setData(String key, String value) {//지정된 키(key)에 값을 저장하는 메서드
-        logger.info("RedisUtil setData - key : " + key + " value : " + value);
+        //logger.info("RedisUtil setData - key : " + key + " value : " + value);
         ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
 
         Long expire = redisTemplate.getExpire(key);
-        logger.info("expire: {}", expire);
+        //logger.info("expire: {}", expire);
         while(expire == null) {
             expire = redisTemplate.getExpire(key);
         }

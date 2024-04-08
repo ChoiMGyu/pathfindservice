@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2)의 페이지들을 렌더링하는 클래스이다.
- * 최근 수정 일자 : 2024.04.04(월)
+ * 최근 수정 일자 : 2024.04.07(일)
  */
 package com.pathfind.system.controller;
 
@@ -198,24 +198,38 @@ public class FindPathRoomController {
     public ArrayList<String> curUserlist(@RequestParam(value = "roomId") String roomId) throws IOException {
         logger.info("현재 roomId {}에 있는 모든 user를 보여주기", roomId);
 
-        return findPathRoomService.getCurRoomList(roomId);
+        ArrayList<String> result = new ArrayList<>();
+        for(int i = 0; i < findPathRoomService.getCurRoomList(roomId).size(); i++) {
+            result.add(findPathRoomService.getCurRoomList(roomId).get(i).getNickname());
+        }
+
+        return result;
     }
 
     @GetMapping("/room/inviteUserlist")
     @ResponseBody
     public ArrayList<String> inviteUserlist(@RequestParam(value = "roomId") String roomId) throws IOException {
-        logger.info("roomId {}에 초대된 user를 보여주기", roomId);
+        //logger.info("roomId {}에 초대된 user를 보여주기", roomId);
 
         return findPathRoomService.getRoomInviteList(roomId);
     }
 
-//    @PostMapping("/room/deleteMember")
+    @PostMapping("/room/deleteMember")
+    @ResponseBody
+    public ArrayList<String> deleteCurMember(@RequestParam(value = "nickname") String nickname, @RequestParam(value = "roomId") String roomId) throws IOException {
+        logger.info("roomId {}에 있는 nickname {}의 유저를 삭제", roomId, nickname);
+
+        //강제 퇴장 메시지로 변경이 필요하다
+        return findPathRoomService.deleteListUser(roomId, nickname);
+    }
+
+//    @PostMapping("/room/changeOwner")
 //    @ResponseBody
-//    public ResponseEntity<String> deleteCurMember(@RequestParam(value = "nickname") String nickname, @RequestParam(value = "roomId") String roomId) throws IOException {
-//        logger.info("roomId {}에 있는 nickname {}의 유저를 삭제", roomId, nickname);
+//    public ResponseEntity<String> changeOwner(@RequestParam(value = "nickname") String nickname, @RequestParam(value = "roomId") String roomId) throws IOException{
+//        logger.info("roomId {}에 있는 방장을 {}로 교체", roomId, nickname);
 //
-//        findPathRoomService.deleteListUser(roomId, nickname);
+//        findPathRoomService.changeOwnerName(roomId, nickname);
 //
-//        return ResponseEntity.ok("사용자 삭제 성공");
+//        return ResponseEntity.ok("성공적으로 방장을 교체하였습니다.");
 //    }
 }

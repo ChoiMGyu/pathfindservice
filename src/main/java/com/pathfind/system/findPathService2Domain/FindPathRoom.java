@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2)의 길 찾기 방을 구현한 클래스이다.
- * 최근 수정 일자 : 2024.03.30(토)
+ * 최근 수정 일자 : 2024.04.06(토)
  */
 package com.pathfind.system.findPathService2Domain;
 
@@ -21,8 +21,8 @@ public class FindPathRoom {
     private String roomId; //방 식별 아이디
     private String roomName; //방 이름
     private String ownerName; //방장 이름
-    private List<String> invitedMember; //초대 회원
-    private List<RoomMemberInfo> curMember; //현재 방에 존재하는 회원
+    private ArrayList<String> invitedMember; //초대 회원
+    private ArrayList<RoomMemberInfo> curMember; //현재 방에 존재하는 회원
     private LocalDateTime roomDeletionTime; //방 삭제 시간
     private TransportationType transportationType; // 이동 수단
 
