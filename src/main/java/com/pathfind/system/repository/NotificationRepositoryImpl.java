@@ -12,6 +12,7 @@ import com.pathfind.system.service.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;

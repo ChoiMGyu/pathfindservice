@@ -9,20 +9,14 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function bodyAlert(message = "") {
-    $("#message").text(message);
-    let messageElement = document.querySelector('.alert');
-    messageElement.style.display = 'block';
-    if (messageElement) {
-        setTimeout(function () {
-            messageElement.style.display = 'none';
-        }, 5000); // 5000 milliseconds (5 seconds)
-    }
+    let id = Math.floor(Math.random() * 1e9).toString();
+    $("#bodyAlertSection").append(
+        "<div id='" + id + "' class='alert alert-info alert-dismissible fade show m-2' role='alert' style='opacity: 97%'>" +
+        "   <span class='text-start fs-6'>" + message + "</span>" +
+        "   <button type='button' class='btn-close messageBtn' data-dismiss='modal' aria-label='Close' onclick='$(\"#" + id + "\").remove();'></button>" +
+        "</div>"
+    );
+    setTimeout(function () {
+        $("#" + id).remove();
+    }, 5000); // 5000 milliseconds (5 seconds)
 }
-
-// 중복 확인이나 이메일 인증 번호 확인을 완료했을 때 뜨는 알림창에서 x 표시를 누르면 해당 알림창이 꺼지게 하는 함수이다.
-$(".messageBtn").click(function () {
-    var messageElement = document.querySelector('.alert');
-    if (messageElement) {
-        messageElement.style.display = 'none';
-    }
-});
