@@ -105,7 +105,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         findPathRoom.leaveRoomCurMember(nickname);
 
         String jsonStringRoom = objectMapper.writeValueAsString(findPathRoom);
-        redisUtil.setData(roomId, jsonStringRoom);
+        redisUtil.setDataList(roomId, jsonStringRoom);
 
         ArrayList<String> result = new ArrayList<>();
         for(int i = 0; i < findPathRoom.getCurMember().size(); i++) {
