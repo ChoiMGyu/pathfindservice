@@ -5,9 +5,8 @@
 package com.pathfind.system.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pathfind.system.findPathService2Domain.FindPathRoom;
-import com.pathfind.system.findPathService2Domain.MemberLatLng;
-import com.pathfind.system.findPathService2Domain.TransportationType;
+import com.pathfind.system.findPathDto.ShortestPathRoute;
+import com.pathfind.system.findPathService2Domain.*;
 import com.pathfind.system.findPathService2Dto.*;
 import com.pathfind.system.service.FindPathRoomService;
 import com.pathfind.system.service.SendStompMessageService;
@@ -23,6 +22,8 @@ import org.springframework.web.socket.messaging.*;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -157,11 +158,24 @@ public class SendInformationController {
             return;
         }
 
+        List<ShortestPathRouteCSResponse> result;
         if (room.getTransportationType() == TransportationType.ROAD) {
-            sendStompMessageService.sendRoute(message.getRoomId(), message.getSender(), findPathRoomService.findRoadShortestRoute(room));
+            result = findPathRoomService.findRoadShortestRoute(room);
         } else {
-            sendStompMessageService.sendRoute(message.getRoomId(), message.getSender(), findPathRoomService.findSidewalkShortestRoute(room));
+            result = findPathRoomService.findSidewalkShortestRoute(room);
         }
+
+        List<List<ShortestPathRoute>> routeResult = new ArrayList<>();
+        //logger.info("result.size(): {}", result.size());
+        for (ShortestPathRouteCSResponse info : result) {
+            if (message.getSender().equals(info.getMemberNickname()) && info.getDistance() < RoomValue.NAVIGATION_STOPPING_DISTANCE) {
+                room = findPathRoomService.leaveRoom(message.getSender());
+                sendStompMessageService.sendLeave(message.getRoomId(), message.getSender(), room.getOwnerNickname(), message.getSender() + "님과의 거리가 가까워 길 찾기가 종료되었습니다.", room.getCurMemberNum(), room.getRoomRemainingTime());
+                continue;
+            }
+            routeResult.add(info.getRoute());
+        }
+        sendStompMessageService.sendRoute(message.getRoomId(), message.getSender(), routeResult);
         // logger.info("route result: {}", message);
     }
 
