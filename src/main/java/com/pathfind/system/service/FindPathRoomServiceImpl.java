@@ -13,6 +13,7 @@ import com.pathfind.system.algorithm.Node;
 import com.pathfind.system.domain.*;
 import com.pathfind.system.findPathDto.ShortestPathRoute;
 import com.pathfind.system.findPathService2Domain.*;
+import com.pathfind.system.findPathService2Dto.ShortestPathRouteCSResponse;
 import com.pathfind.system.repository.RoadEdgeRepository;
 import com.pathfind.system.repository.RoadVertexRepository;
 import com.pathfind.system.repository.SidewalkEdgeRepository;
@@ -27,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -188,9 +190,9 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     }
 
     @Override
-    public List<List<ShortestPathRoute>> findRoadShortestRoute(FindPathRoom findPathRoom) {
+    public List<ShortestPathRouteCSResponse> findRoadShortestRoute(FindPathRoom findPathRoom) {
         Long start = findPathRoom.getOwner().getClosestVertexId();
-        MemberLatLng startLatLng = findPathRoom.getOwner().getLocation();
+        MemberLatLng ownerLatLng = findPathRoom.getOwner().getLocation();
         List<RoadVertex> vertices = roadVertexRepository.findAll();
         int numVertices = vertices.size();
         //logger.info("RoadVertices size: {}", numVertices);
@@ -211,32 +213,37 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
             nodes.add(new Node(roadVertex.getId() - 1, 0, isBuilding));
         }
         DijkstraResult dijkstraResult = Dijkstra.dijkstra(nodes, graph, start, -1L);
-        List<List<ShortestPathRoute>> shortestRouteList = new ArrayList<>();
+        List<ShortestPathRouteCSResponse> result = new LinkedList<>();
         //logger.info("방장과 각 인원들의 경로 계산");
-        for (int i = 1; i < findPathRoom.getCurMember().size(); i++) {
-            Long end = findPathRoom.getCurMember().get(i).getClosestVertexId();
+        String ownerNickname = findPathRoom.getOwnerNickname();
+        for (int i = 0; i < findPathRoom.getCurMember().size(); i++) {
+            RoomMemberInfo member = findPathRoom.getCurMember().get(i);
+            if(ownerNickname.equals(member.getNickname())) continue;
+            Long end = member.getClosestVertexId();
             if (end == null) continue;
             //logger.info("방장, {}번째 사람의 경로", end);
-            MemberLatLng memberLatLng = findPathRoom.getCurMember().get(i).getLocation();
+            MemberLatLng memberLatLng = member.getLocation();
             List<ShortestPathRoute> routeInfo = new ArrayList<>();
             //logger.info("시작 위치 - latitude: {}, longitude: {}", startLatLng.getLatitude(), startLatLng.getLongitude());
             List<Integer> shortestRoute = Dijkstra.getShortestRoute(dijkstraResult.getPath(), start, end);
             //logger.info("끝 위치 - latitude: {}, longitude: {}", memberLatLng.getLatitude(), memberLatLng.getLongitude());
-            routeInfo.add(new ShortestPathRoute(-1L, startLatLng.getLatitude(), startLatLng.getLongitude()));
-            for (Integer idx : shortestRoute) {
+
+            routeInfo.add(new ShortestPathRoute(-1L, ownerLatLng.getLatitude(), ownerLatLng.getLongitude())); // 방장의 위치
+            for (Integer idx : shortestRoute) { // 방장과 가장 가까운 정점, 회원(i)와 가장 가까운 정점 사이의 경로
                 routeInfo.add(new ShortestPathRoute(idx.longValue(), vertices.get(idx).getLatitude(), vertices.get(idx).getLongitude()));
             }
-            routeInfo.add(new ShortestPathRoute(-1L, memberLatLng.getLatitude(), memberLatLng.getLongitude()));
-            shortestRouteList.add(routeInfo);
+            routeInfo.add(new ShortestPathRoute(-1L, memberLatLng.getLatitude(), memberLatLng.getLongitude())); // 회원(i)의 위치
+
+            result.add(new ShortestPathRouteCSResponse(member.getNickname(), getTotalDistance(dijkstraResult.getNodes().get(end.intValue()).getDistance(), routeInfo), routeInfo));
         }
 
-        return shortestRouteList;
+        return result;
     }
 
     @Override
-    public List<List<ShortestPathRoute>> findSidewalkShortestRoute(FindPathRoom findPathRoom) {
+    public List<ShortestPathRouteCSResponse> findSidewalkShortestRoute(FindPathRoom findPathRoom) {
         Long start = findPathRoom.getOwner().getClosestVertexId();
-        MemberLatLng startLatLng = findPathRoom.getOwner().getLocation();
+        MemberLatLng ownerLatLng = findPathRoom.getOwner().getLocation();
         List<SidewalkVertex> vertices = sidewalkVertexRepository.findAll();
         int numVertices = vertices.size();
         //logger.info("SidewalkVertices size: {}", numVertices);
@@ -257,26 +264,71 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
             nodes.add(new Node(sidewalkVertex.getId() - 1, 0, isBuilding));
         }
         DijkstraResult dijkstraResult = Dijkstra.dijkstra(nodes, graph, start, -1L);
-        List<List<ShortestPathRoute>> shortestRouteList = new ArrayList<>();
+        List<ShortestPathRouteCSResponse> result = new ArrayList<>();
         //logger.info("방장과 각 인원들의 경로 계산");
-        for (int i = 1; i < findPathRoom.getCurMember().size(); i++) {
-            Long end = findPathRoom.getCurMember().get(i).getClosestVertexId();
+        String ownerNickname = findPathRoom.getOwnerNickname();
+        for (int i = 0; i < findPathRoom.getCurMember().size(); i++) {
+            RoomMemberInfo member = findPathRoom.getCurMember().get(i);
+            if(ownerNickname.equals(member.getNickname())) continue;
+            Long end = member.getClosestVertexId();
             if (end == null) continue;
             //logger.info("방장, {}번째 사람의 경로", end);
             List<ShortestPathRoute> routeInfo = new ArrayList<>();
-            MemberLatLng memberLatLng = findPathRoom.getCurMember().get(i).getLocation();
-            //logger.info("시작 위치 - latitude: {}, longitude: {}", startLatLng.getLatitude(), startLatLng.getLongitude());
+            MemberLatLng memberLatLng = member.getLocation();
+            //logger.info("시작 위치 - latitude: {}, longitude: {}", ownerLatLng.getLatitude(), ownerLatLng.getLongitude());
             List<Integer> shortestRoute = Dijkstra.getShortestRoute(dijkstraResult.getPath(), start, end);
             //logger.info("끝 위치 - latitude: {}, longitude: {}", memberLatLng.getLatitude(), memberLatLng.getLongitude());
-            routeInfo.add(new ShortestPathRoute(-1L, startLatLng.getLatitude(), startLatLng.getLongitude()));
-            for (Integer idx : shortestRoute) {
+
+            routeInfo.add(new ShortestPathRoute(-1L, ownerLatLng.getLatitude(), ownerLatLng.getLongitude())); // 방장의 위치
+            for (Integer idx : shortestRoute) { // 방장과 가장 가까운 정점, 회원(i)와 가장 가까운 정점 사이의 경로
                 routeInfo.add(new ShortestPathRoute(idx.longValue(), vertices.get(idx).getLatitude(), vertices.get(idx).getLongitude()));
             }
-            routeInfo.add(new ShortestPathRoute(-1L, memberLatLng.getLatitude(), memberLatLng.getLongitude()));
-            shortestRouteList.add(routeInfo);
+            routeInfo.add(new ShortestPathRoute(-2L, memberLatLng.getLatitude(), memberLatLng.getLongitude())); // 회원(i)의 위치
+
+            result.add(new ShortestPathRouteCSResponse(member.getNickname(), getTotalDistance(dijkstraResult.getNodes().get(end.intValue()).getDistance(), routeInfo), routeInfo));
         }
 
-        return shortestRouteList;
+        return result;
+    }
+
+    /**
+     * 방장과 회원까지의 최종 거리를 계산하는 함수이다.
+     */
+    private double getTotalDistance(double shortestRouteDistance, List<ShortestPathRoute> routes) {
+        ShortestPathRoute ownerLocation = routes.get(0), startLocation = routes.get(1);
+        /* 방장의 위치와 방장과 가장 가까운 정점 사이의 거리 */
+        double startDistance = findAdditionalDistance(ownerLocation, startLocation);
+
+        ShortestPathRoute memberLocation = routes.get(routes.size() - 1), endLocation = routes.get(routes.size() - 2);
+        /* 회원의 위치와 회원과 가장 가까운 정점 사이의 거리 */
+        double endDistance = findAdditionalDistance(endLocation, memberLocation);
+
+        double totalDistance = startDistance + endDistance + shortestRouteDistance;
+
+        logger.info("Total distance: {}", totalDistance);
+
+        return totalDistance;
+    }
+
+    /**
+     * 위도 경도로 표현되는 두 정점 사이의 거리를 미터 단위로 구하는 함수이다.
+     */
+    private double findAdditionalDistance(ShortestPathRoute s, ShortestPathRoute e) {
+        double sLat = s.getLatitude(), sLng = s.getLongitude();
+        double sLatRad = sLat * Math.PI / 180.0, sLngRad = sLng * Math.PI / 180.0;
+
+        double eLat = e.getLatitude(), eLng = e.getLongitude();
+        double eLatRad = eLat * Math.PI / 180.0, eLngRad = eLng * Math.PI / 180.0;
+
+        double theta = (sLng - eLng) * Math.PI / 180.0;
+
+        double additionalDistance;
+        additionalDistance = Math.sin(sLatRad) * Math.sin(eLatRad) + Math.cos(sLatRad) * Math.cos(eLatRad) * Math.cos(theta);
+        additionalDistance = Math.acos(additionalDistance);
+        additionalDistance *= 180.0 / Math.PI;
+        additionalDistance *= 60 * 1.1515 * 1609.344;
+
+        return additionalDistance;
     }
 
     @Override

@@ -7,6 +7,11 @@ package com.pathfind.system.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.pathfind.system.findPathDto.ShortestPathRoute;
 import com.pathfind.system.findPathService2Domain.*;
+import com.pathfind.system.findPathService2Domain.FindPathRoom;
+import com.pathfind.system.findPathService2Domain.MemberLatLng;
+import com.pathfind.system.findPathService2Domain.RoomMemberType;
+import com.pathfind.system.findPathService2Domain.TransportationType;
+import com.pathfind.system.findPathService2Dto.ShortestPathRouteCSResponse;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,9 +34,9 @@ public interface FindPathRoomService {
 
     public FindPathRoom changeRoomMemberLocation(String roomId, String sender, MemberLatLng memberLatLng) throws IOException;
 
-    public List<List<ShortestPathRoute>> findRoadShortestRoute(FindPathRoom findPathRoom);
+    public List<ShortestPathRouteCSResponse> findRoadShortestRoute(FindPathRoom findPathRoom);
 
-    public List<List<ShortestPathRoute>> findSidewalkShortestRoute(FindPathRoom findPathRoom);
+    public List<ShortestPathRouteCSResponse> findSidewalkShortestRoute(FindPathRoom findPathRoom);
 
     public void deleteRoom(String roomId);
 

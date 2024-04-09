@@ -9,6 +9,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class ShortestPathRouteCSResponse {
-    private List<Double> distance;
-    private List<List<ShortestPathRoute>> route;
+    private String memberNickname;
+    private double distance;
+    private List<ShortestPathRoute> route;
 }

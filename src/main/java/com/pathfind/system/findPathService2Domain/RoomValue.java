@@ -13,4 +13,6 @@ public abstract class RoomValue {
     public static final LocalDateTime ROOM_DELETE_CANCEL = LocalDateTime.MAX;
 
     public static final long ROOM_DURATION = 60 * 60 * 2;
+
+    public static final double NAVIGATION_STOPPING_DISTANCE = 30.0;
 }
