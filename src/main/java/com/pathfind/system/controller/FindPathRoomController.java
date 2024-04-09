@@ -164,6 +164,12 @@ public class FindPathRoomController {
             return new InviteMemberVCResponse(InviteType.SELF_INVITED, "자기 자신을 초대할 수 없습니다.");
         }
 
+        // 이미 roomId에 해당하는 길찾기 방에 접속해 있는지 여부를 확인한다.
+        if (findPathRoomService.checkMemberCur(roomId, nickname)) {
+            logger.info("{} is already invited at room, roomId {}", roomId, nickname);
+            return new InviteMemberVCResponse(InviteType.ALREADY_CONNECTED, "'" + nickname + "'님은 이미 방에 접속해 있습니다.");
+        }
+
         FindPathRoom room = findPathRoomService.inviteMember(roomId, nickname);
         if (!room.getOwnerNickname().equals(nickname)) {
             String path = request.getHeader("REFERER");

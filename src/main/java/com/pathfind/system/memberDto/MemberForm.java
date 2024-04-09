@@ -19,7 +19,7 @@ public class MemberForm {
     private String password; //비밀번호
 
     @NotEmpty(message = "닉네임은 필수입니다.")
-    //@Pattern(regexp = "^[ㄱ-ㅎ가-힣a-z0-9-_]{2,10}$", message = "닉네임은 특수문자를 제외한 2~12자리여야 합니다.")
+    //@Pattern(regexp = "^[ㄱ-ㅎ가-힣a-zA-Z0-9-_]{2,10}$", message = "닉네임은 특수문자를 제외한 2~12자리여야 합니다.")
     private String nickname; //닉네임
 
     @NotEmpty(message = "이메일은 필수입니다.")
