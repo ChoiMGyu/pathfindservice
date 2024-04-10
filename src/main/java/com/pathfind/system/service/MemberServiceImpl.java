@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 서비스 클래스
- * 최근 수정 일자 : 2024.01.26(금)
+ * 최근 수정 일자 : 2024.04.10(금)
  */
 package com.pathfind.system.service;
 
@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +26,7 @@ public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
     private final MailSendService mailSendService;
+    private final RedisUtil redisUtil;
 
     @Override
     public List<Member> findByUserID(Member member) {
@@ -45,6 +47,9 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public Long register(Member member) {
         memberRepository.register(member);
+        List<String> data = new ArrayList<>();
+        data.add(member.getNickname());
+        redisUtil.setDataSortedSet(RedisValue.NICKNAME_SET, data);
         return member.getId();
     }
 
@@ -76,8 +81,7 @@ public class MemberServiceImpl implements MemberService {
     public Member login(String userId, String password) {
         List<Member> result = memberRepository.login(userId, password);
 
-        if (result.isEmpty())
-        {
+        if (result.isEmpty()) {
             //throw new IllegalStateException("아이디 혹은 비밀번호가 틀렸습니다.");
             return null;
         }
@@ -96,7 +100,7 @@ public class MemberServiceImpl implements MemberService {
         List<Member> findByEmail = memberRepository.findByEmail(email);
 
         return !findByUserID.isEmpty() && !findByEmail.isEmpty() && findByUserID.get(0).equals(findByEmail.get(0));
-            //throw new IllegalStateException("회원 정보가 일치하지 않습니다.");
+        //throw new IllegalStateException("회원 정보가 일치하지 않습니다.");
     }
 
     @Override
@@ -116,7 +120,7 @@ public class MemberServiceImpl implements MemberService {
     public Optional<Member> updateNickname(Long id, String nickname) {
         Member result = memberRepository.findByID(id);
         List<Member> isDuplicated = memberRepository.findByNickname(nickname);
-        if(!isDuplicated.isEmpty()) return Optional.empty();
+        if (!isDuplicated.isEmpty()) return Optional.empty();
         result.changeNickname(nickname);
         return Optional.ofNullable(result);
     }
@@ -133,6 +137,21 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public void deleteMember(Long id) {
         Member result = memberRepository.findByID(id);
+        redisUtil.deleteDataFromSortedSet(RedisValue.NICKNAME_SET, result.getNickname());
         memberRepository.deleteMember(result);
+    }
+
+    @Override
+    public List<String> findNicknameListBySearchWord(String searchWord) {
+        logger.info("Find nickname list by search word. search word: {}", searchWord);
+        if (redisUtil.getDataSortedSet(RedisValue.NICKNAME_SET, RedisValue.GET_ALL_DATA).isEmpty()) {
+            redisUtil.setDataSortedSet(RedisValue.NICKNAME_SET, memberRepository.findAllNickname());
+        }
+        List<String> result = redisUtil.getDataSortedSet(RedisValue.NICKNAME_SET, searchWord);
+        List<String> response = new ArrayList<>();
+        for(int i = 0; i < Math.min(5,result.size()); i++) {
+            response.add(result.get(i));
+        }
+        return response;
     }
 }
