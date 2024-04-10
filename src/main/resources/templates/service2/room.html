@@ -110,9 +110,9 @@
                 </div>
             </section>
 
-            <!--<section id="deleteRoomSection" class="d-grid mt-3 mb-5" style="display: none;">
+            <section id="deleteRoomSection" class="d-grid mt-3 mb-5" style="display: none;">
                 <button id="deleteRoomBtn" class="btn btn-outline-primary" type="button">방 삭제</button>
-            </section>-->
+            </section>
 
             <section id="leaveRoomSection" class="d-grid mt-3 mb-5">
                 <button id="leaveRoomBtn" class="btn btn-outline-primary" type="button">방 나가기</button>
@@ -312,16 +312,12 @@
      */
     function giveAuthority(nickname, currentManager) {
         if (nickname === currentManager) {
-            $("#inviteMemberSection, #inviteUserlistSection").show();
-            $("#createRoomSection").after(
-                "<section id='deleteRoomSection' class='d-grid mt-3 mb-5'>" +
-                "   <button id='deleteRoomBtn' class='btn btn-outline-primary' type='button'>방 삭제</button>" +
-                "</section>"
-            );
+            $("#inviteMemberSection, #inviteUserlistSection #deleteRoomBtn").show();
+            $("#deleteRoomSection").attr("class", "d-grid mt-3 mb-5");
         } else {
             console.log(nickname, currentManager);
-            $("#inviteMemberSection, #inviteUserlistSection").hide();
-            $("#deleteRoomSection").remove();
+            $("#inviteMemberSection, #inviteUserlistSection #deleteRoomBtn").hide();
+            $("#deleteRoomSection").attr("class", "");
         }
     }
 
