@@ -8,81 +8,90 @@
 </head>
 <body style="padding: 0; height: 100%">
 <div style="height: 10%;" th:replace="~{fragments/bodyHeader :: bodyHeader(${session.loginMember})}"></div>
-<main class="container-fluid row" style="height: 85%;">
+<button class="btn btn-primary position-absolute z-3 m-3 end-0" type="button" data-bs-toggle="offcanvas"
+        data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling"><span class="fs-4">menu</span></button>
+<main class="container-fluid row p-0 m-0 position-relative" style="height: 85%;">
     <div th:replace="~{fragments/bodyAlert :: bodyAlert(${message})}"></div>
-    <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            현재 유저
-        </button>
-        <div id="userlist" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-
+    <div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1" id="offcanvasScrolling">
+        <div class="offcanvas-header">
+            <h2 class="offcanvas-title" id="offcanvasTopLabel">menu</h2>
+            <button type="button" class="offcanvas-header btn-close" data-bs-dismiss="offcanvas"
+                    aria-label="Close"></button>
         </div>
-    </div>
 
-    <section id="inviteUserlistSection" class="mt-3 mb-5" style="display: none;">
-        <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                초대 유저
-            </button>
-            <div id="invitelist" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-
-            </div>
-        </div>
-    </section>
-
-    <div class="h-100 d-inline-block col-2">
-        <section onselectstart='return false' id="roomRemainingTimeSection" class="mt-3 mb-5">
-            <h5><b id="roomRemainingTime">방 사용 만료 시각</b></h5>
-            <h5><b id="remainingTimeV1"></b></h5>
-            <h5><b id="remainingTimeV2" style="display: none"></b></h5>
-        </section>
-
-        <section id="curMemberNumberSection" class="mt-3 mb-5">
-            <h5><b id="curMemberNumber"></b></h5>
-        </section>
-
-        <section id="inputLatitudeLongitude" class="mt-3 mb-5">
-            <div class="form-group">
-                <h5><b>위도, 경도 입력</b></h5>
-                <div class="input-group mb-1">
-                    <input type="text" id="msg" class="form-control">
-                    <button class="btn btn-outline-primary" type="button" id="button-send">전송</button>
-                </div>
-            </div>
-        </section>
-
-        <section id="inviteMemberSection" class="mt-3 mb-5" style="display: none;">
-            <div class="form-group">
-                <h5><b>친구 초대</b></h5>
-                <div class="position-relative">
-                    <div class="input-group">
-                        <label class="input-group-text w-25" for="nickname">닉네임</label>
-                        <input id="nickname" type="text" class="form-control" placeholder="닉네임을 입력하세요."
-                               aria-label="닉네임을 입력하세요" aria-describedby="nickname check" autocomplete="off">
-                        <button class="btn btn-outline-primary" type="button" onclick="inviteMember()">전송
+        <div class="h-100 offcanvas-body">
+            <div class="row">
+                <section id="curUserlistSection" class="col-6 mt-3 mb-5">
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            현재 유저
                         </button>
+                        <div id="userlist" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        </div>
                     </div>
-                    <div id="searchList" class="list-group position-absolute w-100 p-0">
+                </section>
+
+                <section id="inviteUserlistSection" class="col-6 mt-3 mb-5" style="display: none;">
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            초대 유저
+                        </button>
+                        <div id="invitelist" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <section onselectstart='return false' id="roomRemainingTimeSection" class="mt-3 mb-5">
+                <h5><b id="roomRemainingTime">방 사용 만료 시각</b></h5>
+                <h5><b id="remainingTimeV1"></b></h5>
+                <h5><b id="remainingTimeV2" style="display: none"></b></h5>
+            </section>
+
+            <section id="curMemberNumberSection" class="mt-3 mb-5">
+                <h5><b id="curMemberNumber"></b></h5>
+            </section>
+
+            <section id="inputLatitudeLongitude" class="mt-3 mb-5">
+                <div class="form-group">
+                    <h5><b>위도, 경도 입력</b></h5>
+                    <div class="input-group mb-1">
+                        <input type="text" id="msg" class="form-control">
+                        <button class="btn btn-outline-primary" type="button" id="button-send">전송</button>
                     </div>
                 </div>
-                <small class="text-danger" style="margin: 0; display:none;" id="nicknameError"></small>
-            </div>
-        </section>
+            </section>
 
-        <section id="createRoomSection" class="mt-3 mb-5">
-            <button class="btn btn-outline-primary " type="button" data-bs-toggle="dropdown"
-                    data-bs-auto-close="outside">새 방 만들기
-            </button>
-            <div class="dropdown-menu p-2">
-                <form id="createRoom" class="row position-relative g-3" action="/service2/create-room" method="post">
-                    <div class="form-group col-md-8">
+            <section id="inviteMemberSection" class="mt-3 mb-5" style="display: none;">
+                <div class="form-group">
+                    <h5><b>친구 초대</b></h5>
+                    <div class="position-relative">
+                        <div class="input-group">
+                            <label class="input-group-text w-25" for="nickname">닉네임</label>
+                            <input id="nickname" type="text" class="form-control" placeholder="닉네임을 입력하세요."
+                                   aria-label="닉네임을 입력하세요" aria-describedby="nickname check" autocomplete="off">
+                            <button class="btn btn-outline-primary" type="button" onclick="inviteMember()">전송
+                            </button>
+                        </div>
+                        <div id="searchList" class="list-group position-absolute w-100 p-0 z-1">
+                        </div>
+                    </div>
+                    <small class="text-danger" style="margin: 0; display:none;" id="nicknameError"></small>
+                </div>
+            </section>
+
+            <section id="createRoomSection" class="d-grid dropdown mt-3 mb-5">
+                <button class="btn btn-outline-primary " type="button" data-bs-toggle="dropdown"
+                        data-bs-auto-close="outside">새 방 만들기
+                </button>
+                <div class="dropdown-menu p-2">
+                    <form id="createRoom" class="row g-3" action="/service2/create-room" method="post">
                         <div class="input-group">
                             <label for="roomName" class="input-group-text w-25">방 이름</label>
                             <input type="text" class="form-control" id="roomName" name="roomName">
                         </div>
-                    </div>
-                    <div class="form-group col-md-4">
                         <div class="input-group">
                             <label for="transportation" class="input-group-text">이동 수단</label>
                             <select id="transportation" class="form-select">
@@ -90,27 +99,27 @@
                                 <option value="ROAD">도로</option>
                             </select>
                         </div>
-                    </div>
-                    <small id="roomNameError" class="text-danger col-md-12 mt-0" style="display: none;">msg</small>
-                    <div class="col-12">
-                        <!--<button id="createRoomBtn" type="button" class="btn btn-outline-secondary" onclick="isMemberInCampusArea() createService2Room();">방 개설하기</button>-->
-                        <button id="createRoomBtn" type="button" class="btn btn-outline-secondary"
-                                onclick="createService2Room();">방 개설하기
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </section>
+                        <small id="roomNameError" class="text-danger col-md-12 mt-0" style="display: none;">msg</small>
+                        <div class="col-12">
+                            <!--<button id="createRoomBtn" type="button" class="btn btn-outline-secondary" onclick="isMemberInCampusArea() createService2Room();">방 개설하기</button>-->
+                            <button id="createRoomBtn" type="button" class="btn btn-outline-secondary"
+                                    onclick="createService2Room();">방 개설하기
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
 
-        <section id="deleteRoomSection" class="mt-3 mb-5" style="display: none;">
-            <button id="deleteRoomBtn" class="btn btn-outline-primary" type="button">방 삭제</button>
-        </section>
+            <!--<section id="deleteRoomSection" class="d-grid mt-3 mb-5" style="display: none;">
+                <button id="deleteRoomBtn" class="btn btn-outline-primary" type="button">방 삭제</button>
+            </section>-->
 
-        <section id="leaveRoomSection" class="mt-3 mb-5">
-            <button id="leaveRoomBtn" class="btn btn-outline-primary" type="button">방 나가기</button>
-        </section>
+            <section id="leaveRoomSection" class="d-grid mt-3 mb-5">
+                <button id="leaveRoomBtn" class="btn btn-outline-primary" type="button">방 나가기</button>
+            </section>
+        </div>
     </div>
-    <div class="d-inline-block col-10" id="map"></div>
+    <div class="d-inline-block" id="map"></div>
 </main> <!-- /container -->
 <div style="height: 5%;" th:replace="~{fragments/footer :: footer}"/>
 </body>
@@ -135,7 +144,6 @@
 
     function getUserList(sender) {
         //현재 방에 있는 인원을 출력하는 함수(방장)
-        resetError();
         var $userlist = $("#userlist"); //jquery id가 "userlist"인 object 가져오기
         const url = new URL(location.href).searchParams;
         const roomId = url.get('roomId');
@@ -174,7 +182,6 @@
 
     function getUserListNormal() {
         //현재 방에 있는 인원을 출력하는 함수(일반유저)
-        resetError();
         var $userlist = $("#userlist"); //jquery id가 "userlist"인 object 가져오기
         const url = new URL(location.href).searchParams;
         const roomId = url.get('roomId');
@@ -201,7 +208,6 @@
 
     function getInviteList() {
         //현재 방에 초대된 인원을 출력하는 함수
-        resetError();
         var $invitelist = $("#invitelist"); //jquery id가 "invitelist"인 object 가져오기
         const url = new URL(location.href).searchParams;
         const roomId = url.get('roomId');
@@ -273,6 +279,7 @@
      */
     function inviteMember() {
         resetError();
+        $("#searchList").hide();
         let roomId = [[${room.roomId}]];
         let inviteNickname = document.getElementById("nickname");
         $.ajax({
@@ -286,7 +293,7 @@
                 console.log(response);
                 if (response.inviteType === NOT_INVITED || response.inviteType === DUPLICATE_INVITE) {
                     $("#nicknameError").text(response.message).show();
-                    $("#nickname").attr('class', "form-control fieldError").focus();
+                    $("#nickname").attr('class', "form-control fieldError");
                     return;
                 }
                 bodyAlert(response.message);
@@ -295,7 +302,7 @@
             error: function (error) {
                 console.log(error);
                 $("#nicknameError").text(error.responseJSON[0].message).show();
-                $("#nickname").attr('class', "form-control fieldError").focus();
+                $("#nickname").attr('class', "form-control fieldError");
             }
         });
     }
@@ -305,15 +312,16 @@
      */
     function giveAuthority(nickname, currentManager) {
         if (nickname === currentManager) {
-            // document.getElementById("inviteMemberSection").style.display = "block";
-            // document.getElementById("deleteRoomSection").style.display = "block";
-            // document.getElementById("inviteUserlistSection").style.display = "block";
-            $("#inviteMemberSection, #deleteRoomSection, #inviteUserlistSection").show();
+            $("#inviteMemberSection, #inviteUserlistSection").show();
+            $("#createRoomSection").after(
+                "<section id='deleteRoomSection' class='d-grid mt-3 mb-5'>" +
+                "   <button id='deleteRoomBtn' class='btn btn-outline-primary' type='button'>방 삭제</button>" +
+                "</section>"
+            );
         } else {
-            // document.getElementById("inviteMemberSection").style.display = "none";
-            // document.getElementById("deleteRoomSection").style.display = "none";
-            // document.getElementById("inviteUserlistSection").style.display = "none";
-            $("#inviteMemberSection, #deleteRoomSection, #inviteUserlistSection").hide();
+            console.log(nickname, currentManager);
+            $("#inviteMemberSection, #inviteUserlistSection").hide();
+            $("#deleteRoomSection").remove();
         }
     }
 
