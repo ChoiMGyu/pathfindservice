@@ -77,4 +77,10 @@ public class MemberRepositoryImpl implements MemberRepository {
         em.remove(member);
         em.remove(member.getCheck());
     }
+
+    @Override
+    public List<String> findAllNickname() {
+        return em.createQuery("select m.nickname from Member m", String.class)
+                .getResultList();
+    }
 }

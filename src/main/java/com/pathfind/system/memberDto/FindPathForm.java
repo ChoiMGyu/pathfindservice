@@ -1,4 +1,4 @@
-package com.pathfind.system.dto;
+package com.pathfind.system.memberDto;
 
 import lombok.Data;
 

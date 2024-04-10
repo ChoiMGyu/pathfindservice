@@ -1,6 +1,6 @@
 /*
- * 클래스 기능 : 장소 검색기능을 수행하는 controller
- * 최근 수정 일자 : 2024.02.13(화)
+ * 클래스 기능 : 검색기능을 수행하는 controller
+ * 최근 수정 일자 : 2024.04.10(화)
  */
 package com.pathfind.system.controller;
 
@@ -8,7 +8,9 @@ import com.pathfind.system.domain.ObjectAddress;
 import com.pathfind.system.domain.Objects;
 import com.pathfind.system.findPathDto.SearchPlaceVCRequest;
 import com.pathfind.system.findPathDto.SearchPlaceVCResponse;
+import com.pathfind.system.findPathService2Dto.SearchNicknameVCResponse;
 import com.pathfind.system.repository.ObjectsRepository;
+import com.pathfind.system.service.MemberService;
 import com.pathfind.system.service.ObjectsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +18,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,6 +32,8 @@ public class SearchController {
     private final ObjectsService objectsService;
 
     private final ObjectsRepository objectsRepository;
+
+    private final MemberService memberService;
 
     @GetMapping("/searchPlace")
     public SearchPlaceVCResponse search(@ModelAttribute(value = "searchRequest") @Valid SearchPlaceVCRequest request) {
@@ -46,4 +53,10 @@ public class SearchController {
         return new SearchPlaceVCResponse(objects.getName(), objects.getDescription(), objectAddress.getAddress(), objects.getObjectType(), latitude, longitude, objects.getRoadVertex().getId() - 1, objects.getSidewalkVertex().getId() - 1);
     }
 
+    @GetMapping("/searchNickname")
+    public SearchNicknameVCResponse search(@RequestParam("searchWord") String searchWord) {
+        logger.info("Search nickname list like: {}", searchWord);
+        List<String> nicknameList = memberService.findNicknameListBySearchWord(searchWord);
+        return new SearchNicknameVCResponse(nicknameList);
+    }
 }

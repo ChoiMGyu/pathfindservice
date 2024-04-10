@@ -1,13 +1,11 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2)의 페이지들을 렌더링하는 클래스이다.
- * 최근 수정 일자 : 2024.04.06(월)
+ * 최근 수정 일자 : 2024.04.10(월)
  */
 package com.pathfind.system.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.pathfind.system.domain.Member;
 import com.pathfind.system.findPathService2Domain.FindPathRoom;
-import com.pathfind.system.findPathService2Domain.RoomMemberInfo;
 import com.pathfind.system.findPathService2Dto.*;
 import com.pathfind.system.notificationServiceDomain.NotificationType;
 import com.pathfind.system.service.FindPathRoomService;
@@ -20,7 +18,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -28,8 +25,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
 import java.util.Objects;
 
 @Controller

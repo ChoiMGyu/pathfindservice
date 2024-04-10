@@ -24,4 +24,6 @@ public interface MemberRepository {
     public List<String> findUserIdByEmail(String email);
 
     void deleteMember(Member member);
+
+    public List<String> findAllNickname();
 }
