@@ -55,6 +55,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         if (keys == null) return null;
         List<FindPathRoom> rooms = new ArrayList<>();
         for (String key : keys) {
+            if(key.length() != RoomValue.ROOM_ID_LENGTH) continue;
             try {
                 String data = null;
                 data = allData.index(key, 0);

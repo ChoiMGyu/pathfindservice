@@ -192,10 +192,11 @@ public class FindPathRoomController {
     @GetMapping("/room/curUserlist")
     @ResponseBody
     public ArrayList<String> curUserlist(@RequestParam(value = "roomId") String roomId) throws IOException {
+        if (findPathRoomService.findRoomById(roomId) == null) return null;
         logger.info("현재 roomId {}에 있는 모든 user를 보여주기", roomId);
 
         ArrayList<String> result = new ArrayList<>();
-        for(int i = 0; i < findPathRoomService.getCurRoomList(roomId).size(); i++) {
+        for (int i = 0; i < findPathRoomService.getCurRoomList(roomId).size(); i++) {
             result.add(findPathRoomService.getCurRoomList(roomId).get(i).getNickname());
         }
 
@@ -205,6 +206,7 @@ public class FindPathRoomController {
     @GetMapping("/room/inviteUserlist")
     @ResponseBody
     public ArrayList<String> inviteUserlist(@RequestParam(value = "roomId") String roomId) throws IOException {
+        if (findPathRoomService.findRoomById(roomId) == null) return null;
         //logger.info("roomId {}에 초대된 user를 보여주기", roomId);
 
         return findPathRoomService.getRoomInviteList(roomId);
