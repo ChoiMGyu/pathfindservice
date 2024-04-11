@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2) 인터페이스
- * 최근 수정 일자 : 2024.04.07(월)
+ * 최근 수정 일자 : 2024.04.11(목)
  */
 package com.pathfind.system.service;
 
@@ -28,7 +28,7 @@ public interface FindPathRoomService {
 
     public ArrayList<String> deleteListUser(String roomId, String nickname) throws IOException;
 
-    //public void changeOwnerName(String roomId, String nickname) throws IOException;
+    public void changeOwnerName(String roomId, String nickname) throws IOException;
 
     public FindPathRoom createRoom(String nickname, String roomName, TransportationType transportationType) throws JsonProcessingException;
 

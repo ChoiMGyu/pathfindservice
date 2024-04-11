@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : Stomp 메시지 전송 서비스 구현체
- * 최근 수정 일자 : 2024.04.07(월)
+ * 최근 수정 일자 : 2024.04.11(목)
  */
 package com.pathfind.system.service;
 
@@ -65,6 +65,16 @@ public class SendStompMessageServiceImpl implements SendStompMessageService {
         MessageVCResponse response = MessageVCResponse.builder(roomId, MessageType.NOT_IN_CAMPUS)
                 .sender(sender)
                 .message(message)
+                .build();
+        template.convertAndSend("/sub/service2/room/" + roomId, response);
+    }
+
+    @Override
+    public void sendChangeOwner(String roomId, String sender, String message, String owner) {
+        MessageVCResponse response = MessageVCResponse.builder(roomId, MessageType.CHANGE_OWNER)
+                .sender(sender)
+                .message(message)
+                .owner(owner)
                 .build();
         template.convertAndSend("/sub/service2/room/" + roomId, response);
     }
