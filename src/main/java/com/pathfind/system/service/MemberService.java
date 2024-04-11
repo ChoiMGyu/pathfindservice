@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 서비스 인터페이스
- * 최근 수정 일자 : 2024.01.26(금)
+ * 최근 수정 일자 : 2024.04.10(금)
  */
 package com.pathfind.system.service;
 
@@ -30,9 +30,11 @@ public interface MemberService {
 
     public void recoverMember(Long id);
 
-    Optional<Member> updateNickname(Long id, String nickname);
+    public Optional<Member> updateNickname(Long id, String nickname);
 
-    Member updateEmail(Long id, String email);
+    public Member updateEmail(Long id, String email);
 
-    void deleteMember(Long id);
+    public void deleteMember(Long id);
+
+    public List<String> findNicknameListBySearchWord(String searchWord);
 }

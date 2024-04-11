@@ -164,7 +164,7 @@ public class MemberController {
             result.rejectValue("nickname", "Empty.nickname");
         }
 
-        String patternNickname = "^[ㄱ-ㅎ가-힣a-z0-9-_]{2,10}$";
+        String patternNickname = "^[ㄱ-ㅎ가-힣a-zA-Z0-9-_]{2,10}$";
         boolean regexNickname = Pattern.matches(patternNickname, form.getNickname());
         if (!result.hasFieldErrors("nickname") && !regexNickname) {
             result.rejectValue("nickname", "Format.nickname");
