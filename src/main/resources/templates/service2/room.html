@@ -127,10 +127,12 @@
 
     let serverRoomDeletionTime;
 
+    let $userlist = $("#userlist"); //jquery id가 "userlist"인 object 가져오기
+
     function getUserList(sender) {
         //현재 방에 있는 인원을 출력하는 함수(방장)
         resetError();
-        var $userlist = $("#userlist"); //jquery id가 "userlist"인 object 가져오기
+        //var $userlist = $("#userlist"); //jquery id가 "userlist"인 object 가져오기
         const url = new URL(location.href).searchParams;
         const roomId = url.get('roomId');
         //console.log("sender 출력 : " + sender);
@@ -152,17 +154,11 @@
                     else {
                         users += "<li><hr class='dropdown-divider'></li>"
                         users += "<li class='dropdown-item'>" + data[i] + "&nbsp;&nbsp;&nbsp;<button onclick='deleteCurMember(\"" + encodedNickname + "\")' class='btn btn-primary btn-sm'>퇴장</button>"
-                            + "&nbsp;&nbsp;&nbsp;<button id='" + encodedNickname + "' class='btn btn-primary btn-sm'>임명</button>"
+                            + "&nbsp;&nbsp;&nbsp;<button id='" + encodedNickname + "' class='btn btn-primary btn-sm btn-assign'>임명</button>"
                             + "</li>"
                     }
                 }
                 $userlist.html(users); //jquery html id="userlist"의 내용을 수정
-                // for (let i = 0; i < data.length; i++) {
-                //     var EncodedNickname = encodeURIComponent(data[i]);
-                //     $("#" + EncodedNickname).click(function () {
-                //         changeOwner(EncodedNickname);
-                //     });
-                // }
             }
         })
     }
@@ -170,7 +166,7 @@
     function getUserListNormal() {
         //현재 방에 있는 인원을 출력하는 함수(일반유저)
         resetError();
-        var $userlist = $("#userlist"); //jquery id가 "userlist"인 object 가져오기
+        //var $userlist = $("#userlist"); //jquery id가 "userlist"인 object 가져오기
         const url = new URL(location.href).searchParams;
         const roomId = url.get('roomId');
         //console.log("sender 출력 : " + sender);
@@ -239,28 +235,6 @@
             }
         })
 
-    }
-
-    function changeOwner(nickname) {
-        //현재 방의 방장을 교체하는 함수
-        console.log("방장 교체 함수 호출");
-        const url = new URL(location.href).searchParams;
-        const roomId = url.get('roomId');
-        //console.log("roomId 확인 : " + roomId + " nickname 확인 : " + nickname);
-        $.ajax({
-            type: "POST",
-            url: "/service2/room/changeOwner",
-            data: {
-                "roomId": roomId,
-                "nickname": nickname
-            },
-            success: function(response) {
-                console.log("Owner changed successfully", response);
-            },
-            error: function(xhr, status, error) {
-                console.error("Error changing owner", xhr, status, error);
-            }
-        })
     }
 
     /**
@@ -409,6 +383,7 @@
                 let sockJs = new SockJS("/connection");
                 //1. SockJS를 내부에 들고있는 stomp를 내어줌
                 let stomp = Stomp.over(sockJs); //sockJs.onClose();
+
                 //2. connection이 맺어지면 실행
                 stomp.connect({ sender: nickname, roomId: roomId }, function () { // { id:nickname, roomId:roomId }는 connect 헤더에 포함되는 정보이다. SendInformationController 의 handleWebSocketConnectListener 함수에서 사용된다.
                     //console.log("STOMP Connection");
@@ -419,7 +394,7 @@
                     //3. subscribe(path, callback)으로 메세지를 받을 수 있음
                     stomp.subscribe("/sub/service2/room/" + roomId, function (chat) {
                         let content = JSON.parse(chat.body);
-                        //console.log(content);
+                        //console.log("content 출력 : " + content);
                         let sender = content.sender;
                         let manager = content.manager;
                         let messageType = content.msgType;
@@ -428,34 +403,53 @@
                         let roomRemainingTime = content.roomRemainingTime;
                         let route = content.route;
                         let roomId = content.roomId;
+                        let newOwner = content.owner;
                         //console.log("message: " + message);
 
-                        console.log("owner 출력 : " + owner);
+                        //console.log("owner 출력 : " + owner);
+                        //console.log("sender 출력 : " + sender);
                         if(owner === nickname) {
-                            console.log("방장 userlist");
+                            //console.log("방장 userlist");
                             getUserList(owner); //userlist 업데이트(방장)
                         }
                         else {
-                            console.log("일반유저 userlist")
+                            //console.log("일반유저 userlist")
                             getUserListNormal(); //userlist 업데이트(일반유저)
                         }
                         getInviteList(); //invitelist 업데이트
 
-                        // $('.changeOwner').click(function () {
-                        //     console.log("버튼이 눌렸습니다");
-                        // })
+                        console.log("방장 이름 출력 : " + owner);
+                        //console.log("chatgpt 출력 : " + $("#" + sender).length);
+                        $("#userlist").off("click", ".btn-assign").on("click", ".btn-assign", function(e) {
+                            newOwner = $(this).attr('id');
+                            //console.log(newOwner + " 임명 버튼이 클릭되었습니다.");
+                            //changeOwner(newOwner);
+                            stomp.send('/pub/room/changeOwner', {}, JSON.stringify({
+                                roomId: roomId,
+                                sender: nickname,
+                                message: "방의 방장이 바뀌었어요!",
+                                owner: newOwner
+                            }));
+                        });
+
                         if (manager != null) {
                             owner = manager;
                             giveAuthority(nickname, manager);
                         }
-                        /*console.log(new Date());
-                        console.log(new Date(roomRemainingTime));*/
+
                         switch (messageType) {
                             case "ENTER":
                                 $("#curMemberNumber").text("현재 인원 수: " + curMemberNum + "명");
                                 serverRoomDeletionTime = new Date(roomRemainingTime);
                                 setRoomRemainingTimeV1(serverRoomDeletionTime);
                             case "NOT_IN_CAMPUS":
+                                bodyAlert(message);
+                                break;
+                            case "CHANGE_OWNER":
+                                // console.log("Change_Owner message 전송 완료");
+                                // console.log("newOwner는 " + newOwner + "입니다.");
+                                owner = newOwner;
+                                giveAuthority(nickname, newOwner);
                                 bodyAlert(message);
                                 break;
                             case "LEAVE":

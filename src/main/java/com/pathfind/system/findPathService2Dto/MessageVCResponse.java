@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : stomp websocket 에서 주고 받는 메시지 포멧을 정의한 dto 이다.
- * 최근 수정 일자 : 2024.04.06(월)
+ * 최근 수정 일자 : 2024.04.11(목)
  */
 package com.pathfind.system.findPathService2Dto;
 
@@ -20,6 +20,7 @@ public class MessageVCResponse {
     private String manager;
     private MessageType msgType;
     private String message;
+    private String owner;
     private int curMemberNum;
     private LocalDateTime roomRemainingTime;
     private List<List<ShortestPathRoute>> route;

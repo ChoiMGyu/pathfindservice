@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2) 구현체
- * 최근 수정 일자 : 2024.04.07(월)
+ * 최근 수정 일자 : 2024.04.11(목)
  */
 package com.pathfind.system.service;
 
@@ -83,6 +83,10 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
 
         FindPathRoom findPathRoom = findRoomById(roomId);
 
+        RoomMemberInfo owner = findPathRoom.getOwner();
+        findPathRoom.getCurMember().remove(owner);
+        findPathRoom.getCurMember().add(0, owner);
+
         return findPathRoom.getCurMember();
     }
 
@@ -117,20 +121,20 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         return result;
     }
 
-//    @Override
-//    public void changeOwnerName(String roomId, String nickname) throws IOException {
-//        FindPathRoom findPathRoom = findRoomById(roomId);
-//
-//        logger.info("roomId {}의 방장을 {}에서 {}로 교체", roomId, findPathRoom.getOwnerName(), nickname);
-//
-//        //RoomMemberInfo lastOwner = findPathRoom.findMemberByNickname(findPathRoom.getOwnerName());
-//        //findPathRoom.getCurMember().remove(0);
-//        findPathRoom.changeOwnerName(nickname);
-//        //findPathRoom.getCurMember().add(lastOwner);
-//
-//        String jsonStringRoom = objectMapper.writeValueAsString(findPathRoom);
-//        redisUtil.setData(roomId, jsonStringRoom);
-//    }
+    @Override
+    public void changeOwnerName(String roomId, String nickname) throws IOException {
+        FindPathRoom findPathRoom = findRoomById(roomId);
+
+        logger.info("roomId {}의 방장을 {}에서 {}로 교체", roomId, findPathRoom.getOwnerName(), nickname);
+
+        //RoomMemberInfo lastOwner = findPathRoom.findMemberByNickname(findPathRoom.getOwnerName());
+        //findPathRoom.getCurMember().remove(0);
+        findPathRoom.changeOwnerName(nickname);
+        //findPathRoom.getCurMember().add(lastOwner);
+
+        String jsonStringRoom = objectMapper.writeValueAsString(findPathRoom);
+        redisUtil.setDataList(roomId, jsonStringRoom);
+    }
 
     @Override
     public FindPathRoom createRoom(String nickname, String roomName, TransportationType transportationType) throws JsonProcessingException {

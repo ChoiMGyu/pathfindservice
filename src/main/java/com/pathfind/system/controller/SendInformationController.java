@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : stomp websocket에서 /pub으로 발행된 메시지를 받아 가공하여 같은 방의 인원들에게 전달하는 클래스이다.
- * 최근 수정 일자 : 2024.04.07(월)
+ * 최근 수정 일자 : 2024.04.11(목)
  */
 package com.pathfind.system.controller;
 
@@ -211,5 +211,22 @@ public class SendInformationController {
 
         //위와 마찬가지의 이유로 "/room/out-campus"가 올바른 상황에 만들어지면 room == null일 경우가 없음
         sendStompMessageService.sendNotInCampus(message.getRoomId(), message.getSender(), message.getMessage());
+    }
+
+    @MessageMapping(value = "/room/changeOwner")
+    public void sendChangeOwner(MessageVCRequest message) throws IOException {
+        logger.info("MessageMapping changeOwner 호출");
+
+        FindPathRoom room = findPathRoomService.findRoomById(message.getRoomId());
+
+        if (room == null) {
+            logger.info("Room deleted because the time assigned for the room has expired. roomId: {}", message.getRoomId());
+            sendStompMessageService.sendExpired(message.getRoomId(), "방에 할당된 두 시간이 만료되어 방이 종료되었습니다.");
+            return;
+        }
+
+        findPathRoomService.changeOwnerName(room.getRoomId(), message.getOwner());
+
+        sendStompMessageService.sendChangeOwner(message.getRoomId(), message.getSender(), "현재 방의 방장이 바뀌었습니다.", message.getOwner());
     }
 }
