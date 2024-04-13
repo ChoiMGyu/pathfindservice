@@ -24,7 +24,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
 
-    private static final Long DEFAULT_TIMEOUT = 6 * 60 * 60 * 1000L; // millisecond
+    private static final Long DEFAULT_TIMEOUT = 60 * 1000L; // millisecond
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
 

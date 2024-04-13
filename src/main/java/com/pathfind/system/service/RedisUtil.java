@@ -12,6 +12,7 @@ import org.springframework.data.redis.core.*;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -98,7 +99,7 @@ public class RedisUtil {
         logger.info("RedisUtil get redis sorted set Data - key: " + key);
         ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
         Cursor<ZSetOperations.TypedTuple<String>> scan = zSetOperations.scan(key, ScanOptions.scanOptions().match("*" + pattern + "*").build());
-        List<String> result = scan.stream().map(ZSetOperations.TypedTuple::getValue).toList();
+        List<String> result = new ArrayList<>(scan.stream().map(ZSetOperations.TypedTuple::getValue).toList());
         scan.close();
         //logger.info("RedisUtil get redis sorted set Data: {}", result);
         return result;

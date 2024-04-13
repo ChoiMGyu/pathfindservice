@@ -345,7 +345,7 @@
             let h = Math.floor(remainingTime / 1000 / 60 / 60).toString().padStart(2, "0");
             remainingTime %= 1000 * 60 * 60;
             let m = Math.floor(remainingTime / 1000 / 60).toString().padStart(2, "0");
-            remainingTime %= m * 1000 * 60;
+            remainingTime %= 1000 * 60;
             let s = Math.floor(remainingTime / 1000).toString().padStart(2, "0");
             let timeStr = h + "시간 " + m + "분 " + s + "초";
             $("#remainingTimeV2").text(timeStr);
@@ -452,12 +452,12 @@
         recentInvite = makeRecentInvite($("#nickname").val());
         let lastInvite = [];
         let previousInvite = JSON.parse(localStorage.getItem("recentInvite"));
-        if(previousInvite != null) {
-            for(let i = previousInvite.length === 10 ? 1 : 0; i < previousInvite.length; i++) {
+        if (previousInvite != null) {
+            for (let i = previousInvite.length === 10 ? 1 : 0; i < previousInvite.length; i++) {
                 lastInvite.push(previousInvite[i]);
             }
-            for(let i = 0; i < previousInvite.length; i++) {
-                if(JSON.stringify(lastInvite[i]) === JSON.stringify(recentInvite)) {
+            for (let i = 0; i < previousInvite.length; i++) {
+                if (JSON.stringify(lastInvite[i]) === JSON.stringify(recentInvite)) {
                     lastInvite.splice(i, 1);
                 }
             }
@@ -478,14 +478,14 @@
         console.log(s);
 
         $("#recentInvite").empty();
-        if(searchList == null || Object.keys(searchList).length === 0) {
+        if (searchList == null || Object.keys(searchList).length === 0) {
             console.log("조건문 만족");
             return;
         }
         var users = "";
         var $recentInvite = $("#recentInvite");
-        for(let i = searchList.length - 1; i >= 0; i--) {
-            if(searchList[i] !== null) {
+        for (let i = searchList.length - 1; i >= 0; i--) {
+            if (searchList[i] !== null) {
                 let text = searchList[i].lastInviteId.toString();
                 //console.log("text는 다음과 같음 : " + text);
                 users += "<li class='dropdown-item' onselectstart='return false' style='list-style: none; padding-bottom: 0; padding-top: 0; margin-bottom: 0.25rem'>"
@@ -494,7 +494,7 @@
                     "</span>" +
                     "<button style='padding: 0.25rem;' type='button' class='btn-close' onclick='deleteRecentInvite(" + i + ")'></button>" +
                     "</li>"
-                if(i !== 0) users += "<li><hr class='dropdown-divider'></li>"
+                if (i !== 0) users += "<li><hr class='dropdown-divider'></li>"
             }
             $recentInvite.html(users); //jquery html id="invitelist"의 내용을 수정
         }
@@ -509,14 +509,13 @@
         console.log("idx : " + idx);
         let invite = [];
         let previousInvite = JSON.parse(localStorage.getItem("recentInvite"));
-        for(let i = 0; i < previousInvite.length; i++)
+        for (let i = 0; i < previousInvite.length; i++)
             invite.push(previousInvite[i]);
         invite.splice(idx, 1);
-        if(invite.length === 0) {
+        if (invite.length === 0) {
             $("#recentInvite").hide();
             localStorage.removeItem("recentInvite");
-        }
-        else {
+        } else {
             localStorage.setItem("recentInvite", JSON.stringify(invite));
         }
         //showRecentSearchList();
@@ -574,11 +573,10 @@
 
                         //console.log("owner 출력 : " + owner);
                         //console.log("sender 출력 : " + sender);
-                        if(owner === nickname) {
+                        if (owner === nickname) {
                             //console.log("방장 userlist");
                             getUserList(owner); //userlist 업데이트(방장)
-                        }
-                        else {
+                        } else {
                             //console.log("일반유저 userlist")
                             getUserListNormal(); //userlist 업데이트(일반유저)
                         }
@@ -587,7 +585,7 @@
 
                         console.log("방장 이름 출력 : " + owner);
                         //console.log("chatgpt 출력 : " + $("#" + sender).length);
-                        $("#userlist").off("click", ".btn-assign").on("click", ".btn-assign", function(e) {
+                        $("#userlist").off("click", ".btn-assign").on("click", ".btn-assign", function (e) {
                             newOwner = $(this).attr('id');
                             //console.log(newOwner + " 임명 버튼이 클릭되었습니다.");
                             //changeOwner(newOwner);
