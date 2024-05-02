@@ -229,4 +229,21 @@ public class SendInformationController {
 
         sendStompMessageService.sendChangeOwner(message.getRoomId(), message.getSender(), "현재 방의 방장이 바뀌었습니다.", message.getOwner());
     }
+
+    @MessageMapping(value = "/room/leaveRoomNickname")
+    public void sendLeaveRoomNickname(MessageVCRequest message) throws IOException {
+        logger.info("MessageMapping sendLeaveRoomNickname 호출");
+
+        FindPathRoom room = findPathRoomService.findRoomById(message.getRoomId());
+
+        if (room == null) {
+            logger.info("Room deleted because the time assigned for the room has expired. roomId: {}", message.getRoomId());
+            sendStompMessageService.sendExpired(message.getRoomId(), "방에 할당된 두 시간이 만료되어 방이 종료되었습니다.");
+            return;
+        }
+
+        room.leaveRoomCurMember(message.getSender());
+
+        sendStompMessageService.sendLeave(message.getRoomId(), message.getSender(), room.getOwnerNickname(), message.getSender() + "님이 길 찾기 방에서 퇴장하였습니다.", room.getCurMemberNum(), room.getRoomRemainingTime());
+    }
 }

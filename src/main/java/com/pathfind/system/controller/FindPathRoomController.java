@@ -211,13 +211,4 @@ public class FindPathRoomController {
 
         return findPathRoomService.getRoomInviteList(roomId);
     }
-
-    @PostMapping("/room/deleteMember")
-    @ResponseBody
-    public ArrayList<String> deleteCurMember(@RequestParam(value = "nickname") String nickname, @RequestParam(value = "roomId") String roomId) throws IOException {
-        logger.info("roomId {}에 있는 nickname {}의 유저를 삭제", roomId, nickname);
-
-        //강제 퇴장 메시지로 변경이 필요하다
-        return findPathRoomService.deleteListUser(roomId, nickname);
-    }
 }
