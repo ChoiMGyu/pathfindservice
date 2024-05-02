@@ -177,7 +177,7 @@
                         users += "<li class='dropdown-item'>" + data[i] + "</li>"
                     } else {
                         users += "<li><hr class='dropdown-divider'></li>"
-                        users += "<li class='dropdown-item'>" + data[i] + "&nbsp;&nbsp;&nbsp;<button onclick='deleteCurMember(\"" + encodedNickname + "\")' class='btn btn-primary btn-sm'>퇴장</button>"
+                        users += "<li class='dropdown-item'>" + data[i] + "&nbsp;&nbsp;&nbsp;<button class='btn btn-primary btn-sm' data-role='exit' data-nickname='" + encodedNickname + "'>퇴장</button>"
                             + "&nbsp;&nbsp;&nbsp;<button id='" + encodedNickname + "' class='btn btn-primary btn-sm btn-assign'>임명</button>"
                             + "</li>"
                     }
@@ -583,19 +583,8 @@
                         getInviteList(); //invitelist 업데이트
                         showRecentSearchList();
 
-                        console.log("방장 이름 출력 : " + owner);
+                        //console.log("방장 이름 출력 : " + owner);
                         //console.log("chatgpt 출력 : " + $("#" + sender).length);
-                        $("#userlist").off("click", ".btn-assign").on("click", ".btn-assign", function (e) {
-                            newOwner = $(this).attr('id');
-                            //console.log(newOwner + " 임명 버튼이 클릭되었습니다.");
-                            //changeOwner(newOwner);
-                            stomp.send('/pub/room/changeOwner', {}, JSON.stringify({
-                                roomId: roomId,
-                                sender: nickname,
-                                message: "방의 방장이 바뀌었어요!",
-                                owner: newOwner
-                            }));
-                        });
 
                         if (manager != null) {
                             owner = manager;
@@ -616,6 +605,15 @@
                                 owner = newOwner;
                                 giveAuthority(nickname, newOwner);
                                 bodyAlert(message);
+                                //이전에는 subscribe message가 보내졌을 때 list 업데이트가 되었으므로
+                                //방장이 바뀌더라도 message가 보내지는 타이밍과 다르면 업데이트가 느렸음
+                                //방장을 바꾸자마자 리스트를 호출함으로써 업데이트 속도 향상
+                                if (owner === nickname) {
+                                    getUserList(owner); //userlist 업데이트(방장)
+                                } else {
+                                    getUserListNormal(); //userlist 업데이트(일반유저)
+                                }
+                                getInviteList(); //invitelist 업데이트
                                 break;
                             case "LEAVE":
                                 if (sender === nickname) {
@@ -679,6 +677,28 @@
                         //console.log(lat, lng);
                     }, delay);
 
+                });
+
+                $('#userlist').on('click', '[data-role="exit"]', function() {
+                    //퇴장 버튼을 눌렀을 때 실행되는 함수
+                    var exitNickname = $(this).data('nickname');
+                    //alert(nickname + " 사용자의 퇴장 처리를 합니다.");
+                    stomp.send('/pub/room/leaveRoomNickname', {}, JSON.stringify({
+                        roomId: roomId,
+                        sender: exitNickname,
+                        message: exitNickname + "이 방에서 강제 퇴장되었습니다."
+                    }));
+                });
+
+                $("#userlist").off("click", ".btn-assign").on("click", ".btn-assign", function (e) {
+                    newOwner = $(this).attr('id');
+                    //console.log(newOwner + " 임명 버튼이 클릭되었습니다");
+                    stomp.send('/pub/room/changeOwner', {}, JSON.stringify({
+                        roomId: roomId,
+                        sender: nickname,
+                        message: "방의 방장이 바뀌었어요!",
+                        owner: newOwner
+                    }));
                 });
 
                 $("#button-send").on("click", function (e) {
