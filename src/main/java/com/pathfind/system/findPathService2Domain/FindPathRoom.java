@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2)의 길 찾기 방을 구현한 클래스이다.
- * 최근 수정 일자 : 2024.04.06(토)
+ * 최근 수정 일자 : 2024.05.04(토)
  */
 package com.pathfind.system.findPathService2Domain;
 
@@ -86,7 +86,7 @@ public class FindPathRoom {
     public void pushNewMember(String nickname) {
         //초대 리스트에 회원을 넣는 메소드
         if (!chkRoomInviteCnt()) {
-            throw new CustomException(ErrorCode.ROOM_EXCEEDED, "방에 초대 가능한 인원은 최대 5명 입니다.");
+            throw new CustomException(ErrorCode.ROOM_EXCEEDED, "방에 초대 가능한 인원은 최대 4명 입니다.");
         }
         //초대된 인원을 관리하는 리스트는 초대된 인원을 관리하는 리스트일뿐이다 -> 회원의 이름만 저장하면 초대 리스트의 역할은 충족한 것이다
         //초대된 인원이 방장 or 일반 회원인지, 위치와 가까운 정점 아이디, 이동 수단은 방에 입장할 때 결정을 해주면 된다
