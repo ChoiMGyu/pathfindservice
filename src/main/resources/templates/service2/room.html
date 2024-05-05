@@ -499,6 +499,15 @@
         //showRecentSearchList();
     }
 
+    function aloneInRoom(latitude, longitude) {
+        removeAllMarker();
+        removeAllPolyline();
+        addMarker(latitude, longitude);
+        if (mapCenterChanged === true) return;
+        BoundStatus = BOUND_CHANGED;
+        setBounds({latitude: latitude, longitude: longitude});
+    }
+
     $(document).ready(function () {
 
         let roomName = [[${room.roomName}]];
@@ -601,20 +610,14 @@
                                 $("#curMemberNumber").text("현재 인원 수: " + curMemberNum + "명");
                                 serverRoomDeletionTime = new Date(roomRemainingTime);
                                 setRoomRemainingTimeV1(serverRoomDeletionTime);
+                                if(curMemberNum === 1) aloneInRoom(latitude, longitude);
                                 break;
                             case "ROOM_EXPIRED": // 방의 시간이 만료된 경우 /service2/room/leave 으로 리다이렉트한다.
                                 leaveRoom(roomName, message);
                                 break;
                             case "ROUTE":
                                 if (route[0] !== undefined) setMapRoute(route, DEFAULT_OBJ_TYPE, DEFAULT_OBJ_TYPE, latitude, longitude);
-                                else {
-                                    //console.log("marker count: " + markers.length);
-                                    removeAllMarker();
-                                    addMarker(latitude, longitude);
-                                    if (mapCenterChanged === true) break;
-                                    BoundStatus = BOUND_CHANGED;
-                                    setBounds({latitude: latitude, longitude: longitude});
-                                }
+                                else aloneInRoom(latitude, longitude);
                         }
                     });
 
