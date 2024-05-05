@@ -146,7 +146,7 @@ public class MemberServiceImpl implements MemberService {
             redisUtil.setDataSortedSet(RedisValue.NICKNAME_SET, memberRepository.findAllNickname());
         }
         List<String> result = redisUtil.getDataSortedSet(RedisValue.NICKNAME_SET, searchWord);
-        logger.info("result: {}", result);
+        //logger.info("result: {}", result);
         result.sort(Comparator.comparingInt(a -> a.indexOf(searchWord)));
         List<String> response = new ArrayList<>();
         for(int i = 0; i < Math.min(5,result.size()); i++) {

@@ -27,7 +27,7 @@ public class RoadEdge {
     @Column(nullable = false)
     private double length; // 간선 길이
 
-    @Enumerated(EnumType.STRING)
+    /*@Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private OneWayType oneWayType; // 일방통행 여부(YES, NO)
+    private OneWayType oneWayType; // 일방통행 여부(YES, NO)*/
 }
