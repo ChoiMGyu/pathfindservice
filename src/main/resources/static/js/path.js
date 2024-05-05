@@ -7,6 +7,8 @@ const DEFAULT_LATITUDE = -1;
 const DEFAULT_LONGITUDE = -181;
 const BOUND_CHANGED = 1;
 const BOUND_NOT_CHANGED = 0;
+const SERVICE1 = 0;
+const SERVICE2 = 1;
 let mapCenterChanged;
 let BoundStatus;
 let mapCenterChangedTimer;
@@ -64,7 +66,8 @@ function resetSearchForm() {
 
 // 출발지와 도착지 사이의 폴리라인(카카오 api의 객체, 경로를 의미함)들을 저장한다. 새로운 경로 탐색 시 기존 경로를 삭제하기 위해 사용한다.
 let drawRoute = [];
-var markers = [];
+let markers = [];
+let customOverlays = [];
 
 /**
  * 사람의 위치에 마커를 추가하는 함수이다.
@@ -79,7 +82,7 @@ function addMarker(latitude, longitude) {
         break;
     }
     if (alreadyExistingPosition) return;
-    console.log("Add marker, latitude: " + latitude + ", longitude: " + longitude);
+    //console.log("Add marker, latitude: " + latitude + ", longitude: " + longitude);
     drawMarker(marker);
     markers.push(marker);
 }
@@ -91,6 +94,34 @@ function drawMarker(marker) {
     marker.setMap(map);
 }
 
+/**
+ * 사람의 위치에 커스텀 오버레이를 추가하는 함수이다.
+ */
+function addCustomOverlay(latitude, longitude, content) {
+    let customOverlay = new kakao.maps.CustomOverlay({
+        position: new kakao.maps.LatLng(latitude, longitude),
+        content: content,
+        yAnchor: 1
+    })
+    let alreadyExistingPosition = 0;
+    for (let c of customOverlays) {
+        let cLatLng = c.getPosition()
+        if (cLatLng.getLat() !== latitude || cLatLng.getLng() !== longitude) continue;
+        alreadyExistingPosition = 1;
+        break;
+    }
+    if (alreadyExistingPosition) return;
+    drawCustomOverlay(customOverlay);
+    customOverlays.push(customOverlay);
+}
+
+/**
+ * 커스텀 오버레이를 지도에 그리는 함수이다.
+ */
+function drawCustomOverlay(customOverlay) {
+    customOverlay.setMap(map);
+}
+
 // 지도 위에 표시되고 있는 마커를 모두 제거합니다
 function removeAllMarker() {
     console.log("removeMarker() 호출됨");
@@ -100,13 +131,23 @@ function removeAllMarker() {
     markers = [];
 }
 
-// 지도 위에 포시되고 있는 폴리라인을 모두 제거합니다
+// 지도 위에 표시되고 있는 폴리라인을 모두 제거합니다
 function removeAllPolyline() {
     console.log("removePolyline() 호출됨");
     for (var i = 0; i < drawRoute.length; i++) {
         drawRoute[i].setMap(null);
     }
     drawRoute = [];
+}
+
+/**
+ * 지도 위에 표시되고 있는 커스텀 오버레이를 모두 제거합니다
+ */
+function removeAllCustomOverlay() {
+    for (let c of customOverlays) {
+        c.setMap(null);
+    }
+    customOverlays = [];
 }
 
 // JavaScript 코드
@@ -302,9 +343,10 @@ function deleteRecentSearch(idx) {
 }
 
 // 지도에 두 지점 간의 경로를 그리는 함수이다.
-function setMapRoute(route, startObjectType = DEFAULT_OBJ_TYPE, endObjectType = DEFAULT_OBJ_TYPE, latitude = DEFAULT_LATITUDE, longitude = DEFAULT_LONGITUDE) {
+function setMapRoute(serviceType, route, startObjectType = DEFAULT_OBJ_TYPE, endObjectType = DEFAULT_OBJ_TYPE, latitude = DEFAULT_LATITUDE, longitude = DEFAULT_LONGITUDE) {
     removeAllPolyline();
     removeAllMarker();
+    removeAllCustomOverlay();
     //if (route === undefined) return;
     // console.log(route);
     for (let i = 0; i < route.length; i++) {
@@ -331,8 +373,14 @@ function setMapRoute(route, startObjectType = DEFAULT_OBJ_TYPE, endObjectType = 
             polyline.setMap(map);
             drawRoute.push(polyline);
         }
-        addMarker(route[i][0].latitude, route[i][0].longitude);
-        addMarker(route[i][route[i].length - 1].latitude, route[i][route[i].length - 1].longitude);
+        if (serviceType === SERVICE1) {
+            addMarker(route[i][0].latitude, route[i][0].longitude);
+            addMarker(route[i][route[i].length - 1].latitude, route[i][route[i].length - 1].longitude);
+        } else if (serviceType === SERVICE2) {
+            console.log(userList);
+            addCustomOverlay(route[i][0].latitude, route[i][0].longitude, makeCustomOverlayContent(userList[0]));
+            addCustomOverlay(route[i][route[i].length - 1].latitude, route[i][route[i].length - 1].longitude, makeCustomOverlayContent(userList[i + 1]));
+        }
     }
 }
 
@@ -457,7 +505,7 @@ function findPath() {
             //console.log('distance: ' + response.distance);
             resetSearchForm();
 
-            setMapRoute(route, startObjectType, endObjectType);
+            setMapRoute(SERVICE1, route, startObjectType, endObjectType);
             /*====================================================================================================*/
 
 

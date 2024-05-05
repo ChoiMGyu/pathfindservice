@@ -145,6 +145,8 @@
 
     let $userlist = $("#userlist"); //jquery id가 "userlist"인 object 가져오기
 
+    let userList;
+
     function getUserList(sender) {
         //현재 방에 있는 인원을 출력하는 함수(방장)
         //var $userlist = $("#userlist"); //jquery id가 "userlist"인 object 가져오기
@@ -158,6 +160,7 @@
                 "roomId": roomId
             },
             success: function (data) {
+                userList = data;
                 var users = "";
                 for (let i = 0; i < data.length; i++) {
                     var encodedNickname = encodeURIComponent(data[i]);
@@ -165,8 +168,7 @@
                     //조건에 따라 강제 퇴장 버튼을 출력
                     if (sender === encodedNickname) {
                         users += "<li class='dropdown-item'><span class='fw-bold'>방장 : </span>" + "<span class='test-start'>" + data[i] + "</span></li>"
-                    }
-                    else {
+                    } else {
                         users += "<li><hr class='dropdown-divider'></li>"
                         users += "<li class='dropdown-item'><span class='fw-bold'>일반회원 : </span> " + data[i] + "<div></div><div class=\"d-grid gap-2\"><button class='btn btn-outline-primary btn-sm' data-role='exit' data-nickname='" + encodedNickname + "'>퇴장</button></div>"
                             + "<div></div><div class=\"d-grid gap-2\"><button id='" + encodedNickname + "' class='btn btn-outline-primary btn-sm btn-assign'>임명</button></div>"
@@ -191,14 +193,14 @@
                 "roomId": roomId
             },
             success: function (data) {
+                userList = data;
                 var users = "";
                 for (let i = 0; i < data.length; i++) {
                     var encodedNickname = encodeURIComponent(data[i]);
                     var sep = encodedNickname;
                     if (sender === encodedNickname) {
                         users += "<li class='dropdown-item'><span class='fw-bold'>방장 : </span>" + "<span class='test-start'>" + data[i] + "</span></li>"
-                    }
-                    else {
+                    } else {
                         users += "<li class='dropdown-item'><span class='fw-bold'>일반회원 : </span>" + data[i] + "</li>"
                     }
                     if (i !== data.length - 1) {
@@ -224,7 +226,7 @@
             },
             success: function (data) {
                 var users = "";
-                if(data.length === 0) {
+                if (data.length === 0) {
                     users += "<li><a class='dropdown-item'>초대한 유저가 없습니다</a></li>"
                 }
                 for (let i = 0; i < data.length; i++) {
@@ -499,13 +501,25 @@
         //showRecentSearchList();
     }
 
-    function aloneInRoom(latitude, longitude) {
+    /**
+     * 방에 혼자 있을 때 마커를 그리기 위해 사용되는 함수이다.
+     */
+    function aloneInRoom(latitude, longitude, nickname) {
         removeAllMarker();
         removeAllPolyline();
-        addMarker(latitude, longitude);
+        removeAllCustomOverlay();
+        addCustomOverlay(latitude, longitude, makeCustomOverlayContent(nickname));
         if (mapCenterChanged === true) return;
         BoundStatus = BOUND_CHANGED;
         setBounds({latitude: latitude, longitude: longitude});
+    }
+
+
+    /**
+     * 서비스 2에 사용되는 커스텀 오버레이의 컨텐츠를 만드는 함수이다.
+     */
+    function makeCustomOverlayContent(text) {
+        return "<div class='service2CustomOverlay rounded-pill border border-0 border-primary ps-2 pe-2 text-white bg-primary'><span>" + text + "</span></div>";
     }
 
     $(document).ready(function () {
@@ -610,14 +624,14 @@
                                 $("#curMemberNumber").text("현재 인원 수: " + curMemberNum + "명");
                                 serverRoomDeletionTime = new Date(roomRemainingTime);
                                 setRoomRemainingTimeV1(serverRoomDeletionTime);
-                                if(curMemberNum === 1) aloneInRoom(latitude, longitude);
+                                if (curMemberNum === 1) aloneInRoom(latitude, longitude, nickname);
                                 break;
                             case "ROOM_EXPIRED": // 방의 시간이 만료된 경우 /service2/room/leave 으로 리다이렉트한다.
                                 leaveRoom(roomName, message);
                                 break;
                             case "ROUTE":
-                                if (route[0] !== undefined) setMapRoute(route, DEFAULT_OBJ_TYPE, DEFAULT_OBJ_TYPE, latitude, longitude);
-                                else aloneInRoom(latitude, longitude);
+                                if (route[0] !== undefined) setMapRoute(SERVICE2, route, DEFAULT_OBJ_TYPE, DEFAULT_OBJ_TYPE, latitude, longitude);
+                                else aloneInRoom(latitude, longitude, nickname);
                         }
                     });
 
@@ -627,16 +641,24 @@
                     let delay = 2000;
 
                     let timerId = setTimeout(function getRoute() {
-                        let lat = 35.8330177, lng = 128.7532086;
+                        //let lat = 35.8330177, lng = 128.7532086;
 
                         if (navigator.geolocation) {
                             // GeoLocation을 이용해서 접속 위치를 얻어옵니다
                             navigator.geolocation.getCurrentPosition(function (position) {
-                                lat = position.coords.latitude; // 위도
-                                lng = position.coords.longitude; // 경도
-                                //console.log(lat, lng);
+                                //=============================================================================================//
+                                // 테스트 위도, 경도이다. 경산 캠퍼스 내의 임의의 위치의 위도 경도를 얻을 수 있다.
+                                /*latitude = 35.8310060 + Math.random() * 8 / 1000 - 4 / 1000; // 테스트 위도. 35.8310060 +- 0.004 의 위도 값을 가진다.
+                                longitude = 128.7573493 + Math.random() * 8 / 1000 - 4 / 1000; // 테스트 경도 128.7573493 += 0.004 의 경도 값을 가진다.*/
+                                //=============================================================================================//
+
+
+                                latitude = position.coords.latitude; // 위도
+                                longitude = position.coords.longitude ; // 경도
+
+                                //console.log(latitude, longitude);
                                 if (NotInCampusMessage === NOT_SENDED) {
-                                    if (!_isMemberInCampusArea(lat, lng)) {
+                                    if (!_isMemberInCampusArea(latitude, longitude)) {
                                         NotInCampusMessage = SENDED
                                         let txt = nickname + "님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 경로가 올바르지 않을 수 있습니다.";
                                         stomp.send('/pub/room/out-campus', {}, JSON.stringify({
@@ -648,7 +670,7 @@
                                         NotInCampusMessage = NOT_SENDED;
                                     }
                                 }
-                                let msg = JSON.stringify({latitude: lat, longitude: lng});
+                                let msg = JSON.stringify({latitude: latitude, longitude: longitude});
                                 stomp.send('/pub/room/route', {}, JSON.stringify({
                                     roomId: roomId,
                                     sender: nickname,
