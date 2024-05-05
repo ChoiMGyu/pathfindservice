@@ -628,8 +628,15 @@
                                 leaveRoom(roomName, message);
                                 break;
                             case "ROUTE":
-                                setMapRoute(route);
-                                addMarker(latitude, longitude);
+                                if (route[0] !== undefined) setMapRoute(route, DEFAULT_OBJ_TYPE, DEFAULT_OBJ_TYPE, latitude, longitude);
+                                else {
+                                    //console.log("marker count: " + markers.length);
+                                    removeAllMarker();
+                                    addMarker(latitude, longitude);
+                                    if (mapCenterChanged === true) break;
+                                    BoundStatus = BOUND_CHANGED;
+                                    setBounds({latitude: latitude, longitude: longitude});
+                                }
                         }
                     });
 
@@ -680,7 +687,7 @@
 
                 });
 
-                $('#userlist').on('click', '[data-role="exit"]', function() {
+                $('#userlist').on('click', '[data-role="exit"]', function () {
                     //퇴장 버튼을 눌렀을 때 실행되는 함수
                     var exitNickname = $(this).data('nickname');
                     //alert(nickname + " 사용자의 퇴장 처리를 합니다.");

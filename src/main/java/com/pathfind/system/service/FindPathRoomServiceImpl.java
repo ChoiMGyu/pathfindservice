@@ -237,7 +237,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
             for (Integer idx : shortestRoute) { // 방장과 가장 가까운 정점, 회원(i)와 가장 가까운 정점 사이의 경로
                 routeInfo.add(new ShortestPathRoute(idx.longValue(), vertices.get(idx).getLatitude(), vertices.get(idx).getLongitude()));
             }
-            routeInfo.add(new ShortestPathRoute(-1L, memberLatLng.getLatitude(), memberLatLng.getLongitude())); // 회원(i)의 위치
+            routeInfo.add(new ShortestPathRoute(-2L, memberLatLng.getLatitude(), memberLatLng.getLongitude())); // 회원(i)의 위치
 
             result.add(new ShortestPathRouteCSResponse(member.getNickname(), getTotalDistance(dijkstraResult.getNodes().get(end.intValue()).getDistance(), routeInfo), routeInfo));
         }
