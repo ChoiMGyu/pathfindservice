@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2) 구현체
- * 최근 수정 일자 : 2024.04.11(목)
+ * 최근 수정 일자 : 2024.05.05(목)
  */
 package com.pathfind.system.service;
 
@@ -208,13 +208,13 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         for (RoadEdge edge : edges) {
             //logger.info("Edge 정보 : " + edge.getRoadVertex1() + " " + edge.getRoadVertex2() + " " + edge.getLength());
             Objects object = vertices.get(Math.toIntExact(edge.getRoadVertex2() - 1)).getObject();
-            boolean isBuilding = object != null && object.getObjectType() == ObjType.BUILDING;
+            boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
             graph.addEdge(edge.getRoadVertex1() - 1, edge.getRoadVertex2() - 1, edge.getLength(), isBuilding);
         }
         List<Node> nodes = new ArrayList<>();
         for (RoadVertex roadVertex : vertices) {
             Objects object = roadVertex.getObject();
-            boolean isBuilding = object != null && object.getObjectType() == ObjType.BUILDING;
+            boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
             nodes.add(new Node(roadVertex.getId() - 1, 0, isBuilding));
         }
         DijkstraResult dijkstraResult = Dijkstra.dijkstra(nodes, graph, start, -1L);
@@ -259,13 +259,13 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         for (SidewalkEdge edge : edges) {
             //logger.info("edge 정보 : " + edge.getSidewalkVertex1() + " " + edge.getSidewalkVertex2() + " " + edge.getLength());
             Objects object = vertices.get(Math.toIntExact((edge.getSidewalkVertex2() - 1))).getObject();
-            boolean isBuilding = object != null && object.getObjectType() == ObjType.BUILDING;
+            boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
             graph.addEdge(edge.getSidewalkVertex1() - 1, edge.getSidewalkVertex2() - 1, edge.getLength(), isBuilding);
         }
         List<Node> nodes = new ArrayList<>();
         for (SidewalkVertex sidewalkVertex : vertices) {
             Objects object = sidewalkVertex.getObject();
-            boolean isBuilding = object != null && object.getObjectType() == ObjType.BUILDING;
+            boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
             nodes.add(new Node(sidewalkVertex.getId() - 1, 0, isBuilding));
         }
         DijkstraResult dijkstraResult = Dijkstra.dijkstra(nodes, graph, start, -1L);

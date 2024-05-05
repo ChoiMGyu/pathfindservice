@@ -42,19 +42,33 @@ function resetSearchForm() {
 let drawRoute = [];
 var markers = [];
 
-// 마커를 생성하고 지도 위에 마커를 표시하는 함수입니다
-function addMarker(position) {
-    var marker = new kakao.maps.Marker({
-        position: position
-    });
-    marker.setMap(map); // 지도 위에 마커를 표출합니다
-    markers.push(marker);  // 배열에 생성된 마커를 추가합니다
+/**
+ * 사람의 위치에 마커를 추가하는 함수이다.
+ */
+function addMarker(latitude, longitude) {
+    let marker = new kakao.maps.Marker({position: new kakao.maps.LatLng(latitude, longitude)});
+    let alreadyExistingPosition = 0;
+    for (let m of markers) {
+        let mLatLng = m.getPosition();
+        if (mLatLng.getLat() !== latitude || mLatLng.getLng() !== longitude) continue;
+        alreadyExistingPosition = 1;
+        break;
+    }
+    if (alreadyExistingPosition) return;
+    console.log("Add marker, latitude: "+latitude+", longitude: "+longitude);
+    drawMarker(marker);
+    markers.push(marker);
+}
 
-    return marker;
+/**
+ * 마커를 지도에 그리는 함수이다.
+ */
+function drawMarker(marker) {
+    marker.setMap(map);
 }
 
 // 지도 위에 표시되고 있는 마커를 모두 제거합니다
-function removeMarker() {
+function removeAllMarker() {
     console.log("removeMarker() 호출됨");
     for (var i = 0; i < markers.length; i++) {
         markers[i].setMap(null);
@@ -62,7 +76,8 @@ function removeMarker() {
     markers = [];
 }
 
-function removePolyline() {
+// 지도 위에 포시되고 있는 폴리라인을 모두 제거합니다
+function removeAllPolyline() {
     console.log("removePolyline() 호출됨");
     for (var i = 0; i < drawRoute.length; i++) {
         drawRoute[i].setMap(null);
@@ -105,11 +120,11 @@ function findPlace() {
             console.log("검색된 장소의 경도:", longitude);
 
             //현재 지도에 있는 마커들을 지움
-            removeMarker();
+            removeAllMarker();
             //resetFindPathForm();
             $("#findPathSection").attr('class', 'mb-5');
             $("#pathInfoSection").hide();
-            removePolyline();
+            removeAllPolyline();
 
             // 마커가 표시될 위치입니다
             //var markerPosition  = new kakao.maps.LatLng(latitude, longitude);
@@ -263,14 +278,8 @@ function deleteRecentSearch(idx) {
 
 // 지도에 두 지점 간의 경로를 그리는 함수이다.
 function setMapRoute(route, startObjectType = null, endObjectType = null) {
-    for (let i = 0; i < drawRoute.length; i++) drawRoute[i].setMap(null);
-    drawRoute = [];
-    for (let i = 0; i < markers.length; i++) {
-        //console.log(markers[i]);
-        markers[i].setMap(null);
-        //markers[i].infowindow.close();
-    }
-    markers = [];
+    removeAllPolyline();
+    removeAllMarker();
     //if (route === undefined) return;
     // console.log(route);
     for (let i = 0; i < route.length; i++) {
@@ -295,27 +304,8 @@ function setMapRoute(route, startObjectType = null, endObjectType = null) {
             polyline.setMap(map);
             drawRoute.push(polyline);
         }
-        let startPoint = new kakao.maps.Marker({position: new kakao.maps.LatLng(route[i][0].latitude, route[i][0].longitude)});
-        startPoint.setMap(map);
-        markers.push(startPoint);
-
-        /*let startPointInfo = document.createElement('div');
-        startPointInfo.textContent = "출발";
-        startPointInfo.style.width = "100%";
-        startPointInfo.style.padding = "5px";
-        startPoint.infowindow = new kakao.maps.InfoWindow({content: startPointInfo});
-        startPoint.infowindow.open(map, startPoint);*/
-
-        let endPoint = new kakao.maps.Marker({position: new kakao.maps.LatLng(route[i][route[i].length - 1].latitude, route[i][route[i].length - 1].longitude)});
-        endPoint.setMap(map);
-        markers.push(endPoint);
-
-        /*let endPointInfo = document.createElement('div');
-        endPointInfo.textContent = "도착";
-        endPointInfo.style.width = "100%";
-        endPointInfo.style.padding = "5px";
-        endPoint.infowindow = new kakao.maps.InfoWindow({content: endPointInfo});
-        endPoint.infowindow.open(map, endPoint);*/
+        addMarker(route[i][0].latitude, route[i][0].longitude);
+        addMarker(route[i][route[i].length - 1].latitude, route[i][route[i].length - 1].longitude);
     }
 }
 
@@ -465,7 +455,7 @@ function findPath() {
             let maxLng = {latitude: 0, longitude: -180};
 
             for (let i = 0; i < route.length; i++) {
-                for(let j = 0; j < route[i].length; j++) {
+                for (let j = 0; j < route[i].length; j++) {
                     if (minLat.latitude > route[i][j].latitude) minLat = route[i][j];
                     if (maxLat.latitude < route[i][j].latitude) maxLat = route[i][j];
                     if (minLng.longitude > route[i][j].longitude) minLng = route[i][j];

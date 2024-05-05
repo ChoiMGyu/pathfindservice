@@ -1,3 +1,7 @@
+/*
+ * 클래스 기능 : 길 찾기 서비스(서비스1) 구현체
+ * 최근 수정 일자 : 2024.05.05(목)
+ */
 package com.pathfind.system.service;
 
 import com.pathfind.system.algorithm.Dijkstra;
@@ -44,13 +48,13 @@ public class FindPathServiceImpl implements FindPathService {
         for (RoadEdge edge : edges) {
             //logger.info("edge 정보 : " + edge.getRoadVertex1() + " " + edge.getRoadVertex2() + " " + edge.getLength());
             Objects object = vertices.get(Math.toIntExact(edge.getRoadVertex2() - 1)).getObject();
-            boolean isBuilding = object != null && object.getObjectType() == ObjType.BUILDING;
+            boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
             graph.addEdge(edge.getRoadVertex1() - 1, edge.getRoadVertex2() - 1, edge.getLength(), isBuilding);
         }
         List<Node> nodes = new ArrayList<>();
         for (RoadVertex roadVertex : vertices) {
             Objects object = roadVertex.getObject();
-            boolean isBuilding = object != null && object.getObjectType() == ObjType.BUILDING;
+            boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
             nodes.add(new Node(roadVertex.getId() - 1, 0, isBuilding));
         }
         logger.info("findPathInfo(출발점과 도착점 사이 경로의 거리, 거쳐가야 하는 경로의 id) {} to {}", start.intValue(), end.intValue());
@@ -76,13 +80,13 @@ public class FindPathServiceImpl implements FindPathService {
         for (SidewalkEdge edge : edges) {
             //logger.info("edge 정보 : " + edge.getSidewalkVertex1() + " " + edge.getSidewalkVertex2() + " " + edge.getLength());
             Objects object = vertices.get(Math.toIntExact((edge.getSidewalkVertex2() - 1))).getObject();
-            boolean isBuilding = object != null && object.getObjectType() == ObjType.BUILDING;
+            boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
             graph.addEdge(edge.getSidewalkVertex1() - 1, edge.getSidewalkVertex2() - 1, edge.getLength(), isBuilding);
         }
         List<Node> nodes = new ArrayList<>();
         for (SidewalkVertex sidewalkVertex : vertices) {
             Objects object = sidewalkVertex.getObject();
-            boolean isBuilding = object != null && object.getObjectType() == ObjType.BUILDING;
+            boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
             nodes.add(new Node(sidewalkVertex.getId() - 1, 0, isBuilding));
         }
         logger.info("findPathInfo(출발점과 도착점 사이 경로의 거리, 거쳐가야 하는 경로의 id) {} to {}", start.intValue(), end.intValue());
