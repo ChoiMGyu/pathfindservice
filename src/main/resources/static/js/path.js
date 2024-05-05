@@ -1,6 +1,15 @@
 const SEARCH = "search";
 const FIND_PATH = "findPath";
 const BUILDING = "BUILDING";
+const DEFAULT_OBJ_TYPE = "DEFAULT_OBJ_TYPE";
+const ROUTE_IDX = -1;
+const DEFAULT_LATITUDE = -1;
+const DEFAULT_LONGITUDE = -181;
+const BOUND_CHANGED = 1;
+const BOUND_NOT_CHANGED = 0;
+let mapCenterChanged;
+let BoundStatus;
+let mapCenterChangedTimer;
 
 const MAP_API = config.apikey;
 var container = document.getElementById('map');
@@ -10,6 +19,21 @@ var options = {
 };
 
 var map = new kakao.maps.Map(container, options);
+
+/**
+ * 지도의 중심이 변했는지 파악한다. 최단 경로를 인원마다 중심에 배치하는데 사용된다.
+ */
+kakao.maps.event.addListener(map, 'center_changed', function () {
+    //console.log("Bound status: " + BoundStatus + ", map center changed: " + mapCenterChanged);
+    if (BoundStatus === BOUND_CHANGED) {
+        BoundStatus = BOUND_NOT_CHANGED;
+        return;
+    }
+    mapCenterChanged = true;
+    clearInterval(mapCenterChangedTimer);
+    mapCenterChangedTimer = setInterval(() => mapCenterChanged = false, 4000);
+    //alert('center changed!');
+});
 
 function selectTransportation(transportation) {
     if (transportation === '자동차') {
@@ -55,7 +79,7 @@ function addMarker(latitude, longitude) {
         break;
     }
     if (alreadyExistingPosition) return;
-    console.log("Add marker, latitude: "+latitude+", longitude: "+longitude);
+    console.log("Add marker, latitude: " + latitude + ", longitude: " + longitude);
     drawMarker(marker);
     markers.push(marker);
 }
@@ -140,6 +164,7 @@ function findPlace() {
 
             //마커를 생성하면서 마커를 배열에 넣음
             setBounds(response);
+            addMarker(response.latitude, response.longitude);
 
             /*====================================================================================================*/
             /*최근 검색 추가*/
@@ -154,7 +179,7 @@ function findPlace() {
             $("#recentSearchSection").hide();
             $("#searchInfoSection").show();
             $("#searchName").text(response.name);
-            if (response.objectType === "BUILDING") $("#searchAddress").text(response.address).show();
+            if (response.objectType === BUILDING) $("#searchAddress").text(response.address).show();
             else $("#searchAddress").hide();
             $("#searchDescription").text(response.description);
             /*====================================================================================================*/
@@ -277,13 +302,15 @@ function deleteRecentSearch(idx) {
 }
 
 // 지도에 두 지점 간의 경로를 그리는 함수이다.
-function setMapRoute(route, startObjectType = null, endObjectType = null) {
+function setMapRoute(route, startObjectType = DEFAULT_OBJ_TYPE, endObjectType = DEFAULT_OBJ_TYPE, latitude = DEFAULT_LATITUDE, longitude = DEFAULT_LONGITUDE) {
     removeAllPolyline();
     removeAllMarker();
     //if (route === undefined) return;
     // console.log(route);
     for (let i = 0; i < route.length; i++) {
-        for (let j = 1; j < route[i].length; j++) {
+        for (let j = 0; j < route[i].length; j++) {
+            if (latitude === route[i][j].latitude && longitude === route[i][j].longitude) setBoundsByRoute(route, i);
+            if (!j) continue;
             let linePath = [
                 new kakao.maps.LatLng(route[i][j - 1].latitude, route[i][j - 1].longitude),
                 new kakao.maps.LatLng(route[i][j].latitude, route[i][j].longitude)
@@ -307,6 +334,32 @@ function setMapRoute(route, startObjectType = null, endObjectType = null) {
         addMarker(route[i][0].latitude, route[i][0].longitude);
         addMarker(route[i][route[i].length - 1].latitude, route[i][route[i].length - 1].longitude);
     }
+}
+
+function setBoundsByRoute(route, routeIdx = ROUTE_IDX) {
+    if (mapCenterChanged === true) return;
+    BoundStatus = BOUND_CHANGED;
+    // 지도 범위 재설정에 사용되는 변수들이다.
+    let minLat = {latitude: 90, longitude: 0};
+    let maxLat = {latitude: -90, longitude: 0};
+    let minLng = {latitude: 0, longitude: 180};
+    let maxLng = {latitude: 0, longitude: -180};
+
+    for (let i = 0; i < route.length; i++) {
+        if (routeIdx !== ROUTE_IDX && routeIdx !== i) continue;
+        for (let j = 0; j < route[i].length; j++) {
+            if (minLat.latitude > route[i][j].latitude) minLat = route[i][j];
+            if (maxLat.latitude < route[i][j].latitude) maxLat = route[i][j];
+            if (minLng.longitude > route[i][j].longitude) minLng = route[i][j];
+            if (maxLng.longitude < route[i][j].longitude) maxLng = route[i][j];
+        }
+    }
+    let routeBounds = new kakao.maps.LatLngBounds();
+    routeBounds.extend(new kakao.maps.LatLng(minLat.latitude, minLat.longitude));
+    routeBounds.extend(new kakao.maps.LatLng(maxLat.latitude, maxLat.longitude));
+    routeBounds.extend(new kakao.maps.LatLng(minLng.latitude, minLng.longitude));
+    routeBounds.extend(new kakao.maps.LatLng(maxLng.latitude, maxLng.longitude));
+    map.setBounds(routeBounds);
 }
 
 // 서버에게 길찾기 수행을 요청하고 길찾기 결과를 반환받아 길찾기 결과 정보를 사용자에게 제공하는 함수이다.
@@ -448,26 +501,7 @@ function findPath() {
 
             /*====================================================================================================*/
             /*지도 범위 재설정*/
-            // 지도 범위 재설정에 사용되는 변수들이다.
-            let minLat = {latitude: 90, longitude: 0};
-            let maxLat = {latitude: -90, longitude: 0};
-            let minLng = {latitude: 0, longitude: 180};
-            let maxLng = {latitude: 0, longitude: -180};
-
-            for (let i = 0; i < route.length; i++) {
-                for (let j = 0; j < route[i].length; j++) {
-                    if (minLat.latitude > route[i][j].latitude) minLat = route[i][j];
-                    if (maxLat.latitude < route[i][j].latitude) maxLat = route[i][j];
-                    if (minLng.longitude > route[i][j].longitude) minLng = route[i][j];
-                    if (maxLng.longitude < route[i][j].longitude) maxLng = route[i][j];
-                }
-            }
-            let routeBounds = new kakao.maps.LatLngBounds();
-            routeBounds.extend(new kakao.maps.LatLng(minLat.latitude, minLat.longitude));
-            routeBounds.extend(new kakao.maps.LatLng(maxLat.latitude, maxLat.longitude));
-            routeBounds.extend(new kakao.maps.LatLng(minLng.latitude, minLng.longitude));
-            routeBounds.extend(new kakao.maps.LatLng(maxLng.latitude, maxLng.longitude));
-            map.setBounds(routeBounds);
+            setBoundsByRoute(route);
             /*====================================================================================================*/
         },
         error: function (error) {
@@ -512,16 +546,8 @@ function setBounds(response) {
     // 지도를 재설정할 범위정보를 가지고 있을 LatLngBounds 객체를 생성합니다
     var bounds = new kakao.maps.LatLngBounds();
 
-    var i, marker;
-    for (i = 0; i < points.length; i++) {
-        // 배열의 좌표들이 잘 보이게 마커를 지도에 추가합니다
-        marker = new kakao.maps.Marker({position: points[i]});
-        markers.push(marker);
-        marker.setMap(map);
-
-        // LatLngBounds 객체에 좌표를 추가합니다
-        bounds.extend(points[i]);
-    }
+    // LatLngBounds 객체에 좌표를 추가합니다
+    bounds.extend(points[0]);
     map.setBounds(bounds);
 }
 
