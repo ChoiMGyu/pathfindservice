@@ -4,18 +4,22 @@
  */
 package com.pathfind.system.algorithm;
 
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+@Getter
 public class Dijkstra {
     private static final Logger logger = LoggerFactory.getLogger(Dijkstra.class);
 
-    public static DijkstraResult dijkstra(List<Node> n, Graph graph, Long startId, Long endId) {
+    List<Node> nodes = new ArrayList<>();
+
+    List<Integer> path = new ArrayList<>();
+
+    public void dijkstra(List<Node> n, Graph graph, Long startId, Long endId) {
         PriorityQueue<Node> pq = new PriorityQueue<>(Comparator.comparing(Node::getDistance));
-        List<Node> nodes = new ArrayList<>();
-        List<Integer> path = new ArrayList<>();
         for (long i = 0L; i < graph.getNumVertices(); i++) {
             Node node = new Node(i, Double.MAX_VALUE, n.get(Math.toIntExact(i)).isBuilding());
             if (i == startId) {
@@ -43,16 +47,16 @@ public class Dijkstra {
                 }
             }
         }
-
-        return new DijkstraResult(nodes, path);
     }
 
-    public static List<Integer> getShortestRoute(List<Integer> path, Long startId, Long endId) {
+    public List<Integer> getShortestRoute(Long startId, Long endId) {
         List<Integer> result = new ArrayList<>();
         Stack<Integer> stack = new Stack<>();
         int endToStart = endId.intValue();
         stack.push(endToStart);
-        while (endToStart != startId.intValue()) {
+
+        for(int i = 0; i < path.size(); i++) {
+            if(endToStart == startId.intValue()) break;
             endToStart = path.get(endToStart);
             stack.push(endToStart);
         }

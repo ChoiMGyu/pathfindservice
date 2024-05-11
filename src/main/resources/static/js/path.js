@@ -124,7 +124,7 @@ function drawCustomOverlay(customOverlay) {
 
 // 지도 위에 표시되고 있는 마커를 모두 제거합니다
 function removeAllMarker() {
-    console.log("removeMarker() 호출됨");
+    //console.log("removeMarker() 호출됨");
     for (var i = 0; i < markers.length; i++) {
         markers[i].setMap(null);
     }
@@ -133,7 +133,7 @@ function removeAllMarker() {
 
 // 지도 위에 표시되고 있는 폴리라인을 모두 제거합니다
 function removeAllPolyline() {
-    console.log("removePolyline() 호출됨");
+    //console.log("removePolyline() 호출됨");
     for (var i = 0; i < drawRoute.length; i++) {
         drawRoute[i].setMap(null);
     }
@@ -412,6 +412,7 @@ function setBoundsByRoute(route, routeIdx = ROUTE_IDX) {
 
 // 서버에게 길찾기 수행을 요청하고 길찾기 결과를 반환받아 길찾기 결과 정보를 사용자에게 제공하는 함수이다.
 function findPath() {
+    const begin = new Date();
     console.log("findPath() 호출됨")
     $("#findPathSection").attr('class', 'mb-5');
     resetPathError();
@@ -579,7 +580,11 @@ function findPath() {
                 $("#endPoint").attr('class', "form-control fieldError").focus();
             });
         }
-    })
+    }).then(() => {
+        const end = new Date();
+        const milliTime = end - begin;
+        console.log("길 찾기 종료. 소요된 시간: " + milliTime + "ms");
+    });
 }
 
 function setBounds(response) {

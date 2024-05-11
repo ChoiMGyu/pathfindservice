@@ -55,7 +55,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         if (keys == null) return null;
         List<FindPathRoom> rooms = new ArrayList<>();
         for (String key : keys) {
-            if(key.length() != RoomValue.ROOM_ID_LENGTH) continue;
+            if (key.length() != RoomValue.ROOM_ID_LENGTH) continue;
             try {
                 String data = null;
                 data = allData.index(key, 0);
@@ -115,7 +115,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         redisUtil.setDataList(roomId, jsonStringRoom);
 
         ArrayList<String> result = new ArrayList<>();
-        for(int i = 0; i < findPathRoom.getCurMember().size(); i++) {
+        for (int i = 0; i < findPathRoom.getCurMember().size(); i++) {
             result.add(findPathRoom.getCurMember().get(i).getNickname());
         }
 
@@ -170,6 +170,9 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         if (room.getTransportationType() == TransportationType.SIDEWALK) {
             List<SidewalkVertex> SWVertices = sidewalkVertexRepository.findAll();
             for (SidewalkVertex vertex : SWVertices) {
+                Objects object = vertex.getObject();
+                boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
+                if(isBuilding) continue;
                 double tmpDist = Math.pow(Math.abs(memberLat - vertex.getLatitude()), 2) + Math.pow(Math.abs(memberLng - vertex.getLongitude()), 2);
                 if (dist > tmpDist) {
                     //logger.info("VertexId: {}, distance difference: {}, minimum distance: {}", vertex.getId() - 1, tmpDist, dist);
@@ -180,6 +183,9 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         } else {
             List<RoadVertex> RVertices = roadVertexRepository.findAll();
             for (RoadVertex vertex : RVertices) {
+                Objects object = vertex.getObject();
+                boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
+                if(isBuilding) continue;
                 double tmpDist = Math.pow(Math.abs(memberLat - vertex.getLatitude()), 2) + Math.pow(Math.abs(memberLng - vertex.getLongitude()), 2);
                 if (dist > tmpDist) {
                     //logger.info("VertexId: {}, distance difference: {}, minimum distance: {}", vertex.getId() - 1, tmpDist, dist);
@@ -217,20 +223,21 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
             boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
             nodes.add(new Node(roadVertex.getId() - 1, 0, isBuilding));
         }
-        DijkstraResult dijkstraResult = Dijkstra.dijkstra(nodes, graph, start, -1L);
+        Dijkstra getRoute = new Dijkstra();
+        getRoute.dijkstra(nodes, graph, start, -1L);
         List<ShortestPathRouteCSResponse> result = new LinkedList<>();
         //logger.info("방장과 각 인원들의 경로 계산");
         String ownerNickname = findPathRoom.getOwnerNickname();
         for (int i = 0; i < findPathRoom.getCurMember().size(); i++) {
             RoomMemberInfo member = findPathRoom.getCurMember().get(i);
-            if(ownerNickname.equals(member.getNickname())) continue;
+            if (ownerNickname.equals(member.getNickname())) continue;
             Long end = member.getClosestVertexId();
             if (end == null) continue;
             //logger.info("방장, {}번째 사람의 경로", end);
             MemberLatLng memberLatLng = member.getLocation();
             List<ShortestPathRoute> routeInfo = new ArrayList<>();
             //logger.info("시작 위치 - latitude: {}, longitude: {}", startLatLng.getLatitude(), startLatLng.getLongitude());
-            List<Integer> shortestRoute = Dijkstra.getShortestRoute(dijkstraResult.getPath(), start, end);
+            List<Integer> shortestRoute = getRoute.getShortestRoute(start, end);
             //logger.info("끝 위치 - latitude: {}, longitude: {}", memberLatLng.getLatitude(), memberLatLng.getLongitude());
 
             routeInfo.add(new ShortestPathRoute(-1L, ownerLatLng.getLatitude(), ownerLatLng.getLongitude())); // 방장의 위치
@@ -239,7 +246,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
             }
             routeInfo.add(new ShortestPathRoute(-2L, memberLatLng.getLatitude(), memberLatLng.getLongitude())); // 회원(i)의 위치
 
-            result.add(new ShortestPathRouteCSResponse(member.getNickname(), getTotalDistance(dijkstraResult.getNodes().get(end.intValue()).getDistance(), routeInfo), routeInfo));
+            result.add(new ShortestPathRouteCSResponse(member.getNickname(), getTotalDistance(getRoute.getNodes().get(end.intValue()).getDistance(), routeInfo), routeInfo));
         }
 
         return result;
@@ -268,20 +275,21 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
             boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
             nodes.add(new Node(sidewalkVertex.getId() - 1, 0, isBuilding));
         }
-        DijkstraResult dijkstraResult = Dijkstra.dijkstra(nodes, graph, start, -1L);
+        Dijkstra getRoute = new Dijkstra();
+        getRoute.dijkstra(nodes, graph, start, -1L);
         List<ShortestPathRouteCSResponse> result = new ArrayList<>();
         //logger.info("방장과 각 인원들의 경로 계산");
         String ownerNickname = findPathRoom.getOwnerNickname();
         for (int i = 0; i < findPathRoom.getCurMember().size(); i++) {
             RoomMemberInfo member = findPathRoom.getCurMember().get(i);
-            if(ownerNickname.equals(member.getNickname())) continue;
+            if (ownerNickname.equals(member.getNickname())) continue;
             Long end = member.getClosestVertexId();
             if (end == null) continue;
             //logger.info("방장, {}번째 사람의 경로", end);
             List<ShortestPathRoute> routeInfo = new ArrayList<>();
             MemberLatLng memberLatLng = member.getLocation();
             //logger.info("시작 위치 - latitude: {}, longitude: {}", ownerLatLng.getLatitude(), ownerLatLng.getLongitude());
-            List<Integer> shortestRoute = Dijkstra.getShortestRoute(dijkstraResult.getPath(), start, end);
+            List<Integer> shortestRoute = getRoute.getShortestRoute(start, end);
             //logger.info("끝 위치 - latitude: {}, longitude: {}", memberLatLng.getLatitude(), memberLatLng.getLongitude());
 
             routeInfo.add(new ShortestPathRoute(-1L, ownerLatLng.getLatitude(), ownerLatLng.getLongitude())); // 방장의 위치
@@ -290,7 +298,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
             }
             routeInfo.add(new ShortestPathRoute(-2L, memberLatLng.getLatitude(), memberLatLng.getLongitude())); // 회원(i)의 위치
 
-            result.add(new ShortestPathRouteCSResponse(member.getNickname(), getTotalDistance(dijkstraResult.getNodes().get(end.intValue()).getDistance(), routeInfo), routeInfo));
+            result.add(new ShortestPathRouteCSResponse(member.getNickname(), getTotalDistance(getRoute.getNodes().get(end.intValue()).getDistance(), routeInfo), routeInfo));
         }
 
         return result;
@@ -311,6 +319,8 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         double totalDistance = startDistance + endDistance + shortestRouteDistance;
 
         logger.info("Total distance: {}", totalDistance);
+
+        routes = null;
 
         return totalDistance;
     }
