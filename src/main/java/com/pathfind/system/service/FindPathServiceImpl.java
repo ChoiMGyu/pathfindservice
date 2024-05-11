@@ -58,14 +58,15 @@ public class FindPathServiceImpl implements FindPathService {
             nodes.add(new Node(roadVertex.getId() - 1, 0, isBuilding));
         }
         logger.info("findPathInfo(출발점과 도착점 사이 경로의 거리, 거쳐가야 하는 경로의 id) {} to {}", start.intValue(), end.intValue());
-        DijkstraResult dijkstraResult = Dijkstra.dijkstra(nodes, graph, start, end);
-        List<Integer> shortestRoute = Dijkstra.getShortestRoute(dijkstraResult.getPath(), start, end);
+        Dijkstra getRoute = new Dijkstra();
+        getRoute.dijkstra(nodes, graph, start, end);
+        List<Integer> shortestRoute = getRoute.getShortestRoute(start, end);
         List<ShortestPathRoute> routeInfo = new ArrayList<>();
         for (Integer idx : shortestRoute) {
             routeInfo.add(new ShortestPathRoute(idx.longValue(), vertices.get(idx).getLatitude(), vertices.get(idx).getLongitude()));
         }
 
-        return new FindPathCSResponse(dijkstraResult.getNodes().get(end.intValue()).getDistance(), routeInfo);
+        return new FindPathCSResponse(getRoute.getNodes().get(end.intValue()).getDistance(), routeInfo);
     }
 
     @Override
@@ -90,13 +91,14 @@ public class FindPathServiceImpl implements FindPathService {
             nodes.add(new Node(sidewalkVertex.getId() - 1, 0, isBuilding));
         }
         logger.info("findPathInfo(출발점과 도착점 사이 경로의 거리, 거쳐가야 하는 경로의 id) {} to {}", start.intValue(), end.intValue());
-        DijkstraResult dijkstraResult = Dijkstra.dijkstra(nodes, graph, start, end);
-        List<Integer> shortestRoute = Dijkstra.getShortestRoute(dijkstraResult.getPath(), start, end);
+        Dijkstra getRoute = new Dijkstra();
+        getRoute.dijkstra(nodes, graph, start, end);
+        List<Integer> shortestRoute = getRoute.getShortestRoute(start, end);
         List<ShortestPathRoute> routeInfo = new ArrayList<>();
         for (Integer idx : shortestRoute) {
             routeInfo.add(new ShortestPathRoute(idx.longValue(), vertices.get(idx).getLatitude(), vertices.get(idx).getLongitude()));
         }
 
-        return new FindPathCSResponse(dijkstraResult.getNodes().get(end.intValue()).getDistance(), routeInfo);
+        return new FindPathCSResponse(getRoute.getNodes().get(end.intValue()).getDistance(), routeInfo);
     }
 }
