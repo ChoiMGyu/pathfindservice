@@ -20,7 +20,8 @@ public class SidewalkVertexRepositoryImpl implements SidewalkVertexRepository {
     public List<SidewalkVertex> findAll() {
         //logger.info("모든 도보 정점을 반환");
         return em.createQuery("select sv from SidewalkVertex sv" +
-                        " left join fetch sv.object", SidewalkVertex.class)
+                        " left join fetch sv.object o" +
+                        " left join fetch o.roadVertex", SidewalkVertex.class)
                 .getResultList();
     }
 }

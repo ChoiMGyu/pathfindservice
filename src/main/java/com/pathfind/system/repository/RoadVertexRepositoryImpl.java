@@ -21,7 +21,8 @@ public class RoadVertexRepositoryImpl implements RoadVertexRepository {
     public List<RoadVertex> findAll() {
         //logger.info("모든 도로 정점을 반환");
         return em.createQuery("select rv from RoadVertex rv" +
-                        " join fetch rv.object", RoadVertex.class)
+                        " left join fetch rv.object o" +
+                        " left join fetch o.sidewalkVertex", RoadVertex.class)
                 .getResultList();
     }
 }
