@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 서비스 클래스
- * 최근 수정 일자 : 2024.04.10(금)
+ * 최근 수정 일자 : 2024.05.17(금)
  */
 package com.pathfind.system.service;
 
@@ -10,9 +10,11 @@ import com.pathfind.system.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -85,6 +87,13 @@ public class MemberServiceImpl implements MemberService {
         }
 
         return result.get(0);
+    }
+
+    @Override
+    @Transactional
+    public void updateLastConnect(String userId) {
+        List<Member> findMember = memberRepository.findByUserID(userId);
+        findMember.get(0).changeLastConnect(LocalDate.now());
     }
 
     @Override

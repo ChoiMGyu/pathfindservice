@@ -640,53 +640,84 @@
 
                     let delay = 2000;
 
-                    let timerId = setTimeout(function getRoute() {
-                        //let lat = 35.8330177, lng = 128.7532086;
+                    const options = {
+                        enableHighAccuracy: true //높은 정확도의 위치 정보를 요구(베터리 사용량 증가)
+                    };
+                    if (navigator.geolocation) {
+                        // watchPosition을 사용하여 위치 변경 감지
+                        let watchId = navigator.geolocation.watchPosition(function (position) {
+                            console.log("watchPosition 호출");
 
-                        if (navigator.geolocation) {
-                            // GeoLocation을 이용해서 접속 위치를 얻어옵니다
-                            navigator.geolocation.getCurrentPosition(function (position) {
-                                //=============================================================================================//
-                                // 테스트 위도, 경도이다. 경산 캠퍼스 내의 임의의 위치의 위도 경도를 얻을 수 있다.
-                                /*latitude = 35.8310060 + Math.random() * 8 / 1000 - 4 / 1000; // 테스트 위도. 35.8310060 +- 0.004 의 위도 값을 가진다.
-                                longitude = 128.7573493 + Math.random() * 8 / 1000 - 4 / 1000; // 테스트 경도 128.7573493 += 0.004 의 경도 값을 가진다.*/
-                                //=============================================================================================//
+                            latitude = position.coords.latitude; // 위도
+                            longitude = position.coords.longitude; // 경도
 
+                            //console.log("watchPosition의 위도 경도 : " + latitude + ", " + longitude);
+                            // 위치 변경 시 추가 처리 로직 -> setInterval을 사용해서 주기적으로 위치 전송을 하고 있기 때문에
+                            // 주석처리 해도 되는 로직이나 사용자의 위치가 이동이 되었을 경우에도 위치를 서버에 보내주도록 한다
+                            processPosition(latitude, longitude);
 
+                        }, (e) => {
+                            let txt = "위치 정보 제공 동의를 하지 않으면 서비스 2를 이용하실 수 없습니다.";
+                            navigator.geolocation.clearWatch(watchId);
+                            leaveRoom(roomName, txt);
+                        }, options);
+
+                        // setInterval을 사용하여 주기적으로 위치 정보 전송
+                        setInterval(function () {
+                            console.log("setInterval 호출");
+                            navigator.geolocation.getCurrentPosition(function() {
                                 latitude = position.coords.latitude; // 위도
-                                longitude = position.coords.longitude ; // 경도
-
-                                //console.log(latitude, longitude);
-                                if (NotInCampusMessage === NOT_SENDED) {
-                                    if (!_isMemberInCampusArea(latitude, longitude)) {
-                                        NotInCampusMessage = SENDED
-                                        let txt = nickname + "님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 경로가 올바르지 않을 수 있습니다.";
-                                        stomp.send('/pub/room/out-campus', {}, JSON.stringify({
-                                            roomId: roomId,
-                                            sender: nickname,
-                                            message: txt
-                                        }));
-                                    } else {
-                                        NotInCampusMessage = NOT_SENDED;
-                                    }
-                                }
-                                let msg = JSON.stringify({latitude: latitude, longitude: longitude});
-                                stomp.send('/pub/room/route', {}, JSON.stringify({
-                                    roomId: roomId,
-                                    sender: nickname,
-                                    message: msg
-                                }));
-                                timerId = setTimeout(getRoute, delay);
+                                longitude = position.coords.longitude; // 경도
                             }, (e) => {
                                 let txt = "위치 정보 제공 동의를 하지 않으면 서비스 2를 이용하실 수 없습니다.";
+                                navigator.geolocation.clearWatch(watchId);
                                 leaveRoom(roomName, txt);
-                            });
-                        } else {
-                            let txt = "현재 웹 브라우저가 위치 제공을 지원하지 않아 서비스 2를 이용하실 수 없습니다.";
-                            leaveRoom(roomName, txt);
+                            }, options);
+
+                            //=============================================================================================//
+                            // 테스트 위도, 경도이다. 경산 캠퍼스 내의 임의의 위치의 위도 경도를 얻을 수 있다.
+                            /*latitude = 35.8310060 + Math.random() * 8 / 1000 - 4 / 1000; // 테스트 위도. 35.8310060 +- 0.004 의 위도 값을 가진다.
+                            longitude = 128.7573493 + Math.random() * 8 / 1000 - 4 / 1000; // 테스트 경도 128.7573493 += 0.004 의 경도 값을 가진다.*/
+                            //=============================================================================================//
+
+                            //console.log("getCurrentPosition의 위도 경도 : " + latitude + ", " + longitude);
+                            if (latitude !== undefined && longitude !== undefined) {
+                                processPosition(latitude, longitude);
+                            }
+                        }, delay);
+
+                    } else {
+                        let txt = "현재 웹 브라우저가 위치 제공을 지원하지 않아 서비스 2를 이용하실 수 없습니다.";
+                        if(watchId !== -1) {
+                            navigator.geolocation.clearWatch(watchId);
+                            watchId = -1;
                         }
-                        //console.log(lat, lng);
-                    }, delay);
+                        leaveRoom(roomName, txt);
+                    }
+
+                    // 위치를 처리하는 로직
+                    function processPosition(latitude, longitude) {
+                        if (NotInCampusMessage === NOT_SENDED) {
+                            if (!_isMemberInCampusArea(latitude, longitude)) {
+                                NotInCampusMessage = SENDED;
+                                let txt = `${nickname}님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 경로가 올바르지 않을 수 있습니다.`;
+                                stomp.send('/pub/room/out-campus', {}, JSON.stringify({
+                                    roomId: roomId,
+                                    sender: nickname,
+                                    message: txt
+                                }));
+                            } else {
+                                NotInCampusMessage = NOT_SENDED;
+                            }
+                        }
+                        let msg = JSON.stringify({latitude: latitude, longitude: longitude});
+                        stomp.send('/pub/room/route', {}, JSON.stringify({
+                            roomId: roomId,
+                            sender: nickname,
+                            message: msg
+                        }));
+                    }
+
 
                 });
 

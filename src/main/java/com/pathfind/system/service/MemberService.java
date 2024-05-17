@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 서비스 인터페이스
- * 최근 수정 일자 : 2024.04.10(금)
+ * 최근 수정 일자 : 2024.05.17(금)
  */
 package com.pathfind.system.service;
 
@@ -21,6 +21,8 @@ public interface MemberService {
     public Member updatePassword(Long id, String oldPassword, String newPassword1, String newPassword2);
 
     public Member login(String userId, String password);
+
+    public void updateLastConnect(String userId);
 
     public List<String> findUserIdByEmail(String email);
 

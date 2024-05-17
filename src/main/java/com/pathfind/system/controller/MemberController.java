@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 관련 페이지 렌더링을 하는 controller
- * 최근 수정 일자 : 2024.03.18(월)
+ * 최근 수정 일자 : 2024.05.17(금)
  */
 package com.pathfind.system.controller;
 
@@ -25,6 +25,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -663,6 +664,8 @@ public class MemberController {
         if (loginMember.getCheck().isDormant()) {
             return "redirect:/members/recover";
         }
+
+        memberService.updateLastConnect(loginMember.getUserId());
 
         return "redirect:/";
     }
