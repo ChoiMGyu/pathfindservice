@@ -1,45 +1,30 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <header class="header" style="margin: 0;" th:fragment="bodyHeader(session.loginMember)">
-    <!--<ul class="nav nav-pills pull-right">
-        <li><a href="/">메인 화면</a></li>
-    </ul>-->
-    <!--<a href="/" class="text-muted navbar-brand">MAP Application</a>-->
-    <nav class="navbar navbar-expand pt-0">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
             <section id="navbarWebSiteNameSection">
                 <a class="navbar-brand fs-3 text-muted" href="/">MAP Application</a>
             </section>
-
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
             <section id="notificationSection" class="text-end">
                 <th:block th:if="${session.loginMember != null}">
-<!--                    <button class="btn btn-secondary position-relative bg-transparent border-0 p-0"-->
-<!--                            data-bs-toggle="dropdown" aria-expanded="false"-->
-<!--                            onclick="changeAllReadTypeToReadByNickname($('#headerUserNickname').attr('value'))">🔔-->
-<!--                        <span class="position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-danger p-1"-->
-<!--                              id="newNotifications" style="display: none"></span>-->
-<!--                    </button>-->
-<!--                    <div class="list-group">-->
-<!--                        <ul id="notifications" class="dropdown-menu dropdown-menu-end p-0">-->
-<!--                            <li id="defaultNotification" class="list-group-item list-group-item-action" value="READ">알림이 없습니다.</li>-->
-<!--                        </ul>-->
-<!--                    </div>-->
                     <nav class="navbar navbar-expand-lg navbar-light bg-light">
                         <div class="container-fluid">
-                            <a class="navbar-brand" href="#" th:text="|${session.loginMember.userId}님 안녕하세요!|"></a>
-                            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                                <span class="navbar-toggler-icon"></span>
-                            </button>
-                            <div class="collapse navbar-collapse" id="navbarNav">
-                                <ul class="navbar-nav">
+                            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                                <ul class="navbar-nav ms-auto">
+                                    <li class="nav-item">
+                                        <a class="navbar-brand" href="#" th:text="|${session.loginMember.userId}님|"></a>
+                                    </li>
+                                </ul>
+                                <ul class="navbar-nav ms-auto">
                                     <li class="nav-item">
                                         <a class="nav-link btn btn-lg btn-secondary" href="/members/myProfile">내 프로필</a>
                                     </li>
                                     <li class="nav-item">
-                                        <form th:action="@{/members/logout}" method="post">
-                                            <button class="nav-link btn btn-lg btn-secondary"
-                                                    type="submit">로그아웃</button>
-                                        </form>
+                                        <a class="nav-link btn btn-lg btn-secondary" href="#" onclick="logout()">로그아웃</a>
                                     </li>
                                 </ul>
                             </div>
@@ -67,5 +52,20 @@
     <th:block th:if="${session.loginMember != null}">
         <script type="text/javascript" src="/js/bodyHeader.js"></script>
         <script type="text/javascript" src="/js/bootstrap.bundle.js"></script>
+        <script type="text/javascript">
+            function logout() {
+                fetch('/members/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: ''
+                }).then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url; // 로그아웃 후 리다이렉트
+                    }
+                });
+            }
+        </script>
     </th:block>
 </header>
