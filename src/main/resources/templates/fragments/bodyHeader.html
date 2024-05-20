@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
 <header class="header" style="margin: 0;" th:fragment="bodyHeader(session.loginMember)">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
@@ -10,13 +10,13 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <section id="notificationSection" class="text-end">
-                <th:block th:if="${session.loginMember != null}">
+                <th:block sec:authorize="isAuthenticated()"><!--th:if="${session.loginMember != null}">-->
                     <nav class="navbar navbar-expand-lg navbar-light bg-light">
                         <div class="container-fluid">
                             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                                 <ul class="navbar-nav ms-auto">
                                     <li class="nav-item">
-                                        <a class="navbar-brand" href="#" th:text="|${session.loginMember.userId}님|"></a>
+                                        <a class="navbar-brand" href="#" th:text="|${session.loginMember.nickname}님|"></a>
                                     </li>
                                 </ul>
                                 <ul class="navbar-nav ms-auto">

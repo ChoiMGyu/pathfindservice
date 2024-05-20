@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 관련 페이지 렌더링을 하는 controller
- * 최근 수정 일자 : 2024.05.17(금)
+ * 최근 수정 일자 : 2024.05.20(월)
  */
 package com.pathfind.system.controller;
 
@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -25,7 +26,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -42,6 +42,8 @@ public class MemberController {
     private final MemberService memberService;
 
     private final MailSendService mailSendService;
+
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     // 컨트롤러를 호출한 URI의 파일 경로만 추출해 반환하는 함수이다.
     private String getPath(HttpServletRequest request) {
@@ -165,7 +167,7 @@ public class MemberController {
             result.rejectValue("nickname", "Empty.nickname");
         }
 
-        String patternNickname = "^[ㄱ-ㅎ가-힣a-zA-Z0-9-_]{2,10}$";
+        String patternNickname = "^[ㄱ-ㅎ가-힣a-zA-Z0-9-_]{2,12}$";
         boolean regexNickname = Pattern.matches(patternNickname, form.getNickname());
         if (!result.hasFieldErrors("nickname") && !regexNickname) {
             result.rejectValue("nickname", "Format.nickname");
@@ -370,7 +372,7 @@ public class MemberController {
         Check check = Check.createCheck();
         check.changeEmailAuth(true);
         check.changeInformationAgree(true);
-        Member newMember = Member.createMember(form.getUserId(), form.getPassword(), form.getNickname(), form.getEmail(), check);
+        Member newMember = Member.createMember(form.getUserId(), bCryptPasswordEncoder.encode(form.getPassword()), form.getNickname(), form.getEmail(), check);
         memberService.register(newMember);
 
         return "redirect:/members/registerComplete";
@@ -596,12 +598,18 @@ public class MemberController {
         String regex = "(?=.*[0-9])(?=.*[a-zA-Z])(?=.*\\W)(?=\\S+$).{8,20}";
         Pattern pattern = Pattern.compile(regex);
 
-        Member loginMember = (Member) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        List<Member> memberList = memberService.findByUserID(((Member) session.getAttribute(SessionConst.LOGIN_MEMBER)));
+
+        if(memberList.isEmpty()) {
+            return "redirect:/";
+        }
+        Member loginMember = memberList.get(0);
         logger.info("로그인 멤버의 아이디 : " + loginMember.getId() + ", 패스워드 : " + loginMember.getPassword());
 
         Matcher matcher = pattern.matcher(form.getNewPassword1());
 
-        if (!form.getOldPassword().equals(loginMember.getPassword())) {
+        logger.info("old password: {}, encoded password: {}", form.getOldPassword(), loginMember.getPassword());
+        if (!bCryptPasswordEncoder.matches(form.getOldPassword(), loginMember.getPassword())) {
             logger.info("이전 패스워드가 일치하지 않는 경우");
             result.rejectValue("oldPassword", "NotSame.newPassword1");
         }
@@ -630,14 +638,17 @@ public class MemberController {
     }
 
     @GetMapping("/login")
-    public String loginForm(Model model) {
-        logger.info("get login");
-        model.addAttribute("loginForm", new LoginForm());
+    public String loginForm(@RequestParam(value = "error", required = false)String errorMessage, @ModelAttribute LoginForm form, BindingResult result) {
+        logger.info("get loginForm");
+        if(errorMessage != null) {
+            logger.info("Error message: {}", errorMessage);
+            result.reject("loginFail", errorMessage);
+        }
         return "members/loginForm";
     }
 
-    @PostMapping("/login")
-    public String login(@Valid @ModelAttribute LoginForm form, BindingResult result, HttpServletRequest request) {
+    /*@PostMapping("/login")
+    public String login(@Valid @ModelAttribute LoginForm form, BindingResult result, HttpServletRequest request, Model model) {
         logger.info("post login");
         if (result.hasErrors()) {
             return "members/loginForm";
@@ -650,6 +661,10 @@ public class MemberController {
 //            <div th:if="${#fields.hasGlobalErrors()}">
 //            <p class="field-error" th:each="err : ${#fields.globalErrors()}"
 //            th:text="${err}">전체 오류 메시지</p></div>
+            return "members/loginForm";
+        }
+
+        if(result.hasErrors()) {
             return "members/loginForm";
         }
 
@@ -668,16 +683,16 @@ public class MemberController {
         memberService.updateLastConnect(loginMember.getUserId());
 
         return "redirect:/";
-    }
+    }*/
 
-    @PostMapping("/logout")
+    /*@PostMapping("/logout")
     public String logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
         }
         return "redirect:/";
-    }
+    }*/
 
     @GetMapping("/recover")
     public String recoverUserForm(Model model, HttpSession session) {
@@ -736,7 +751,7 @@ public class MemberController {
         memberForm.setUserId(member.getUserId());
         memberForm.setEmail(member.getEmail());
 
-        String patternNickname = "^[ㄱ-ㅎ가-힣a-z0-9-_]{2,10}$";
+        String patternNickname = "^[ㄱ-ㅎ가-힣a-zA-Z0-9-_]{2,12}$";
         boolean regexNickname = Pattern.matches(patternNickname, nicknameForm.getNickname());
         if (!result.hasFieldErrors("nickname") && !regexNickname) {
             result.rejectValue("nickname", "Format.nickname");
