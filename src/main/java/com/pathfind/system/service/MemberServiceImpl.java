@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 서비스 클래스
- * 최근 수정 일자 : 2024.05.17(금)
+ * 최근 수정 일자 : 2024.05.19(일)
  */
 package com.pathfind.system.service;
 
@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cglib.core.Local;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final MailSendService mailSendService;
     private final RedisUtil redisUtil;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
     public List<Member> findByUserID(Member member) {
@@ -58,9 +60,10 @@ public class MemberServiceImpl implements MemberService {
     public Member updatePassword(Long id, String oldPassword, String newPassword1, String newPassword2) {
         Member findMember = memberRepository.findByID(id);
         logger.info("service에서 호출한 findMember 객체 : " + findMember);
-        if (findMember.getPassword().equals(oldPassword)) {
+
+        if (bCryptPasswordEncoder.matches(oldPassword, findMember.getPassword())) {
             if (newPassword1.equals(newPassword2)) {
-                findMember.changePassword(newPassword1);
+                findMember.changePassword(bCryptPasswordEncoder.encode(newPassword1));
                 return findMember;
             } else {
                 return findMember;
@@ -119,7 +122,9 @@ public class MemberServiceImpl implements MemberService {
 
     private String updateToTemporaryPassword(String userId) {
         Member result = memberRepository.findByUserID(userId).get(0);
-        return result.updateToTemporaryPassword();
+        String temporaryPassword = result.updateToTemporaryPassword();
+        result.changePassword(bCryptPasswordEncoder.encode(temporaryPassword));
+        return temporaryPassword;
     }
 
     @Override
