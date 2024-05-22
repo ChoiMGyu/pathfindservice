@@ -23,6 +23,7 @@
         <h2>로그인</h2></div>
     <form action="item.html" th:action th:object="${loginForm}" method="post">
         <!--action : 목적지 url 수정해야함, th:action, action이 있으면 동적으로 생성된 url이 우선시됨(th:action이 적용됨) -->
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
         <div>
             <label for="userId">로그인 ID</label>
             <input type="text" id="userId" th:field="*{userId}" class="form-control"
