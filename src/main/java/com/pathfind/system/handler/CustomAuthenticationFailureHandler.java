@@ -31,7 +31,6 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
         String errorMessage = "";
         if (exception instanceof BadCredentialsException || exception instanceof InternalAuthenticationServiceException) {
             errorMessage = "아이디 또는 비밀번호가 맞지 않습니다.";
-            errorMessage = URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
         }
         else if (exception instanceof OAuth2AuthenticationException) {
             errorMessage = ((OAuth2AuthenticationException) exception).getError().getErrorCode();
