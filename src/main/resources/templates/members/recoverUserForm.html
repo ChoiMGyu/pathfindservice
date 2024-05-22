@@ -29,7 +29,8 @@
         <p class="recovery-message">휴면을 해제하시겠습니까?</p>
     </div>
     <form action="item.html" th:action th:object="${session.userId}" method="post">
-<!--        <div th:if="${#fields.hasGlobalErrors()}">-->
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <!--        <div th:if="${#fields.hasGlobalErrors()}">-->
 <!--            <p class="field-error" th:each="err : ${#fields.globalErrors()}" th:text="${err}">전체 오류 메시지</p>-->
 <!--        </div>-->
         <hr class="my-4">

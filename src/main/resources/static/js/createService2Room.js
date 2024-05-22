@@ -4,9 +4,13 @@
 function createService2Room() {
     let roomName = $("#roomName").val();
     let transportationType = $("#transportation").val();
+    const csrfToken = document.getElementById('_csrf').value;
     $.ajax({
         type: "POST",
         url: "/service2/create-room",
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+        },
         data: {
             roomName: roomName,
             transportationType: transportationType
