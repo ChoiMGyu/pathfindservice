@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : Spring security config class
- * 최근 수정 일자 : 2024.05.20(월)
+ * 최근 수정 일자 : 2024.05.24(금)
  */
 package com.pathfind.system.config;
 
@@ -54,6 +54,16 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                 );
+
+        http
+                .sessionManagement((auth) -> auth
+                        .maximumSessions(1) //동일한 아이디로 동시에 허용되는 세션의 최대 개수
+                        .maxSessionsPreventsLogin(false)); //최대 세션 개수를 초과할 경우, 이전에 로그인한 세션이 로그아웃되고 새로운 세션이 활성화
+
+        http
+                .sessionManagement((auth) -> auth //세션 고정 공격을 방지화
+                        .sessionFixation().changeSessionId()); //사용자가 로그인할 때 기존 세션 ID를 새로운 세션 ID로 변경
+
 
         return http.build();
     }
