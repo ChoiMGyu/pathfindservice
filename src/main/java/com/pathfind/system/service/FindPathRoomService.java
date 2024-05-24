@@ -1,15 +1,15 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2) 인터페이스
- * 최근 수정 일자 : 2024.04.11(목)
+ * 최근 수정 일자 : 2024.05.24(금)
  */
 package com.pathfind.system.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.pathfind.system.findPathDto.ShortestPathRoute;
+import com.pathfind.system.domain.BasicEdge;
+import com.pathfind.system.domain.BasicVertex;
 import com.pathfind.system.findPathService2Domain.*;
 import com.pathfind.system.findPathService2Domain.FindPathRoom;
 import com.pathfind.system.findPathService2Domain.MemberLatLng;
-import com.pathfind.system.findPathService2Domain.RoomMemberType;
 import com.pathfind.system.findPathService2Domain.TransportationType;
 import com.pathfind.system.findPathService2Dto.ShortestPathRouteCSResponse;
 
@@ -34,9 +34,7 @@ public interface FindPathRoomService {
 
     public FindPathRoom changeRoomMemberLocation(String roomId, String sender, MemberLatLng memberLatLng) throws IOException;
 
-    public List<ShortestPathRouteCSResponse> findRoadShortestRoute(FindPathRoom findPathRoom);
-
-    public List<ShortestPathRouteCSResponse> findSidewalkShortestRoute(FindPathRoom findPathRoom);
+    public List<ShortestPathRouteCSResponse> findShortestRoute(FindPathRoom findPathRoom);
 
     public void deleteRoom(String roomId);
 

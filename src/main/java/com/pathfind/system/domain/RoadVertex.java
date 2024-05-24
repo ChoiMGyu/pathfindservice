@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 도로 정점 정보 엔티티
- * 최근 수정 일자 : 2024.02.13(화)
+ * 최근 수정 일자 : 2024.05.24(화)
  */
 package com.pathfind.system.domain;
 
@@ -9,7 +9,7 @@ import lombok.Getter;
 
 @Entity
 @Getter
-public class RoadVertex {
+public class RoadVertex implements BasicVertex {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +25,17 @@ public class RoadVertex {
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "is_destination")
     private Objects object; // 일대일 연관관계 매핑
+
+    //==정적 팩토리 메서드==//
+    public static RoadVertex createRoadVertex(Long id, double latitude, double longitude, Objects objects) {
+        RoadVertex roadVertex = new RoadVertex();
+        roadVertex.id = id;
+        roadVertex.latitude = latitude;
+        roadVertex.longitude = longitude;
+        roadVertex.object = objects;
+
+        return roadVertex;
+    }
 
     //==연관관계 메소드==//
     public void changeObjects(Objects objects) {
