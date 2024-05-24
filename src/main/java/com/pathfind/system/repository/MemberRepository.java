@@ -1,11 +1,13 @@
 /*
  * 클래스 기능 : 회원 리포지토리 인터페이스
- * 최근 수정 일자 : 2024.01.18(토)
+ * 최근 수정 일자 : 2024.05.24(금)
  */
 package com.pathfind.system.repository;
 
 import com.pathfind.system.domain.Member;
+import io.lettuce.core.dynamic.annotation.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface MemberRepository {
@@ -26,4 +28,6 @@ public interface MemberRepository {
     void deleteMember(Member member);
 
     public List<String> findAllNickname();
+
+    public List<Member> findAllDormant(@Param("inActive") LocalDateTime inActive);
 }

@@ -1,14 +1,16 @@
 /*
  * 클래스 기능 : 회원 리포지토리 구현 클래스
- * 최근 수정 일자 : 2024.01.18(토)
+ * 최근 수정 일자 : 2024.05.24(금)
  */
 package com.pathfind.system.repository;
 
 import com.pathfind.system.domain.Member;
+import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -81,6 +83,12 @@ public class MemberRepositoryImpl implements MemberRepository {
     @Override
     public List<String> findAllNickname() {
         return em.createQuery("select m.nickname from Member m", String.class)
+                .getResultList();
+    }
+
+    @Override
+    public List<Member> findAllDormant(@Param("inActive")LocalDateTime inActive) {
+        return em.createQuery("select m from Member m where m.lastConnect < :inActive", Member.class)
                 .getResultList();
     }
 }

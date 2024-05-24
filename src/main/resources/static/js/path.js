@@ -583,7 +583,9 @@ function findPath() {
     }).then(() => {
         const end = new Date();
         const milliTime = end - begin;
-        console.log("길 찾기 종료. 소요된 시간: " + milliTime + "ms");
+        let txt = "길 찾기에 소요된 시간: " + milliTime + "ms";
+        $("#responseTime").text(txt);
+        //console.log("길 찾기 종료. 소요된 시간: " + milliTime + "ms");
     });
 }
 

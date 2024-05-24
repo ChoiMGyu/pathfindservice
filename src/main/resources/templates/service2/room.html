@@ -10,6 +10,11 @@
 <div style="height: 10%;" th:replace="~{fragments/bodyHeader :: bodyHeader(${session.loginMember})}"></div>
 <button class="btn btn-primary position-absolute z-3 m-3 end-0" type="button" data-bs-toggle="offcanvas"
         data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling"><span class="fs-4">menu</span></button>
+<section id="routeUpdateCountSection" class="position-relative" style="display: none;">
+    <p id="routeUpdateCount" class="fw-bolder z-3 m-2 position-absolute" style="top: 0;"></p>
+    <p id="routeUpdateCountLast2Sec" class="fw-bolder z-3 m-2 position-absolute" style="top: 25px;"></p>
+    <p id="routeUpdateCountPer2Sec" class="fw-bolder z-3 m-2 position-absolute" style="top: 50px;"></p>
+</section>
 <main class="container-fluid row p-0 m-0 position-relative" style="height: 85%;">
     <div th:replace="~{fragments/bodyAlert :: bodyAlert(${message})}"></div>
     <div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1" id="offcanvasScrolling">
@@ -118,6 +123,12 @@
             <section id="leaveRoomSection" class="d-grid mt-3 mb-5">
                 <button id="leaveRoomBtn" class="btn btn-outline-primary" type="button">방 나가기</button>
             </section>
+
+            <section id="displayRouteUpdateCountSection" class="d-grid mt-3 mb-5">
+                <button id="displayRouteUpdateCountBtn" class="btn btn-outline-primary" data-bs-dismiss="offcanvas"
+                        type="button">경로 업데이트 횟수 표시
+                </button>
+            </section>
         </div>
     </div>
     <div class="d-inline-block" id="map"></div>
@@ -146,6 +157,8 @@
     let $userlist = $("#userlist"); //jquery id가 "userlist"인 object 가져오기
 
     let userList;
+
+    let roomStartTime = new Date();
 
     function getUserList(sender) {
         //현재 방에 있는 인원을 출력하는 함수(방장)
@@ -522,6 +535,45 @@
         return "<div class='service2CustomOverlay rounded-pill border border-0 border-primary ps-2 pe-2 text-white bg-primary'><span>" + text + "</span></div>";
     }
 
+    /**
+     * 경로 업데이트 횟수를 변경하는 함수이다.
+     */
+    function updateRouteUpdateCount(v) {
+        let curTime = new Date();
+        let t = curTime - roomStartTime;
+        v.count++;
+        v.recentCount++;
+        v.countPer2Sec = (v.count / Math.floor(t / 2000)).toFixed(2);
+        let countTxt = "경로 업데이트 횟수: " + v.count.toString();
+        let countPer2SecAvgTxt = "2초당 경로 업데이트 횟수: " + v.countPer2Sec.toString();
+        console.log("update: {time: " + t + ", count: " + v.count + ", countPer2Sec: " + v.countPer2Sec + "}");
+        $("#routeUpdateCount").text(countTxt);
+        $("#routeUpdateCountPer2Sec").text(countPer2SecAvgTxt);
+        if(curTime - v.recentTime > 2000) {
+            v.recentTime = curTime;
+            let recentCountPer2SecTxt = "최근 2초간 경로 업데이트 횟수: " + v.recentCount.toString();
+            $("#routeUpdateCountLast2Sec").text(recentCountPer2SecTxt);
+            v.recentCount = 0;
+        }
+    }
+
+    /**
+     * 경로 업데이트 횟수 섹션의 display 여부를 바꾸는 함수이다.
+     */
+    function displayRouteUpdateCount() {
+        $("#displayRouteUpdateCountBtn").on("click", function () {
+            if ($("#routeUpdateCountSection").css("display") === "none") {
+                $("#displayRouteUpdateCountBtn").text("경로 업데이트 횟수 삭제");
+                $("#routeUpdateCountSection").show();
+            } else {
+                $("#displayRouteUpdateCountBtn").text("경로 업데이트 횟수 표시");
+                $("#routeUpdateCountSection").hide();
+            }
+        });
+    }
+
+    displayRouteUpdateCount();
+
     $(document).ready(function () {
 
         let roomName = [[${room.roomName}]];
@@ -549,6 +601,8 @@
                 let sockJs = new SockJS("/connection");
                 //1. SockJS를 내부에 들고있는 stomp를 내어줌
                 let stomp = Stomp.over(sockJs); //sockJs.onClose();
+                let count = 0, countPer2Sec = 0, recentCount = 0, recentTime = roomStartTime;
+                let v = {count: count, countPer2Sec: countPer2Sec, recentCount: recentCount, recentTime: recentTime};
 
                 //2. connection이 맺어지면 실행
                 stomp.connect({sender: nickname, roomId: roomId}, function () { // { id:nickname, roomId:roomId }는 connect 헤더에 포함되는 정보이다. SendInformationController 의 handleWebSocketConnectListener 함수에서 사용된다.
@@ -632,6 +686,7 @@
                             case "ROUTE":
                                 if (route[0] !== undefined) setMapRoute(SERVICE2, route, DEFAULT_OBJ_TYPE, DEFAULT_OBJ_TYPE, latitude, longitude);
                                 else aloneInRoom(latitude, longitude, nickname);
+                                updateRouteUpdateCount(v);
                         }
                     });
 
@@ -665,7 +720,7 @@
                         // setInterval을 사용하여 주기적으로 위치 정보 전송
                         setInterval(function () {
                             console.log("setInterval 호출");
-                            navigator.geolocation.getCurrentPosition(function() {
+                            navigator.geolocation.getCurrentPosition(function () {
                                 latitude = position.coords.latitude; // 위도
                                 longitude = position.coords.longitude; // 경도
                             }, (e) => {
@@ -688,7 +743,7 @@
 
                     } else {
                         let txt = "현재 웹 브라우저가 위치 제공을 지원하지 않아 서비스 2를 이용하실 수 없습니다.";
-                        if(watchId !== -1) {
+                        if (watchId !== -1) {
                             navigator.geolocation.clearWatch(watchId);
                             watchId = -1;
                         }
