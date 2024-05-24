@@ -1,10 +1,10 @@
 /*
  * 클래스 기능 : Stomp 메시지 전송 서비스 구현체
- * 최근 수정 일자 : 2024.04.11(목)
+ * 최근 수정 일자 : 2024.05.24(금)
  */
 package com.pathfind.system.service;
 
-import com.pathfind.system.findPathDto.ShortestPathRoute;
+import com.pathfind.system.findPathDto.VertexInfo;
 import com.pathfind.system.findPathService2Dto.MessageType;
 import com.pathfind.system.findPathService2Dto.MessageVCResponse;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +52,7 @@ public class SendStompMessageServiceImpl implements SendStompMessageService {
     }
 
     @Override
-    public void sendRoute(String roomId, String sender, List<List<ShortestPathRoute>> route) {
+    public void sendRoute(String roomId, String sender, List<List<VertexInfo>> route) {
         MessageVCResponse response = MessageVCResponse.builder(roomId, MessageType.ROUTE)
                 .sender(sender)
                 .route(route)

@@ -1,11 +1,11 @@
 /*
  * 클래스 기능 : stomp websocket에서 /pub으로 발행된 메시지를 받아 가공하여 같은 방의 인원들에게 전달하는 클래스이다.
- * 최근 수정 일자 : 2024.05.03(금)
+ * 최근 수정 일자 : 2024.05.24(금)
  */
 package com.pathfind.system.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pathfind.system.findPathDto.ShortestPathRoute;
+import com.pathfind.system.findPathDto.VertexInfo;
 import com.pathfind.system.findPathService2Domain.*;
 import com.pathfind.system.findPathService2Dto.*;
 import com.pathfind.system.service.FindPathRoomService;
@@ -158,14 +158,9 @@ public class SendInformationController {
             return;
         }
 
-        List<ShortestPathRouteCSResponse> result;
-        if (room.getTransportationType() == TransportationType.ROAD) {
-            result = findPathRoomService.findRoadShortestRoute(room);
-        } else {
-            result = findPathRoomService.findSidewalkShortestRoute(room);
-        }
+        List<ShortestPathRouteCSResponse> result = findPathRoomService.findShortestRoute(room);
 
-        List<List<ShortestPathRoute>> routeResult = new ArrayList<>();
+        List<List<VertexInfo>> routeResult = new ArrayList<>();
         //logger.info("result.size(): {}", result.size());
         for (ShortestPathRouteCSResponse info : result) {
             if (message.getSender().equals(info.getMemberNickname()) && info.getDistance() < RoomValue.NAVIGATION_STOPPING_DISTANCE) {

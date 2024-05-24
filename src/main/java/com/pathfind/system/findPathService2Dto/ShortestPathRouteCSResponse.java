@@ -1,6 +1,6 @@
 package com.pathfind.system.findPathService2Dto;
 
-import com.pathfind.system.findPathDto.ShortestPathRoute;
+import com.pathfind.system.findPathDto.VertexInfo;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,5 +11,5 @@ import java.util.List;
 public class ShortestPathRouteCSResponse {
     private String memberNickname;
     private double distance;
-    private List<ShortestPathRoute> route;
+    private List<VertexInfo> route;
 }

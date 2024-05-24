@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 그래프 자료구조를 구현한 클래스
- * 최근 수정 일자 : 2024.02.23(월)
+ * 최근 수정 일자 : 2024.05.24(금)
  */
 package com.pathfind.system.algorithm;
 
@@ -27,8 +27,8 @@ public class Graph {
         }
     }
 
-    public void addEdge(Long u, Long v, double weight, boolean isBuilding) {
-        adjList.get(u.intValue()).add(new Node(v.intValue(), weight, isBuilding));
+    public void addEdge(Long u, Long v, double weight, boolean isInfoVertex) {
+        adjList.get(u.intValue()).add(new Node(v.intValue(), weight, isInfoVertex));
     }
 
     public int getNumVertices() {
@@ -41,6 +41,6 @@ public class Graph {
     static class Node {
         int v;
         double weight;
-        boolean isBuilding;
+        boolean isInfoVertex;
     }
 }

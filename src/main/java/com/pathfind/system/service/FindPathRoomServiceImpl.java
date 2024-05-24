@@ -1,17 +1,17 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2) 구현체
- * 최근 수정 일자 : 2024.05.05(목)
+ * 최근 수정 일자 : 2024.05.24(금)
  */
 package com.pathfind.system.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pathfind.system.algorithm.Dijkstra;
-import com.pathfind.system.algorithm.DijkstraResult;
 import com.pathfind.system.algorithm.Graph;
 import com.pathfind.system.algorithm.Node;
 import com.pathfind.system.domain.*;
-import com.pathfind.system.findPathDto.ShortestPathRoute;
+import com.pathfind.system.domain.Objects;
+import com.pathfind.system.findPathDto.VertexInfo;
 import com.pathfind.system.findPathService2Domain.*;
 import com.pathfind.system.findPathService2Dto.ShortestPathRouteCSResponse;
 import com.pathfind.system.repository.RoadEdgeRepository;
@@ -26,11 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -167,31 +163,22 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
 
         //logger.info("Member({})'s current location - latitude: {}, longitude: {}", sender, memberLat, memberLng);
         //logger.info("Find closest vertexId...");
-        if (room.getTransportationType() == TransportationType.SIDEWALK) {
-            List<SidewalkVertex> SWVertices = sidewalkVertexRepository.findAll();
-            for (SidewalkVertex vertex : SWVertices) {
-                Objects object = vertex.getObject();
-                boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
-                if(isBuilding) continue;
-                double tmpDist = Math.pow(Math.abs(memberLat - vertex.getLatitude()), 2) + Math.pow(Math.abs(memberLng - vertex.getLongitude()), 2);
-                if (dist > tmpDist) {
-                    //logger.info("VertexId: {}, distance difference: {}, minimum distance: {}", vertex.getId() - 1, tmpDist, dist);
-                    dist = tmpDist;
-                    room.changeMemberClosestVertexId(sender, vertex.getId() - 1);
-                }
-            }
+        List<? extends BasicVertex> vertices;
+        if (room.getTransportationType() == TransportationType.ROAD) {
+            vertices = roadVertexRepository.findAll();
         } else {
-            List<RoadVertex> RVertices = roadVertexRepository.findAll();
-            for (RoadVertex vertex : RVertices) {
-                Objects object = vertex.getObject();
-                boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
-                if(isBuilding) continue;
-                double tmpDist = Math.pow(Math.abs(memberLat - vertex.getLatitude()), 2) + Math.pow(Math.abs(memberLng - vertex.getLongitude()), 2);
-                if (dist > tmpDist) {
-                    //logger.info("VertexId: {}, distance difference: {}, minimum distance: {}", vertex.getId() - 1, tmpDist, dist);
-                    dist = tmpDist;
-                    room.changeMemberClosestVertexId(sender, vertex.getId() - 1);
-                }
+            vertices = sidewalkVertexRepository.findAll();
+        }
+
+        for (BasicVertex vertex : vertices) {
+            Objects object = vertex.getObject();
+            boolean isInfoVertex = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
+            if (isInfoVertex) continue;
+            double tmpDist = Math.pow(Math.abs(memberLat - vertex.getLatitude()), 2) + Math.pow(Math.abs(memberLng - vertex.getLongitude()), 2);
+            if (dist > tmpDist) {
+                //logger.info("VertexId: {}, distance difference: {}, minimum distance: {}", vertex.getId() - 1, tmpDist, dist);
+                dist = tmpDist;
+                room.changeMemberClosestVertexId(sender, vertex.getId() - 1);
             }
         }
         //logger.info("Member({})'s closest vertexId: {}", sender, room.findMemberByNickname(sender).getClosestVertexId());
@@ -200,29 +187,51 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         return room;
     }
 
-    @Override
-    public List<ShortestPathRouteCSResponse> findRoadShortestRoute(FindPathRoom findPathRoom) {
-        Long start = findPathRoom.getOwner().getClosestVertexId();
-        MemberLatLng ownerLatLng = findPathRoom.getOwner().getLocation();
-        List<RoadVertex> vertices = roadVertexRepository.findAll();
-        int numVertices = vertices.size();
-        //logger.info("RoadVertices size: {}", numVertices);
-        Graph graph = new Graph(numVertices);
+    /**
+     * 멤버 m의 위치에서 정점 s, e을 지나는 직선으로 수선을 내렸을 때의 교점을 구하는 함수이다.
+     * 이차원 평면에 있다고 가정하고 교점을 구했지만 경도, 위도는 지구의 좌표 표현 방법이므로 이차원 평면 상에 구한 교점은 실제 교점과 오차가 존재한다.
+     */
+    public VertexInfo getInterSectionPoint(MemberLatLng m, double sLat, double sLng, double eLat, double eLng) {
+        double gradient = (sLat - eLat) / (sLng - eLng), yIntercept = gradient * -1 * sLng + sLat;
+        double gradient2 = -1 / gradient, yIntercept2 = gradient2 * -1 * m.getLongitude() + m.getLatitude();
+        double lng = (yIntercept - yIntercept2) / (gradient2 - gradient);
+        double lat = gradient * lng + yIntercept;
+        return new VertexInfo(lat, lng);
+    }
 
-        List<RoadEdge> edges = roadEdgeRepository.findAll();
+    @Override
+    public List<ShortestPathRouteCSResponse> findShortestRoute(FindPathRoom findPathRoom) {
+        MemberLatLng ownerLatLng = findPathRoom.getOwner().getLocation();
+        List<? extends BasicVertex> vertices;
+        List<? extends BasicEdge> edges;
+        //FindPathFactory<V, E> findPathFactory;
+        if (findPathRoom.getTransportationType() == TransportationType.ROAD) {
+            vertices = roadVertexRepository.findAll();
+            edges = roadEdgeRepository.findAll();
+        } else {
+            vertices = sidewalkVertexRepository.findAll();
+            edges = sidewalkEdgeRepository.findAll();
+        }
+
+        //logger.info("RoadVertices size: {}", numVertices);
+
+        int numVertices = vertices.size();
+        Graph graph = new Graph(numVertices);
+        Long start = findPathRoom.getOwner().getClosestVertexId();
         //logger.info("RoadEdges size: {}", edges.size());
-        for (RoadEdge edge : edges) {
+        for (BasicEdge edge : edges) {
             //logger.info("Edge 정보 : " + edge.getRoadVertex1() + " " + edge.getRoadVertex2() + " " + edge.getLength());
-            Objects object = vertices.get(Math.toIntExact(edge.getRoadVertex2() - 1)).getObject();
-            boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
-            graph.addEdge(edge.getRoadVertex1() - 1, edge.getRoadVertex2() - 1, edge.getLength(), isBuilding);
+            Objects object = vertices.get(Math.toIntExact(edge.getVertex2() - 1)).getObject();
+            boolean isInfoVertex = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
+            graph.addEdge(edge.getVertex1() - 1, edge.getVertex2() - 1, edge.getLength(), isInfoVertex);
         }
         List<Node> nodes = new ArrayList<>();
-        for (RoadVertex roadVertex : vertices) {
-            Objects object = roadVertex.getObject();
-            boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
-            nodes.add(new Node(roadVertex.getId() - 1, 0, isBuilding));
+        for (BasicVertex vertex : vertices) {
+            Objects object = vertex.getObject();
+            boolean isInfoVertex = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
+            nodes.add(new Node(vertex.getId() - 1, 0, isInfoVertex));
         }
+
         Dijkstra getRoute = new Dijkstra();
         getRoute.dijkstra(nodes, graph, start, -1L);
         List<ShortestPathRouteCSResponse> result = new LinkedList<>();
@@ -235,68 +244,72 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
             if (end == null) continue;
             //logger.info("방장, {}번째 사람의 경로", end);
             MemberLatLng memberLatLng = member.getLocation();
-            List<ShortestPathRoute> routeInfo = new ArrayList<>();
+            List<VertexInfo> routeInfo = new ArrayList<>();
             //logger.info("시작 위치 - latitude: {}, longitude: {}", startLatLng.getLatitude(), startLatLng.getLongitude());
             List<Integer> shortestRoute = getRoute.getShortestRoute(start, end);
             //logger.info("끝 위치 - latitude: {}, longitude: {}", memberLatLng.getLatitude(), memberLatLng.getLongitude());
 
-            routeInfo.add(new ShortestPathRoute(-1L, ownerLatLng.getLatitude(), ownerLatLng.getLongitude())); // 방장의 위치
+            routeInfo.add(new VertexInfo(ownerLatLng.getLatitude(), ownerLatLng.getLongitude())); // 방장의 위치
             for (Integer idx : shortestRoute) { // 방장과 가장 가까운 정점, 회원(i)와 가장 가까운 정점 사이의 경로
-                routeInfo.add(new ShortestPathRoute(idx.longValue(), vertices.get(idx).getLatitude(), vertices.get(idx).getLongitude()));
+                routeInfo.add(new VertexInfo(vertices.get(idx).getLatitude(), vertices.get(idx).getLongitude()));
             }
-            routeInfo.add(new ShortestPathRoute(-2L, memberLatLng.getLatitude(), memberLatLng.getLongitude())); // 회원(i)의 위치
+            routeInfo.add(new VertexInfo(memberLatLng.getLatitude(), memberLatLng.getLongitude())); // 회원(i)의 위치
 
-            result.add(new ShortestPathRouteCSResponse(member.getNickname(), getTotalDistance(getRoute.getNodes().get(end.intValue()).getDistance(), routeInfo), routeInfo));
-        }
+            if (routeInfo.size() > 3) { // routeInfo의 정점이 세 개 이상일때 실행한다. 길 찾기 경로를 자연스럽게 만들기 위해 사용된다.
+                BasicVertex s1 = vertices.get(shortestRoute.get(0)), s2 = vertices.get(shortestRoute.get(1));
+                double s1Lat = s1.getLatitude(), s1Lng = s1.getLongitude();
+                double s2Lat = s2.getLatitude(), s2Lng = s2.getLongitude();
+                double tmpSLat = s1Lat, tmpSLng = s1Lng;
+                if (s1Lat > s2Lat) {
+                    s1Lat = s2Lat;
+                    s2Lat = tmpSLat;
+                }
+                if (s1Lng > s2Lng) {
+                    s1Lng = s2Lng;
+                    s2Lng = tmpSLng;
+                }
 
-        return result;
-    }
+                BasicVertex e1 = vertices.get(shortestRoute.get(shortestRoute.size() - 1)), e2 = vertices.get(shortestRoute.get(shortestRoute.size() - 2));
+                double e1Lat = e1.getLatitude(), e1Lng = e1.getLongitude();
+                double e2Lat = e2.getLatitude(), e2Lng = e2.getLongitude();
+                double tmpELat = e1Lat, tmpELng = e1Lng;
+                if (e1Lat > e2Lat) {
+                    e1Lat = e2Lat;
+                    e2Lat = tmpELat;
+                }
+                if (e1Lng > e2Lng) {
+                    e1Lng = e2Lng;
+                    e2Lng = tmpELng;
+                }
 
-    @Override
-    public List<ShortestPathRouteCSResponse> findSidewalkShortestRoute(FindPathRoom findPathRoom) {
-        Long start = findPathRoom.getOwner().getClosestVertexId();
-        MemberLatLng ownerLatLng = findPathRoom.getOwner().getLocation();
-        List<SidewalkVertex> vertices = sidewalkVertexRepository.findAll();
-        int numVertices = vertices.size();
-        //logger.info("SidewalkVertices size: {}", numVertices);
-        Graph graph = new Graph(numVertices);
+                VertexInfo startIntersectionPoint = getInterSectionPoint(ownerLatLng, s1Lat, s1Lng, s2Lat, s2Lng);
+                double sLat = startIntersectionPoint.getLatitude(), sLng = startIntersectionPoint.getLongitude();
 
-        List<SidewalkEdge> edges = sidewalkEdgeRepository.findAll();
-        //logger.info("SidewalkEdges size: {}", edges.size());
-        for (SidewalkEdge edge : edges) {
-            //logger.info("edge 정보 : " + edge.getSidewalkVertex1() + " " + edge.getSidewalkVertex2() + " " + edge.getLength());
-            Objects object = vertices.get(Math.toIntExact((edge.getSidewalkVertex2() - 1))).getObject();
-            boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
-            graph.addEdge(edge.getSidewalkVertex1() - 1, edge.getSidewalkVertex2() - 1, edge.getLength(), isBuilding);
-        }
-        List<Node> nodes = new ArrayList<>();
-        for (SidewalkVertex sidewalkVertex : vertices) {
-            Objects object = sidewalkVertex.getObject();
-            boolean isBuilding = object != null && (object.getObjectType() == ObjType.BUILDING || object.getObjectType() == ObjType.LANDMARK);
-            nodes.add(new Node(sidewalkVertex.getId() - 1, 0, isBuilding));
-        }
-        Dijkstra getRoute = new Dijkstra();
-        getRoute.dijkstra(nodes, graph, start, -1L);
-        List<ShortestPathRouteCSResponse> result = new ArrayList<>();
-        //logger.info("방장과 각 인원들의 경로 계산");
-        String ownerNickname = findPathRoom.getOwnerNickname();
-        for (int i = 0; i < findPathRoom.getCurMember().size(); i++) {
-            RoomMemberInfo member = findPathRoom.getCurMember().get(i);
-            if (ownerNickname.equals(member.getNickname())) continue;
-            Long end = member.getClosestVertexId();
-            if (end == null) continue;
-            //logger.info("방장, {}번째 사람의 경로", end);
-            List<ShortestPathRoute> routeInfo = new ArrayList<>();
-            MemberLatLng memberLatLng = member.getLocation();
-            //logger.info("시작 위치 - latitude: {}, longitude: {}", ownerLatLng.getLatitude(), ownerLatLng.getLongitude());
-            List<Integer> shortestRoute = getRoute.getShortestRoute(start, end);
-            //logger.info("끝 위치 - latitude: {}, longitude: {}", memberLatLng.getLatitude(), memberLatLng.getLongitude());
+                VertexInfo endInterSectionPoint = getInterSectionPoint(memberLatLng, e1Lat, e1Lng, e2Lat, e2Lng);
+                double eLat = endInterSectionPoint.getLatitude(), eLng = endInterSectionPoint.getLongitude();
 
-            routeInfo.add(new ShortestPathRoute(-1L, ownerLatLng.getLatitude(), ownerLatLng.getLongitude())); // 방장의 위치
-            for (Integer idx : shortestRoute) { // 방장과 가장 가까운 정점, 회원(i)와 가장 가까운 정점 사이의 경로
-                routeInfo.add(new ShortestPathRoute(idx.longValue(), vertices.get(idx).getLatitude(), vertices.get(idx).getLongitude()));
+                /*
+                 * 방장의 위치에서 ((1)번 정점-> (2)번 정점)간선으로 수선을 내렸을 때
+                 * 간선 안에 교점이 존재한다면 교점과 (2)번 정점 중간의 점의 위치로 (1)번 정점을 교체한다.
+                 **/
+                if (s1Lat < sLat && sLat < s2Lat && s1Lng < sLng && sLng < s2Lng) {
+                    s2Lat = s2.getLatitude();
+                    s2Lng = s2.getLongitude();
+                    //logger.info("new sLat: {}, sLng: {}", (sLat + s2Lat) / 2, (sLng + s2Lng) / 2);
+                    routeInfo.set(1, new VertexInfo((sLat + s2Lat) / 2, (sLng + s2Lng) / 2));
+                }
+
+                /*
+                 * member의 위치에서 ((routeInfo.size() - 2)번 정점 -> (routeInfo.size - 3)번 정점)간선으로 수선을 내렸을 때
+                 * 간선 안에 교점이 존재한다면 교점과 (routeInfo.size() - 2)번 정점 중간의 점의 위치로 (routeInfo.size() - 3)번 정점을 교체한다.
+                 **/
+                if (e1Lat < eLat && eLat < e2Lat && e1Lng < eLng && eLng < e2Lng) {
+                    e2Lat = e2.getLatitude();
+                    e2Lng = e2.getLongitude();
+                    //logger.info("new eLat: {}, eLng: {}", (eLat + e2Lat) / 2, (eLng + e2Lng) / 2);
+                    routeInfo.set(routeInfo.size() - 2, new VertexInfo((eLat + e2Lat) / 2, (eLng + e2Lng) / 2));
+                }
             }
-            routeInfo.add(new ShortestPathRoute(-2L, memberLatLng.getLatitude(), memberLatLng.getLongitude())); // 회원(i)의 위치
 
             result.add(new ShortestPathRouteCSResponse(member.getNickname(), getTotalDistance(getRoute.getNodes().get(end.intValue()).getDistance(), routeInfo), routeInfo));
         }
@@ -307,12 +320,12 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     /**
      * 방장과 회원까지의 최종 거리를 계산하는 함수이다.
      */
-    private double getTotalDistance(double shortestRouteDistance, List<ShortestPathRoute> routes) {
-        ShortestPathRoute ownerLocation = routes.get(0), startLocation = routes.get(1);
+    private double getTotalDistance(double shortestRouteDistance, List<VertexInfo> routes) {
+        VertexInfo ownerLocation = routes.get(0), startLocation = routes.get(1);
         /* 방장의 위치와 방장과 가장 가까운 정점 사이의 거리 */
         double startDistance = findAdditionalDistance(ownerLocation, startLocation);
 
-        ShortestPathRoute memberLocation = routes.get(routes.size() - 1), endLocation = routes.get(routes.size() - 2);
+        VertexInfo memberLocation = routes.get(routes.size() - 1), endLocation = routes.get(routes.size() - 2);
         /* 회원의 위치와 회원과 가장 가까운 정점 사이의 거리 */
         double endDistance = findAdditionalDistance(endLocation, memberLocation);
 
@@ -328,7 +341,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     /**
      * 위도 경도로 표현되는 두 정점 사이의 거리를 미터 단위로 구하는 함수이다.
      */
-    private double findAdditionalDistance(ShortestPathRoute s, ShortestPathRoute e) {
+    private double findAdditionalDistance(VertexInfo s, VertexInfo e) {
         double sLat = s.getLatitude(), sLng = s.getLongitude();
         double sLatRad = sLat * Math.PI / 180.0, sLngRad = sLng * Math.PI / 180.0;
 

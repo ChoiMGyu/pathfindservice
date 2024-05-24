@@ -4,7 +4,7 @@
  */
 package com.pathfind.system.findPathService2Dto;
 
-import com.pathfind.system.findPathDto.ShortestPathRoute;
+import com.pathfind.system.findPathDto.VertexInfo;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -23,7 +23,7 @@ public class MessageVCResponse {
     private String owner;
     private int curMemberNum;
     private LocalDateTime roomRemainingTime;
-    private List<List<ShortestPathRoute>> route;
+    private List<List<VertexInfo>> route;
 
     public static MessageVCResponseBuilder builder(String roomId, MessageType messageType) {
         return innerBuilder().roomId(roomId).msgType(messageType);

@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 다익스트라 알고리즘을 구현한 클래스
- * 최근 수정 일자 : 2024.02.23(월)
+ * 최근 수정 일자 : 2024.05.24(금)
  */
 package com.pathfind.system.algorithm;
 
@@ -21,7 +21,7 @@ public class Dijkstra {
     public void dijkstra(List<Node> n, Graph graph, Long startId, Long endId) {
         PriorityQueue<Node> pq = new PriorityQueue<>(Comparator.comparing(Node::getDistance));
         for (long i = 0L; i < graph.getNumVertices(); i++) {
-            Node node = new Node(i, Double.MAX_VALUE, n.get(Math.toIntExact(i)).isBuilding());
+            Node node = new Node(i, Double.MAX_VALUE, n.get(Math.toIntExact(i)).isInfoVertex());
             if (i == startId) {
                 node.setDistance(0);
                 pq.add(node);
@@ -34,8 +34,8 @@ public class Dijkstra {
         while (!pq.isEmpty()) {
             Node u = pq.poll();
             for (Graph.Node v : graph.getAdjList().get(u.getId().intValue())) {
-                if (v.isBuilding() && v.getV() != endId) continue;
-                double alt = u.getDistance() + ((u.getId().equals(startId) && u.isBuilding()) || (v.getV() == endId && v.isBuilding()) ? 0 : v.getWeight());
+                if (v.isInfoVertex() && v.getV() != endId) continue;
+                double alt = u.getDistance() + ((u.getId().equals(startId) && u.isInfoVertex()) || (v.getV() == endId && v.isInfoVertex()) ? 0 : v.getWeight());
                 //double alt = u.getDistance() + v.getWeight();
                 //logger.info("u.getDistance : " + u.getDistance() + ", v.getWeight : " + v.getWeight());
                 if (alt < nodes.get(v.getV()).getDistance()) {
