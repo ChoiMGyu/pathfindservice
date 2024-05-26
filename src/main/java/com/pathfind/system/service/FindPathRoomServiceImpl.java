@@ -199,6 +199,48 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         return new VertexInfo(lat, lng);
     }
 
+    /**
+     * 길 찾기 경로의 시작, 끝 부분을 보정, 개선하는 함수이다. 경로를 자연스럽게 다듬는다.
+     */
+    public List<VertexInfo> improveRoute(int startVertex, int endVertex, MemberLatLng memberLatLng, List<VertexInfo> routeInfo) {
+        if (routeInfo.size() < 3) { // routeInfo의 정점이 세 개 이상일때 실행한다. 길 찾기 경로를 자연스럽게 만들기 위해 사용된다.
+            return routeInfo;
+        }
+
+        VertexInfo v1 = routeInfo.get(startVertex), v2 = routeInfo.get(endVertex);
+        double v1Lat = v1.getLatitude(), v1Lng = v1.getLongitude();
+        double v2Lat = v2.getLatitude(), v2Lng = v2.getLongitude();
+        double tmpSLat = v1Lat, tmpSLng = v1Lng;
+        if (v1Lat > v2Lat) {
+            v1Lat = v2Lat;
+            v2Lat = tmpSLat;
+        }
+        if (v1Lng > v2Lng) {
+            v1Lng = v2Lng;
+            v2Lng = tmpSLng;
+        }
+
+        VertexInfo startIntersectionPoint = getInterSectionPoint(memberLatLng, v1Lat, v1Lng, v2Lat, v2Lng);
+        double sLat = startIntersectionPoint.getLatitude(), sLng = startIntersectionPoint.getLongitude();
+
+        /*
+         * 방장의 위치에서 ((startVertex)번 정점-> (endVertex)번 정점)간선으로 수선을 내렸을 때
+         * 간선 안에 교점이 존재한다면 교점과 (endVertex)번 정점 중간의 점의 위치로 (startVertex)번 정점을 교체한다.
+         **/
+        if (v1Lat < sLat && sLat < v2Lat && v1Lng < sLng && sLng < v2Lng) {
+            v2Lat = v2.getLatitude();
+            v2Lng = v2.getLongitude();
+            //logger.info("new sLat: {}, sLng: {}", (sLat + s2Lat) / 2, (sLng + s2Lng) / 2);
+            routeInfo.set(startVertex, new VertexInfo((sLat + v2Lat) / 2, (sLng + v2Lng) / 2));
+        }
+
+        if (routeInfo.size() == 3) {
+            routeInfo.remove(1);
+        }
+
+        return routeInfo;
+    }
+
     @Override
     public List<ShortestPathRouteCSResponse> findShortestRoute(FindPathRoom findPathRoom) {
         MemberLatLng ownerLatLng = findPathRoom.getOwner().getLocation();
@@ -255,63 +297,10 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
             }
             routeInfo.add(new VertexInfo(memberLatLng.getLatitude(), memberLatLng.getLongitude())); // 회원(i)의 위치
 
-            if (routeInfo.size() > 3) { // routeInfo의 정점이 세 개 이상일때 실행한다. 길 찾기 경로를 자연스럽게 만들기 위해 사용된다.
-                BasicVertex s1 = vertices.get(shortestRoute.get(0)), s2 = vertices.get(shortestRoute.get(1));
-                double s1Lat = s1.getLatitude(), s1Lng = s1.getLongitude();
-                double s2Lat = s2.getLatitude(), s2Lng = s2.getLongitude();
-                double tmpSLat = s1Lat, tmpSLng = s1Lng;
-                if (s1Lat > s2Lat) {
-                    s1Lat = s2Lat;
-                    s2Lat = tmpSLat;
-                }
-                if (s1Lng > s2Lng) {
-                    s1Lng = s2Lng;
-                    s2Lng = tmpSLng;
-                }
+            routeInfo = improveRoute(1, 2, ownerLatLng, routeInfo);
+            routeInfo = improveRoute(routeInfo.size() - 2, routeInfo.size() - 3, memberLatLng, routeInfo);
 
-                BasicVertex e1 = vertices.get(shortestRoute.get(shortestRoute.size() - 1)), e2 = vertices.get(shortestRoute.get(shortestRoute.size() - 2));
-                double e1Lat = e1.getLatitude(), e1Lng = e1.getLongitude();
-                double e2Lat = e2.getLatitude(), e2Lng = e2.getLongitude();
-                double tmpELat = e1Lat, tmpELng = e1Lng;
-                if (e1Lat > e2Lat) {
-                    e1Lat = e2Lat;
-                    e2Lat = tmpELat;
-                }
-                if (e1Lng > e2Lng) {
-                    e1Lng = e2Lng;
-                    e2Lng = tmpELng;
-                }
-
-                VertexInfo startIntersectionPoint = getInterSectionPoint(ownerLatLng, s1Lat, s1Lng, s2Lat, s2Lng);
-                double sLat = startIntersectionPoint.getLatitude(), sLng = startIntersectionPoint.getLongitude();
-
-                VertexInfo endInterSectionPoint = getInterSectionPoint(memberLatLng, e1Lat, e1Lng, e2Lat, e2Lng);
-                double eLat = endInterSectionPoint.getLatitude(), eLng = endInterSectionPoint.getLongitude();
-
-                /*
-                 * 방장의 위치에서 ((1)번 정점-> (2)번 정점)간선으로 수선을 내렸을 때
-                 * 간선 안에 교점이 존재한다면 교점과 (2)번 정점 중간의 점의 위치로 (1)번 정점을 교체한다.
-                 **/
-                if (s1Lat < sLat && sLat < s2Lat && s1Lng < sLng && sLng < s2Lng) {
-                    s2Lat = s2.getLatitude();
-                    s2Lng = s2.getLongitude();
-                    //logger.info("new sLat: {}, sLng: {}", (sLat + s2Lat) / 2, (sLng + s2Lng) / 2);
-                    routeInfo.set(1, new VertexInfo((sLat + s2Lat) / 2, (sLng + s2Lng) / 2));
-                }
-
-                /*
-                 * member의 위치에서 ((routeInfo.size() - 2)번 정점 -> (routeInfo.size - 3)번 정점)간선으로 수선을 내렸을 때
-                 * 간선 안에 교점이 존재한다면 교점과 (routeInfo.size() - 2)번 정점 중간의 점의 위치로 (routeInfo.size() - 3)번 정점을 교체한다.
-                 **/
-                if (e1Lat < eLat && eLat < e2Lat && e1Lng < eLng && eLng < e2Lng) {
-                    e2Lat = e2.getLatitude();
-                    e2Lng = e2.getLongitude();
-                    //logger.info("new eLat: {}, eLng: {}", (eLat + e2Lat) / 2, (eLng + e2Lng) / 2);
-                    routeInfo.set(routeInfo.size() - 2, new VertexInfo((eLat + e2Lat) / 2, (eLng + e2Lng) / 2));
-                }
-            }
-
-            result.add(new ShortestPathRouteCSResponse(member.getNickname(), getTotalDistance(getRoute.getNodes().get(end.intValue()).getDistance(), routeInfo), routeInfo));
+            result.add(new ShortestPathRouteCSResponse(member.getNickname(), getTotalDistance(routeInfo), routeInfo));
         }
 
         return result;
@@ -320,20 +309,13 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     /**
      * 방장과 회원까지의 최종 거리를 계산하는 함수이다.
      */
-    private double getTotalDistance(double shortestRouteDistance, List<VertexInfo> routes) {
-        VertexInfo ownerLocation = routes.get(0), startLocation = routes.get(1);
-        /* 방장의 위치와 방장과 가장 가까운 정점 사이의 거리 */
-        double startDistance = findAdditionalDistance(ownerLocation, startLocation);
+    private double getTotalDistance(List<VertexInfo> routes) {
+        double totalDistance = 0.0;
+        for (int i = 1; i < routes.size(); i++) {
+            totalDistance += findAdditionalDistance(routes.get(i - 1), routes.get(i));
+        }
 
-        VertexInfo memberLocation = routes.get(routes.size() - 1), endLocation = routes.get(routes.size() - 2);
-        /* 회원의 위치와 회원과 가장 가까운 정점 사이의 거리 */
-        double endDistance = findAdditionalDistance(endLocation, memberLocation);
-
-        double totalDistance = startDistance + endDistance + shortestRouteDistance;
-
-        logger.info("Total distance: {}", totalDistance);
-
-        routes = null;
+        logger.warn("Total distance: {}", totalDistance);
 
         return totalDistance;
     }
