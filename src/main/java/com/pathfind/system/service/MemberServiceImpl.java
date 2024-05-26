@@ -128,7 +128,11 @@ public class MemberServiceImpl implements MemberService {
         Member result = memberRepository.findByID(id);
         List<Member> isDuplicated = memberRepository.findByNickname(nickname);
         if (!isDuplicated.isEmpty()) return Optional.empty();
+        redisUtil.deleteDataFromSortedSet(RedisValue.NICKNAME_SET, result.getNickname());
         result.changeNickname(nickname);
+        List<String> data = new ArrayList<>();
+        data.add(nickname);
+        redisUtil.setDataSortedSet(RedisValue.NICKNAME_SET, data);
         return Optional.ofNullable(result);
     }
 
