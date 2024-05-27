@@ -1,10 +1,13 @@
 /*
  * 클래스 기능 : 예외 발생했을 때 응답을 처리하는 클래스
- * 최근 수정 일자 : 2024.03.18(금)
+ * 최근 수정 일자 : 2024.05.19(일)
  */
 package com.pathfind.system.exception;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -18,8 +21,10 @@ import java.util.List;
 
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class ExControllerAdvice {
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<List<ErrorResult>> handleValidException(MethodArgumentNotValidException e) {

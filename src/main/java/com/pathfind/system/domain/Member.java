@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원정보 엔티티
- * 최근 수정 일자 : 2024.01.22(월)
+ * 최근 수정 일자 : 2024.05.20(월)
  */
 package com.pathfind.system.domain;
 
@@ -29,7 +29,7 @@ public class Member {
     @Column(length = 12, nullable = false, unique = true)
     private String userId; //아이디
 
-    @Column(length = 20, nullable = false)
+    @Column(nullable = false)
     private String password; //비밀번호 // 변경 가능
 
     @Column(length = 12, nullable = false, unique = true)
@@ -76,6 +76,14 @@ public class Member {
     }
 
     //==비지니스 로직==//
+    public void changeId(Long id) {
+        this.id = id;
+    }
+
+    public void changeUserId(String userId) {
+        this.userId = userId;
+    }
+
     public void changePassword(String password) {
         this.password = password;
     }
@@ -118,7 +126,7 @@ public class Member {
                     while (true) {
                         int c = 33 + random.nextInt(94);
                         if (c != 34 && c != 39 && c != 92) {
-                            randomPassword.append(c);
+                            randomPassword.append((char) c);
                             break;
                         }
                     }
@@ -131,5 +139,23 @@ public class Member {
 
     public boolean checkPassword(String password) {
         return this.password.equals(password);
+    }
+
+    public static String createRandomUserId(int size) {
+        SecureRandom random = new SecureRandom();
+        String patternUserId = "(?=.*[0-9])(?=.*[a-zA-Z]).{0,12}";
+        StringBuilder randomUserId;
+        boolean regexUserId;
+        do {
+            randomUserId = new StringBuilder();
+            for (int i = 0; i < size; i++) {
+                int nextType = random.nextInt(3);
+                if (nextType == 0) randomUserId.append((char) (48 + random.nextInt(10)));
+                else if (nextType == 1) randomUserId.append((char) (65 + random.nextInt(26)));
+                else randomUserId.append((char) (97 + random.nextInt(26)));
+            }
+            regexUserId = Pattern.matches(patternUserId, randomUserId.toString());
+        } while (!regexUserId);
+        return randomUserId.toString();
     }
 }
