@@ -94,6 +94,7 @@
                 </button>
                 <div class="dropdown-menu p-2">
                     <form id="createRoom" class="row g-3" action="/service2/create-room" method="post">
+                        <input type="hidden" id="_csrf" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                         <div class="input-group">
                             <label for="roomName" class="input-group-text w-25">방 이름</label>
                             <input type="text" class="form-control" id="roomName" name="roomName">

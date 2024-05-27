@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
 <header class="header" style="margin: 0;" th:fragment="bodyHeader(session.loginMember)">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
@@ -10,7 +10,8 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <section id="notificationSection" class="text-end">
-                <th:block th:if="${session.loginMember != null}">
+                <input type="hidden" id="_csrf" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <th:block sec:authorize="isAuthenticated()"><!--th:if="${session.loginMember != null}">-->
                     <nav class="navbar navbar-expand-lg navbar-light bg-light">
                         <div class="container-fluid">
                             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
@@ -54,10 +55,13 @@
         <script type="text/javascript" src="/js/bootstrap.bundle.js"></script>
         <script type="text/javascript">
             function logout() {
+                console.log("logout 버튼 클릭됨");
+                const csrfToken = document.getElementById('_csrf').value;
                 fetch('/members/logout', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRF-TOKEN': csrfToken // CSRF 토큰 추가
                     },
                     body: ''
                 }).then(response => {

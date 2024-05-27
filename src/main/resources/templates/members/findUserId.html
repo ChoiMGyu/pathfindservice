@@ -6,6 +6,7 @@
     <div th:replace="~{fragments/bodyHeader :: bodyHeader(${session.loginMember})}"></div>
     <div th:replace="~{fragments/bodyAlert :: bodyAlert(${message})}"></div>
     <form id="submitForm" role="form" action="/members/returnId" th:object="${submitForm}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
         <div class="form-group mb-3">
             <div class="input-group">
                 <label class="input-group-text w-25" th:for="email">이메일</label>
