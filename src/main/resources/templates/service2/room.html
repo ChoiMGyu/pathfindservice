@@ -397,10 +397,10 @@
     /**
      * nickname에 해당하는 인풋 태그의 value가 달라지면 서버로부터 닉네임 자동 완성 리스트를 요청하고 닉네임 자동 완성 목록을 생성하는 함수이다.
      */
-    function searchWord() {
+    function searchNickname() {
         let previousNicknameInput = "";
 
-        $("#nickname").on("keyup", function (e) {
+        $("#nickname").on("input", function (e) {
             if (previousNicknameInput === $('#nickname').val()) return;
             previousNicknameInput = $('#nickname').val();
             //if(e.keyCode === 65 && e.ctrlKey) return;
@@ -422,7 +422,7 @@
                     $("#searchList").children().remove();
                     nicknameList.forEach(nickname => {
                         if (nicknameList.length !== 1 || nickname !== $("#nickname").val()) $("#searchList").append(
-                            "<button type='button' class='list-group-item list-group-item-action' onclick='$(\"#nickname\").val(\"" + nickname + "\"); $(\"#searchList\").children().remove();'>" +
+                            "<button type='button' class='list-group-item list-group-item-action' onclick='$(\"#nickname\").val(\"" + nickname + "\"); $(\"#searchList\").hide();'>" +
                             nickname +
                             "</button>"
                         )
@@ -837,7 +837,7 @@
 
         changeSearchListDisplayType();
         changeRoomRemainingTimeType();
-        searchWord();
+        searchNickname();
     });
 </script>
 </html>

@@ -10,12 +10,19 @@
 <div class="container-fluid row" style="height: 85%;">
     <div class="h-100 d-inline-block col-2">
         <section id="searchPlaceSection" class="mt-3 mb-5">
-            <h5><b>검색</b></h5>
-            <input class="form-control me-2" type="search" id="searchRequestForm" name="searchRequestForm"
-                   th:object="${searchRequest}" placeholder="장소, 구조물, 주소 검색" aria-label="Search">
-            <button class="btn btn-outline-primary" type="button" onclick="findPlace()">Search</button>
-            <div></div>
-            <small class="text-danger" style="margin: 0; display:none;" id="searchPlaceError"></small>
+            <div class="form-group">
+                <h5><b>검색</b></h5>
+                <div class="position-relative">
+                    <div class="input-group">
+                    <input class="form-control" type="search" id="searchRequestForm" name="searchRequestForm"
+                           th:object="${searchRequest}" placeholder="장소, 구조물, 주소 검색" aria-label="Search">
+                    <button class="btn btn-outline-primary" type="button" onclick="findPlace()">Search</button>
+                    </div>
+                    <div id="objectsNameSearchList" class="list-group position-absolute w-100 p-0 z-3">
+                    </div>
+                </div>
+                <small class="text-danger" style="margin: 0; display:none;" id="searchPlaceError"></small>
+            </div>
         </section>
 
         <section id="findPathSection" class="mb-5" style="display: none">
