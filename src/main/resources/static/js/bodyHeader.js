@@ -3,7 +3,7 @@ const READ = "READ", NOT_READ = "NOT_READ";
 /**
  * 알림들의 readType을 READ로 변경시키는 함수이다.
  */
-function changeAllReadTypeToReadByNickname(nickname) {
+function changeAllReadTypeToReadByUserId(userId) {
     let hasNotRead = 0;
     $(".notificationItem").each(function (index, element) {
         if ($(element).attr("value") === NOT_READ) {
@@ -16,7 +16,7 @@ function changeAllReadTypeToReadByNickname(nickname) {
         url: "/notification/check",
         async: false,
         data: {
-            nickname: nickname
+            userId: userId
         },
         success: function (response) {
             console.log(response);
@@ -34,8 +34,8 @@ function changeAllReadTypeToReadByNickname(nickname) {
 $(document).ready(function () {
     const protocol = window.location.protocol;
     const host = window.location.host;
-    const eventSource = new EventSource(protocol + "//" + host + "/notification/subscribe?nickname=" + $("#headerUserNickname").attr("value"));
-    //console.log(protocol + "//" + host + "/notification/subscribe?nickname=" + $("#headerUserNickname").attr("value"));
+    const eventSource = new EventSource(protocol + "//" + host + "/notification/subscribe?userId=" + $("#headerUserId").attr("value"));
+    //console.log(protocol + "//" + host + "/notification/subscribe?userId=" + $("#headerUserUserId").attr("value"));
     eventSource.onmessage = (event) => {
         //console.log(event);
         let notification;

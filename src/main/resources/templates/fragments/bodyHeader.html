@@ -32,7 +32,7 @@
                             <!-- 버튼 추가 -->
                             <button class="btn btn-secondary position-relative bg-transparent border-0 p-0"
                                     data-bs-toggle="dropdown" aria-expanded="false"
-                                    onclick="changeAllReadTypeToReadByNickname($('#headerUserNickname').attr('value'))">🔔
+                                    onclick="changeAllReadTypeToReadByUserId($('#headerUserId').attr('value'))">🔔
                                 <span class="position-absolute top-0 start-100 translate-middle badge border border-light rounded-circle bg-danger p-1"
                                       id="newNotifications" style="display: none"></span>
                             </button>
@@ -44,7 +44,7 @@
                             </div>
                         </div>
                     </nav>
-                    <div id="headerUserNickname" th:value="${session.loginMember.getNickname()}"></div>
+                    <div id="headerUserId" th:value="${session.loginMember.getUserId()}"></div>
                 </th:block>
             </section>
         </div>
