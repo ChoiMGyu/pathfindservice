@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : SseEmitter 리포지토리 구현체
- * 최근 수정 일자 : 2024.04.04(수)
+ * 최근 수정 일자 : 2024.05.28(화)
  */
 package com.pathfind.system.repository;
 
@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class SseEmitterRepositoryImpl implements SseEmitterRepository {
 
-    private static final Logger logger = LoggerFactory.getLogger(SseEmitterRepository.class);
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
@@ -52,7 +52,7 @@ public class SseEmitterRepositoryImpl implements SseEmitterRepository {
 
     @Override
     public boolean checkEmitterById(String sseEmitterId) {
-        logger.info("check SseEmitter by nickname");
+        logger.info("check SseEmitter by sseEmitterId");
         try {
             SseEmitter sseEmitter = emitters.get(sseEmitterId);
             return sseEmitter != null;
@@ -63,7 +63,7 @@ public class SseEmitterRepositoryImpl implements SseEmitterRepository {
 
     @Override
     public SseEmitter findEmitterById(String sseEmitterId) {
-        logger.info("Get SseEmitter by nickname");
+        logger.info("Get SseEmitter by sseEmitterId");
         try {
             return emitters.get(sseEmitterId);
         } catch (Exception e) {
@@ -72,18 +72,18 @@ public class SseEmitterRepositoryImpl implements SseEmitterRepository {
     }
 
     @Override
-    public List<Map.Entry<String, SseEmitter>> findAllEmitterByNickname(String nickname) {
-        logger.info("Get all SseEmitter by nickname");
+    public List<Map.Entry<String, SseEmitter>> findAllEmitterByUserId(String userId) {
+        logger.info("Get all SseEmitter by userId");
         List<Map.Entry<String, SseEmitter>> sseEmitters = new ArrayList<>();
         for (Map.Entry<String, SseEmitter> entry : emitters.entrySet()) {
-            if (entry.getKey().contains(nickname)) sseEmitters.add(entry);
+            if (entry.getKey().contains(userId)) sseEmitters.add(entry);
         }
         return sseEmitters;
     }
 
     @Override
     public void deleteEmitterById(String sseEmitterId) {
-        logger.info("Delete sseEmitter by nickname");
+        logger.info("Delete sseEmitter by sseEmitterId");
         emitters.remove(sseEmitterId);
     }
 }

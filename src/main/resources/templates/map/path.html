@@ -14,9 +14,10 @@
                 <h5><b>검색</b></h5>
                 <div class="position-relative">
                     <div class="input-group">
-                    <input class="form-control" type="search" id="searchRequestForm" name="searchRequestForm"
-                           th:object="${searchRequest}" placeholder="장소, 구조물, 주소 검색" aria-label="Search">
-                    <button class="btn btn-outline-primary" type="button" onclick="findPlace()">Search</button>
+                        <input class="form-control" type="search" id="searchRequestForm" name="searchRequestForm"
+                               th:object="${searchRequest}" placeholder="장소, 구조물, 주소 검색" aria-label="Search"
+                               autocomplete="off">
+                        <button class="btn btn-outline-primary" type="button" onclick="findPlace()">Search</button>
                     </div>
                     <div id="objectsNameSearchList" class="list-group position-absolute w-100 p-0 z-3">
                     </div>

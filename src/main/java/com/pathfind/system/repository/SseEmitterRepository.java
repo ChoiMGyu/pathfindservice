@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : SseEmitter 리포지토리 인터페이스
- * 최근 수정 일자 : 2024.04.04(수)
+ * 최근 수정 일자 : 2024.05.28(화)
  */
 package com.pathfind.system.repository;
 
@@ -18,7 +18,7 @@ public interface SseEmitterRepository {
 
     public SseEmitter findEmitterById(String sseEmitterId);
 
-    public List<Map.Entry<String, SseEmitter>> findAllEmitterByNickname(String nickname);
+    public List<Map.Entry<String, SseEmitter>> findAllEmitterByUserId(String userId);
 
     public void deleteEmitterById(String sseEmitterId);
 }

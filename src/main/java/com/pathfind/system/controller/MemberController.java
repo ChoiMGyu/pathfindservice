@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 관련 페이지 렌더링을 하는 controller
- * 최근 수정 일자 : 2024.05.20(월)
+ * 최근 수정 일자 : 2024.05.28(화)
  */
 package com.pathfind.system.controller;
 
@@ -167,7 +167,7 @@ public class MemberController {
             result.rejectValue("nickname", "Empty.nickname");
         }
 
-        String patternNickname = "^[ㄱ-ㅎ가-힣a-zA-Z0-9-_]{2,12}$";
+        String patternNickname = "^[ㄱ-ㅎ가-힣a-zA-Z0-9-_\\s]{2,12}$";
         boolean regexNickname = Pattern.matches(patternNickname, form.getNickname());
         if (!result.hasFieldErrors("nickname") && !regexNickname) {
             result.rejectValue("nickname", "Format.nickname");
@@ -751,7 +751,7 @@ public class MemberController {
         memberForm.setUserId(member.getUserId());
         memberForm.setEmail(member.getEmail());
 
-        String patternNickname = "^[ㄱ-ㅎ가-힣a-zA-Z0-9-_]{2,12}$";
+        String patternNickname = "^[ㄱ-ㅎ가-힣a-zA-Z0-9-_\\s]{2,12}$";
         boolean regexNickname = Pattern.matches(patternNickname, nicknameForm.getNickname());
         if (!result.hasFieldErrors("nickname") && !regexNickname) {
             result.rejectValue("nickname", "Format.nickname");

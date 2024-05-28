@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2)의 페이지들을 렌더링하는 클래스이다.
- * 최근 수정 일자 : 2024.05.03(금)
+ * 최근 수정 일자 : 2024.05.28(화)
  */
 package com.pathfind.system.controller;
 
@@ -127,7 +127,7 @@ public class FindPathRoomController {
             return "redirect:/";
         }
 
-        notificationService.deleteNotificationByRoomIdAndNickname(room.getRoomId(), loginMember.getNickname());
+        notificationService.deleteNotificationByRoomIdAndUserId(room.getRoomId(), loginMember.getNickname());
         model.addAttribute("room", room);
 
         return "service2/room";
