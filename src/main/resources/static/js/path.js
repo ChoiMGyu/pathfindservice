@@ -685,6 +685,67 @@ function goToHome() {
     $("#recentSearchSection").show();
 }
 
+/**
+ * 웹 페이지의 클릭 위치에 따라 objects 입력 창 밑의 objects name search list의 표시 여부를 변경하는 함수이다.
+ */
+function changeObjectsNameSearchListDisplayType() {
+    // searchPlaceSection이 아닌 다른 곳을 클릭하면 objects 자동 완성을 숨기는 기능을 한다.
+    $(document).click(function () {
+        let objectsName = $("#searchRequestForm");
+        if (!objectsName.is(event.target) && !objectsName.has(event.target).length && !$("#searchRequestForm").is(":focus")) {
+            $("#objectsNameSearchList").hide();
+        }
+    });
+
+    // objects name에 해당하는 인풋 태그가 포커스되면 닉네임 자동 완성을 표시하는 기능을 한다.
+    $("#searchRequestForm").on("focus", function () {
+        $("#objectsNameSearchList").show();
+    })
+}
+
+/**
+ * objects name에 해당하는 인풋 태그의 value가 달라지면 서버로부터 objects 자동 완성 리스트를 요청하고 objects 자동 완성 목록을 생성하는 함수이다.
+ */
+function searchObjectsName() {
+    let previousObjectsNameInput = "";
+
+    $("#searchRequestForm").on("input", function (e) {
+        if (previousObjectsNameInput === $('#searchRequestForm').val()) return;
+        previousObjectsNameInput = $('#searchRequestForm').val();
+        //if(e.keyCode === 65 && e.ctrlKey) return;
+        if ($("#searchRequestForm").val() === "") {
+            $("#objectsNameSearchList").children().remove();
+            return;
+        }
+        $("#searchPlaceError").hide();
+        $("#searchRequestForm").attr('class', "form-control");
+        $.ajax({
+            type: "GET",
+            url: "/searchObjectsName",
+            data: {
+                searchWord: $("#searchRequestForm").val()
+            },
+            success: function (response) {
+                //console.log(response);
+                let objectsNameList = response.objectsNameList;
+                $("#objectsNameSearchList").children().remove();
+                objectsNameList.forEach(objectsName => {
+                    if (objectsNameList.length !== 1 || objectsName !== $("#searchRequestForm").val()) $("#objectsNameSearchList").append(
+                        "<button type='button' class='list-group-item list-group-item-action' onclick='$(\"#searchRequestForm\").val(\"" + objectsName + "\"); $(\"#objectsNameSearchList\").hide();'>" +
+                        objectsName +
+                        "</button>"
+                    )
+                })
+            },
+            error: function (error) {
+                console.log(error);
+            }
+        })
+    });
+}
+
 $("#findPathSection").show();
 $("#recentSearchSection").show();
 showRecentSearchList();
+changeObjectsNameSearchListDisplayType();
+searchObjectsName();

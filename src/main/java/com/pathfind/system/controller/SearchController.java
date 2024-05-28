@@ -1,11 +1,12 @@
 /*
  * 클래스 기능 : 검색기능을 수행하는 controller
- * 최근 수정 일자 : 2024.04.10(화)
+ * 최근 수정 일자 : 2024.05.28(화)
  */
 package com.pathfind.system.controller;
 
 import com.pathfind.system.domain.ObjectAddress;
 import com.pathfind.system.domain.Objects;
+import com.pathfind.system.findPathDto.SearchObjectsNameVCResponse;
 import com.pathfind.system.findPathDto.SearchPlaceVCRequest;
 import com.pathfind.system.findPathDto.SearchPlaceVCResponse;
 import com.pathfind.system.findPathService2Dto.SearchNicknameVCResponse;
@@ -27,7 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SearchController {
 
-    private static final Logger logger = LoggerFactory.getLogger(MemberController.class);
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final ObjectsService objectsService;
 
@@ -54,9 +55,19 @@ public class SearchController {
     }
 
     @GetMapping("/searchNickname")
-    public SearchNicknameVCResponse search(@RequestParam("searchWord") String searchWord) {
+    public SearchNicknameVCResponse searchNickname(@RequestParam("searchWord") String searchWord) {
         logger.info("Search nickname list like: {}", searchWord);
         List<String> nicknameList = memberService.findNicknameListBySearchWord(searchWord);
         return new SearchNicknameVCResponse(nicknameList);
+    }
+
+    @GetMapping("/searchObjectsName")
+    public SearchObjectsNameVCResponse searchObjectsName(@RequestParam("searchWord") String searchWord) {
+        logger.info("Search objects name list like: {}", searchWord);
+        List<String> objectsNameList = objectsService.findObjectsNameListBySearchWord(searchWord);
+        for (String s : objectsNameList) {
+            logger.info("{}", s);
+        }
+        return new SearchObjectsNameVCResponse(objectsNameList);
     }
 }
