@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2)에서 길 찾기 방에 초대된 인원의 속성을 정의한 클래스이다.
- * 최근 수정 일자 : 2024.03.30(토)
+ * 최근 수정 일자 : 2024.05.29(수)
  */
 package com.pathfind.system.findPathService2Domain;
 
@@ -13,13 +13,15 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RoomMemberInfo {
+    private String userId;
     private String nickname;
     private RoomMemberType roomMemberType;
     private MemberLatLng location;
     private Long closestVertexId;
     private LocalDateTime roomExitTime;
 
-    public RoomMemberInfo(String nickname, RoomMemberType roomMemberType, MemberLatLng location, Long closestVertexId) {
+    public RoomMemberInfo(String userId, String nickname, RoomMemberType roomMemberType, MemberLatLng location, Long closestVertexId) {
+        this.userId = userId;
         this.nickname = nickname;
         this.roomMemberType = roomMemberType;
         this.location = location;

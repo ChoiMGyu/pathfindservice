@@ -55,7 +55,7 @@ public class MemberServiceTest {
         //when
         memberService.register(member1);
         //em.flush();
-        List<Member> result = memberService.findByUserID(member2);
+        List<Member> result = memberService.findByUserId(member2);
 
         //then
         Assert.assertEquals(result.get(0).getUserId(), member2.getUserId());
@@ -282,7 +282,7 @@ public class MemberServiceTest {
         memberService.findPassword(id, email);
 
         //then
-        Assert.assertNotEquals(password, memberService.findByUserID(member).get(0).getPassword());
+        Assert.assertNotEquals(password, memberService.findByUserId(member).get(0).getPassword());
 /*        System.out.println("==========================");
         System.out.println(memberService.findByUserID(member).get(0).getPassword());
         System.out.println("==========================");*/
