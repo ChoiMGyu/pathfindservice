@@ -14,6 +14,7 @@ import com.pathfind.system.domain.Objects;
 import com.pathfind.system.findPathDto.VertexInfo;
 import com.pathfind.system.findPathService2Domain.*;
 import com.pathfind.system.findPathService2Dto.ShortestPathRouteCSResponse;
+import com.pathfind.system.findPathService2Domain.UserInfo;
 import com.pathfind.system.repository.RoadEdgeRepository;
 import com.pathfind.system.repository.RoadVertexRepository;
 import com.pathfind.system.repository.SidewalkEdgeRepository;
@@ -75,7 +76,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     }
 
     @Override
-    public ArrayList<RoomMemberInfo> getCurRoomList(String roomId) throws IOException {
+    public List<RoomMemberInfo> getCurRoomList(String roomId) throws IOException {
         //logger.info("roomId {}에 있는 현재 유저들의 리스트 반환", roomId);
 
         FindPathRoom findPathRoom = findRoomById(roomId);
@@ -94,7 +95,7 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         FindPathRoom findPathRoom = findRoomById(roomId);
         //logger.info("getRoomInviteList 객체 : " + findPathRoom);
 
-        return findPathRoom.getCurMember().stream().map(RoomMemberInfo::getNickname).toList();
+        return findPathRoom.getInvitedMember().stream().map(UserInfo::getNickname).toList();
     }
 
     @Override
@@ -134,11 +135,11 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     }
 
     @Override
-    public FindPathRoom createRoom(String userId, String roomName, TransportationType transportationType) throws JsonProcessingException {
+    public FindPathRoom createRoom(String userId, String nickname, String roomName, TransportationType transportationType) throws JsonProcessingException {
         logger.info("Create room...");
         FindPathRoom findPathRoom = FindPathRoom.createFindPathRoom(roomName, transportationType);
         while (redisUtil.getDataList(findPathRoom.getRoomId()) != null) findPathRoom.createRoomId();
-        pushManagerInvited(findPathRoom, userId);
+        pushManagerInvited(findPathRoom, userId, nickname);
 
         String jsonStringRoom = objectMapper.writeValueAsString(findPathRoom);
         logger.info("Create jsonStringRoom: {}", jsonStringRoom);
@@ -147,8 +148,8 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         return findPathRoom;
     }
 
-    public void pushManagerInvited(FindPathRoom room, String userId) {
-        room.pushNewMember(userId);
+    public void pushManagerInvited(FindPathRoom room, String userId, String nickname) {
+        room.pushNewMember(userId, nickname);
         room.changeOwnerUserId(userId);
     }
 
@@ -349,10 +350,10 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     }
 
     @Override
-    public FindPathRoom inviteMember(String roomId, String userId) throws IOException {
+    public FindPathRoom inviteMember(String roomId, String userId, String nickname) throws IOException {
         logger.info("Invite member {} to room, roomId: {}", userId, roomId);
         FindPathRoom room = findRoomById(roomId);
-        room.pushNewMember(userId);
+        room.pushNewMember(userId, nickname);
         String jsonStringRoom = objectMapper.writeValueAsString(room);
         redisUtil.setDataList(roomId, jsonStringRoom);
         return room;

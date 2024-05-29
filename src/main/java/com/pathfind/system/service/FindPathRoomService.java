@@ -20,7 +20,7 @@ public interface FindPathRoomService {
 
     public FindPathRoom findRoomById(String roomId) throws IOException;
 
-    public ArrayList<RoomMemberInfo> getCurRoomList(String roomId) throws IOException;
+    public List<RoomMemberInfo> getCurRoomList(String roomId) throws IOException;
 
     public List<String> getRoomInviteList(String roomId) throws IOException;
 
@@ -28,7 +28,7 @@ public interface FindPathRoomService {
 
     public void changeOwnerUserId(String roomId, String userId) throws IOException;
 
-    public FindPathRoom createRoom(String userId, String roomName, TransportationType transportationType) throws JsonProcessingException;
+    public FindPathRoom createRoom(String userId, String nickname, String roomName, TransportationType transportationType) throws JsonProcessingException;
 
     public FindPathRoom changeRoomMemberLocation(String roomId, String sender, MemberLatLng memberLatLng) throws IOException;
 
@@ -36,7 +36,7 @@ public interface FindPathRoomService {
 
     public void deleteRoom(String roomId);
 
-    public FindPathRoom inviteMember(String roomId, String userId) throws IOException;
+    public FindPathRoom inviteMember(String roomId, String userId, String nickname) throws IOException;
 
     public boolean checkMemberInvited(String roomId, String userId) throws IOException;
 

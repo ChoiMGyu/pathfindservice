@@ -6,6 +6,7 @@ package com.pathfind.system.controller;
 
 import com.pathfind.system.domain.Member;
 import com.pathfind.system.findPathService2Domain.FindPathRoom;
+import com.pathfind.system.findPathService2Domain.UserInfo;
 import com.pathfind.system.findPathService2Dto.*;
 import com.pathfind.system.notificationServiceDomain.NotificationType;
 import com.pathfind.system.service.FindPathRoomService;
@@ -24,7 +25,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -86,7 +86,7 @@ public class FindPathRoomController {
             return path;
         }
 
-        FindPathRoom newRoom = findPathRoomService.createRoom(loginMember.getUserId(), form.getRoomName(), form.getTransportationType());
+        FindPathRoom newRoom = findPathRoomService.createRoom(loginMember.getUserId(), loginMember.getNickname(), form.getRoomName(), form.getTransportationType());
         //loginMember가 방장이 되어 그 방의 초대 리스트에 들어가게 된다
         //logger.info("go to: {}", path + "/service2/room?roomId=" + newRoom.getRoomId());
         return path + "/service2/room?roomId=" + newRoom.getRoomId();
@@ -169,7 +169,7 @@ public class FindPathRoomController {
             return new InviteMemberVCResponse(InviteType.ALREADY_CONNECTED, "'" + nickname + "'님은 이미 방에 접속해 있습니다.");
         }
 
-        FindPathRoom room = findPathRoomService.inviteMember(roomId, userId);
+        FindPathRoom room = findPathRoomService.inviteMember(roomId, userId, nickname);
         if (!room.getOwnerUserId().equals(userId)) {
             String path = request.getHeader("REFERER");
             logger.info("path: {}", path);
@@ -195,11 +195,11 @@ public class FindPathRoomController {
 
     @GetMapping("/room/curUserlist")
     @ResponseBody
-    public List<UserInfo> curUserlist(@RequestParam(value = "roomId") String roomId) throws IOException {
+    public List<UserInfoVCResponse> curUserlist(@RequestParam(value = "roomId") String roomId) throws IOException {
         if (findPathRoomService.findRoomById(roomId) == null) return null;
         logger.info("현재 roomId {}에 있는 모든 user를 보여주기", roomId);
 
-        return findPathRoomService.getCurRoomList(roomId).stream().map(m -> new UserInfo(m.getUserId(), m.getNickname())).toList();
+        return findPathRoomService.getCurRoomList(roomId).stream().map(m -> new UserInfoVCResponse(m.getUserId(), m.getNickname())).toList();
     }
 
     @GetMapping("/room/inviteUserlist")
