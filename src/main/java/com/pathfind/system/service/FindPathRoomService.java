@@ -1,12 +1,10 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2) 인터페이스
- * 최근 수정 일자 : 2024.05.24(금)
+ * 최근 수정 일자 : 2024.05.29(수)
  */
 package com.pathfind.system.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.pathfind.system.domain.BasicEdge;
-import com.pathfind.system.domain.BasicVertex;
 import com.pathfind.system.findPathService2Domain.*;
 import com.pathfind.system.findPathService2Domain.FindPathRoom;
 import com.pathfind.system.findPathService2Domain.MemberLatLng;
@@ -24,13 +22,13 @@ public interface FindPathRoomService {
 
     public ArrayList<RoomMemberInfo> getCurRoomList(String roomId) throws IOException;
 
-    public ArrayList<String> getRoomInviteList(String roomId) throws IOException;
+    public List<String> getRoomInviteList(String roomId) throws IOException;
 
-    public ArrayList<String> deleteListUser(String roomId, String nickname) throws IOException;
+    public ArrayList<String> deleteListUser(String roomId, String userId) throws IOException;
 
-    public void changeOwnerName(String roomId, String nickname) throws IOException;
+    public void changeOwnerUserId(String roomId, String userId) throws IOException;
 
-    public FindPathRoom createRoom(String nickname, String roomName, TransportationType transportationType) throws JsonProcessingException;
+    public FindPathRoom createRoom(String userId, String roomName, TransportationType transportationType) throws JsonProcessingException;
 
     public FindPathRoom changeRoomMemberLocation(String roomId, String sender, MemberLatLng memberLatLng) throws IOException;
 
@@ -38,17 +36,17 @@ public interface FindPathRoomService {
 
     public void deleteRoom(String roomId);
 
-    public FindPathRoom inviteMember(String roomId, String nickname) throws IOException;
+    public FindPathRoom inviteMember(String roomId, String userId) throws IOException;
 
-    public boolean checkMemberInvited(String roomId, String nickname) throws IOException;
+    public boolean checkMemberInvited(String roomId, String userId) throws IOException;
 
-    public boolean checkMemberCur(String roomId, String nickname) throws IOException;
+    public boolean checkMemberCur(String roomId, String userId) throws IOException;
 
-    public FindPathRoom memberEnterRoom(String roomId, String nickname) throws IOException;
+    public FindPathRoom memberEnterRoom(String roomId, String userId, String nickname) throws IOException;
 
-    public FindPathRoom leaveRoom(String nickname) throws IOException;
+    public FindPathRoom leaveRoom(String userId) throws IOException;
 
-    public FindPathRoom leaveRoom(String nickname, String roomId) throws IOException;
+    public FindPathRoom leaveRoom(String userId, String roomId) throws IOException;
 
-    public FindPathRoom findCurRoomByNickname(String nickname);
+    public FindPathRoom findCurRoomByUserId(String userId);
 }

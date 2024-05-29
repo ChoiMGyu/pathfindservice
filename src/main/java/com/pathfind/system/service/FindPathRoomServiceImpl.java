@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2) 구현체
- * 최근 수정 일자 : 2024.05.24(금)
+ * 최근 수정 일자 : 2024.05.29(수)
  */
 package com.pathfind.system.service;
 
@@ -88,24 +88,24 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     }
 
     @Override
-    public ArrayList<String> getRoomInviteList(String roomId) throws IOException {
+    public List<String> getRoomInviteList(String roomId) throws IOException {
         //logger.info("roomId {}에 있는 초대 유저들의 리스트 반환", roomId);
 
         FindPathRoom findPathRoom = findRoomById(roomId);
         //logger.info("getRoomInviteList 객체 : " + findPathRoom);
 
-        return new ArrayList<>(findPathRoom.getInvitedMember());
+        return findPathRoom.getCurMember().stream().map(RoomMemberInfo::getNickname).toList();
     }
 
     @Override
-    public ArrayList<String> deleteListUser(String roomId, String nickname) throws IOException {
-        logger.info("roomId {}에 있는 nickname {}인 유저를 현재 인원에서 삭제", roomId, nickname);
+    public ArrayList<String> deleteListUser(String roomId, String userId) throws IOException {
+        logger.info("roomId {}에 있는 userId {}인 유저를 현재 인원에서 삭제", roomId, userId);
 
         FindPathRoom findPathRoom = findRoomById(roomId);
 
         //logger.info("deleteListUser 객체 : " + findPathRoom);
 
-        findPathRoom.leaveRoomCurMember(nickname);
+        findPathRoom.leaveRoomCurMember(userId);
 
         String jsonStringRoom = objectMapper.writeValueAsString(findPathRoom);
         redisUtil.setDataList(roomId, jsonStringRoom);
@@ -119,14 +119,14 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     }
 
     @Override
-    public void changeOwnerName(String roomId, String nickname) throws IOException {
+    public void changeOwnerUserId(String roomId, String userId) throws IOException {
         FindPathRoom findPathRoom = findRoomById(roomId);
 
-        logger.info("roomId {}의 방장을 {}에서 {}로 교체", roomId, findPathRoom.getOwnerName(), nickname);
+        logger.info("roomId {}의 방장을 {}에서 {}로 교체", roomId, findPathRoom.getOwnerUserId(), userId);
 
         //RoomMemberInfo lastOwner = findPathRoom.findMemberByNickname(findPathRoom.getOwnerName());
         //findPathRoom.getCurMember().remove(0);
-        findPathRoom.changeOwnerName(nickname);
+        findPathRoom.changeOwnerUserId(userId);
         //findPathRoom.getCurMember().add(lastOwner);
 
         String jsonStringRoom = objectMapper.writeValueAsString(findPathRoom);
@@ -134,11 +134,11 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     }
 
     @Override
-    public FindPathRoom createRoom(String nickname, String roomName, TransportationType transportationType) throws JsonProcessingException {
+    public FindPathRoom createRoom(String userId, String roomName, TransportationType transportationType) throws JsonProcessingException {
         logger.info("Create room...");
         FindPathRoom findPathRoom = FindPathRoom.createFindPathRoom(roomName, transportationType);
         while (redisUtil.getDataList(findPathRoom.getRoomId()) != null) findPathRoom.createRoomId();
-        pushManagerInvited(findPathRoom, nickname);
+        pushManagerInvited(findPathRoom, userId);
 
         String jsonStringRoom = objectMapper.writeValueAsString(findPathRoom);
         logger.info("Create jsonStringRoom: {}", jsonStringRoom);
@@ -147,9 +147,9 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
         return findPathRoom;
     }
 
-    public void pushManagerInvited(FindPathRoom room, String nickname) {
-        room.pushNewMember(nickname);
-        room.changeOwnerName(nickname);
+    public void pushManagerInvited(FindPathRoom room, String userId) {
+        room.pushNewMember(userId);
+        room.changeOwnerUserId(userId);
     }
 
     @Override
@@ -349,35 +349,35 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     }
 
     @Override
-    public FindPathRoom inviteMember(String roomId, String nickname) throws IOException {
-        logger.info("Invite member {} to room, roomId: {}", nickname, roomId);
+    public FindPathRoom inviteMember(String roomId, String userId) throws IOException {
+        logger.info("Invite member {} to room, roomId: {}", userId, roomId);
         FindPathRoom room = findRoomById(roomId);
-        room.pushNewMember(nickname);
+        room.pushNewMember(userId);
         String jsonStringRoom = objectMapper.writeValueAsString(room);
         redisUtil.setDataList(roomId, jsonStringRoom);
         return room;
     }
 
     @Override
-    public boolean checkMemberInvited(String roomId, String nickname) throws IOException {
-        logger.info("Check {} is already invited at roomId {}", nickname, roomId);
+    public boolean checkMemberInvited(String roomId, String userId) throws IOException {
+        logger.info("Check {} is already invited at roomId {}", userId, roomId);
         FindPathRoom room = findRoomById(roomId);
-        return room.checkMemberInvited(nickname);
+        return room.checkMemberInvited(userId);
     }
 
     @Override
-    public boolean checkMemberCur(String roomId, String nickname) throws IOException {
-        logger.info("Check {} is already connect at roomId {}", nickname, roomId);
+    public boolean checkMemberCur(String roomId, String userId) throws IOException {
+        logger.info("Check {} is already connect at roomId {}", userId, roomId);
         FindPathRoom room = findRoomById(roomId);
-        return room.checkMemberCur(nickname);
+        return room.checkMemberCur(userId);
     }
 
     @Override
-    public FindPathRoom memberEnterRoom(String roomId, String nickname) throws IOException {
+    public FindPathRoom memberEnterRoom(String roomId, String userId, String nickname) throws IOException {
         logger.info("{} enter the room, roomId: {}", nickname, roomId);
         FindPathRoom room = findRoomById(roomId);
         if (room == null) return null;
-        room.enterRoom(nickname, room.getOwnerNickname().equals(nickname) ? RoomMemberType.OWNER : RoomMemberType.NORMAL, null, null);
+        room.enterRoom(userId, nickname, room.getOwnerUserId().equals(userId) ? RoomMemberType.OWNER : RoomMemberType.NORMAL, null, null);
         String jsonStringRoom = objectMapper.writeValueAsString(room);
         redisUtil.setDataList(room.getRoomId(), jsonStringRoom);
 
@@ -385,37 +385,37 @@ public class FindPathRoomServiceImpl implements FindPathRoomService {
     }
 
     @Override
-    public FindPathRoom leaveRoom(String nickname) throws IOException {
-        FindPathRoom room = findCurRoomByNickname(nickname);
+    public FindPathRoom leaveRoom(String userId) throws IOException {
+        FindPathRoom room = findCurRoomByUserId(userId);
         if (room == null) return null;
         String roomId = room.getRoomId();
-        RoomMemberInfo member = room.findMemberByNickname(nickname);
+        RoomMemberInfo member = room.findMemberByUserId(userId);
         logger.info("{} leaves the room, roomId: {}", member.getNickname(), roomId);
-        room.leaveRoomCurMember(nickname);
+        room.leaveRoomCurMember(userId);
         String jsonStringRoom = objectMapper.writeValueAsString(room);
         redisUtil.setDataList(roomId, jsonStringRoom);
         return room;
     }
 
     @Override
-    public FindPathRoom leaveRoom(String nickname, String roomId) throws IOException {
+    public FindPathRoom leaveRoom(String userId, String roomId) throws IOException {
         FindPathRoom room = findRoomById(roomId);
-        if (room == null || !room.checkMemberCur(nickname)) return null;
-        RoomMemberInfo member = room.findMemberByNickname(nickname);
+        if (room == null || !room.checkMemberCur(userId)) return null;
+        RoomMemberInfo member = room.findMemberByUserId(userId);
         logger.info("{} leaves the room, roomId: {}", member.getNickname(), roomId);
-        room.leaveRoomCurMember(nickname);
+        room.leaveRoomCurMember(userId);
         String jsonStringRoom = objectMapper.writeValueAsString(room);
         redisUtil.setDataList(roomId, jsonStringRoom);
         return room;
     }
 
     @Override
-    public FindPathRoom findCurRoomByNickname(String nickname) {
+    public FindPathRoom findCurRoomByUserId(String userId) {
         logger.info("Find room by nickname");
         List<FindPathRoom> rooms = findAllRoom();
         FindPathRoom result = null;
         for (FindPathRoom room : rooms) {
-            if (room.checkMemberCur(nickname)) {
+            if (room.checkMemberCur(userId)) {
                 result = room;
                 break;
             }

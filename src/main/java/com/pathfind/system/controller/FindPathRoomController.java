@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 실시간 상대방 길 찾기 서비스(서비스2)의 페이지들을 렌더링하는 클래스이다.
- * 최근 수정 일자 : 2024.05.28(화)
+ * 최근 수정 일자 : 2024.05.29(수)
  */
 package com.pathfind.system.controller;
 
@@ -25,6 +25,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Controller
@@ -40,7 +41,7 @@ public class FindPathRoomController {
 
     // service2 메인 화면
     @GetMapping("/enter")
-    public String enterService2(HttpServletRequest request, Model model, RedirectAttributes rttr) {
+    public String enterService2(HttpServletRequest request, RedirectAttributes rttr) {
         logger.info("Service2 처음 페이지 입장");
         HttpSession session = request.getSession(false);
         if (session == null) {
@@ -85,7 +86,7 @@ public class FindPathRoomController {
             return path;
         }
 
-        FindPathRoom newRoom = findPathRoomService.createRoom(loginMember.getNickname(), form.getRoomName(), form.getTransportationType());
+        FindPathRoom newRoom = findPathRoomService.createRoom(loginMember.getUserId(), form.getRoomName(), form.getTransportationType());
         //loginMember가 방장이 되어 그 방의 초대 리스트에 들어가게 된다
         //logger.info("go to: {}", path + "/service2/room?roomId=" + newRoom.getRoomId());
         return path + "/service2/room?roomId=" + newRoom.getRoomId();
@@ -121,13 +122,13 @@ public class FindPathRoomController {
         }
 
         //길찾기 방에 회원에 초대받지 않았다면 redirect:/
-        if (!room.checkMemberInvited(loginMember.getNickname())) {
+        if (!room.checkMemberInvited(loginMember.getUserId())) {
             logger.info("{}가 길찾기방에 초대되지 않아서 입장에 실패하였음", loginMember.getNickname());
             rttr.addFlashAttribute("message", "방 이름 '" + room.getRoomName() + "'에 해당하는 방에 초대받지 못했습니다.");
             return "redirect:/";
         }
 
-        notificationService.deleteNotificationByRoomIdAndUserId(room.getRoomId(), loginMember.getNickname());
+        notificationService.deleteNotificationByRoomIdAndUserId(room.getRoomId(), loginMember.getUserId());
         model.addAttribute("room", room);
 
         return "service2/room";
@@ -141,37 +142,40 @@ public class FindPathRoomController {
         String nickname = form.getNickname();
         logger.info("Invite {} at room, roomId: {}", nickname, roomId);
         Member member = Member.createMember(null, null, nickname, null, null);
+        List<Member> memberList = memberService.findByNickname(member);
 
         // nickname이 데이터베이스에 존재하는 것인지 여부를 확인한다.
-        if (memberService.findByNickname(member).isEmpty()) {
+        if (memberList.isEmpty()) {
             logger.info("{} isn't exist at DB", nickname);
             return new InviteMemberVCResponse(InviteType.NOT_INVITED, "'" + nickname + "'은 존재하지 않는 닉네임 입니다.");
         }
 
+        String userId = memberList.get(0).getUserId();
+
         // 이미 roomId에 해당하는 길찾기 방에 초대가 되어 있는지 여부를 확인한다.
-        if (findPathRoomService.checkMemberInvited(roomId, nickname)) {
+        if (findPathRoomService.checkMemberInvited(roomId, userId)) {
             logger.info("{} is already invited at room, roomId {}", roomId, nickname);
             return new InviteMemberVCResponse(InviteType.DUPLICATE_INVITE, "'" + nickname + "'님은 이미 초대되었습니다.");
         }
 
-        if (findPathRoomService.checkMemberCur(roomId, nickname) && findPathRoomService.findRoomById(roomId).getOwnerName().equals(nickname)) {
+        if (findPathRoomService.checkMemberCur(roomId, userId) && findPathRoomService.findRoomById(roomId).getOwnerUserId().equals(userId)) {
             logger.info("{} is already connected at room, roomId {}", roomId, nickname);
             return new InviteMemberVCResponse(InviteType.SELF_INVITED, "자기 자신을 초대할 수 없습니다.");
         }
 
         // 이미 roomId에 해당하는 길찾기 방에 접속해 있는지 여부를 확인한다.
-        if (findPathRoomService.checkMemberCur(roomId, nickname)) {
+        if (findPathRoomService.checkMemberCur(roomId, userId)) {
             logger.info("{} is already invited at room, roomId {}", roomId, nickname);
             return new InviteMemberVCResponse(InviteType.ALREADY_CONNECTED, "'" + nickname + "'님은 이미 방에 접속해 있습니다.");
         }
 
-        FindPathRoom room = findPathRoomService.inviteMember(roomId, nickname);
-        if (!room.getOwnerNickname().equals(nickname)) {
+        FindPathRoom room = findPathRoomService.inviteMember(roomId, userId);
+        if (!room.getOwnerUserId().equals(userId)) {
             String path = request.getHeader("REFERER");
             logger.info("path: {}", path);
             notificationService.sendInviteNotification(room.getOwnerNickname() + "님이 " + room.getRoomName() + "방으로 회원님을 초대했습니다.",
-                    room.getOwnerNickname(),
-                    nickname,
+                    room.getOwnerUserId(),
+                    userId,
                     NotificationType.INVITE,
                     path,
                     roomId);
@@ -191,21 +195,16 @@ public class FindPathRoomController {
 
     @GetMapping("/room/curUserlist")
     @ResponseBody
-    public ArrayList<String> curUserlist(@RequestParam(value = "roomId") String roomId) throws IOException {
+    public List<UserInfo> curUserlist(@RequestParam(value = "roomId") String roomId) throws IOException {
         if (findPathRoomService.findRoomById(roomId) == null) return null;
         logger.info("현재 roomId {}에 있는 모든 user를 보여주기", roomId);
 
-        ArrayList<String> result = new ArrayList<>();
-        for (int i = 0; i < findPathRoomService.getCurRoomList(roomId).size(); i++) {
-            result.add(findPathRoomService.getCurRoomList(roomId).get(i).getNickname());
-        }
-
-        return result;
+        return findPathRoomService.getCurRoomList(roomId).stream().map(m -> new UserInfo(m.getUserId(), m.getNickname())).toList();
     }
 
     @GetMapping("/room/inviteUserlist")
     @ResponseBody
-    public ArrayList<String> inviteUserlist(@RequestParam(value = "roomId") String roomId) throws IOException {
+    public List<String> inviteUserlist(@RequestParam(value = "roomId") String roomId) throws IOException {
         if (findPathRoomService.findRoomById(roomId) == null) return null;
         //logger.info("roomId {}에 초대된 user를 보여주기", roomId);
 

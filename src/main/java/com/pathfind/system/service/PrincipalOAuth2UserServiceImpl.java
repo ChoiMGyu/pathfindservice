@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : OAuth 로그인 시 PrincipalDetails(UserDetails 구현체)를 만들기 위해 사용되는 클래스
- * 최근 수정 일자 : 2024.05.20(월)
+ * 최근 수정 일자 : 2024.05.29(수)
  */
 package com.pathfind.system.service;
 
@@ -60,7 +60,7 @@ public class PrincipalOAuth2UserServiceImpl extends DefaultOAuth2UserService {
         check.changeEmailAuth(true);
         check.changeInformationAgree(true);
         Member member = Member.createMember(userId, null, nickname, email, check);
-        while(!memberService.findByUserID(member).isEmpty()) {
+        while(!memberService.findByUserId(member).isEmpty()) {
             member.changeUserId(provider + "_" + Member.createRandomUserId(11 - provider.length()));
             member.changeNickname(member.getUserId());
         }

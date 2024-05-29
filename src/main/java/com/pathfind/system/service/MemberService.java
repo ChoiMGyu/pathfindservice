@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MemberService {
-    public List<Member> findByUserID(Member member);
+    public List<Member> findByUserId(Member member);
 
     public List<Member> findByNickname(Member member);
 

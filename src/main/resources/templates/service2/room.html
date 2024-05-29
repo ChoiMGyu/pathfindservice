@@ -157,7 +157,7 @@
 
     let $userlist = $("#userlist"); //jquery id가 "userlist"인 object 가져오기
 
-    let userList;
+    let userList = [];
 
     let roomStartTime = new Date();
 
@@ -174,18 +174,23 @@
                 "roomId": roomId
             },
             success: function (data) {
-                userList = data;
+                console.log(data);
+                userList = [];
                 var users = "";
                 for (let i = 0; i < data.length; i++) {
-                    var encodedNickname = encodeURIComponent(data[i]);
-                    var sep = encodedNickname;
+                    let userInfo = data[i];
+                    let userId = userInfo.userId;
+                    let nickname = userInfo.nickname;
+
+                    userList.push(nickname);
+
                     //조건에 따라 강제 퇴장 버튼을 출력
-                    if (sender === encodedNickname) {
-                        users += "<li class='dropdown-item'><span class='fw-bold'>방장 : </span>" + "<span class='test-start'>" + data[i] + "</span></li>"
+                    if (sender === userId) {
+                        users += "<li class='dropdown-item'><span class='fw-bold'>방장 : </span>" + "<span class='test-start'>" + nickname + "</span></li>"
                     } else {
                         users += "<li><hr class='dropdown-divider'></li>"
-                        users += "<li class='dropdown-item'><span class='fw-bold'>일반회원 : </span> " + data[i] + "<div></div><div class=\"d-grid gap-2\"><button class='btn btn-outline-primary btn-sm' data-role='exit' data-nickname='" + encodedNickname + "'>퇴장</button></div>"
-                            + "<div></div><div class=\"d-grid gap-2\"><button id='" + encodedNickname + "' class='btn btn-outline-primary btn-sm btn-assign'>임명</button></div>"
+                        users += "<li class='dropdown-item'><span class='fw-bold'>일반회원 : </span> " + nickname + "<div></div><div class=\"d-grid gap-2\"><button class='btn btn-outline-primary btn-sm' data-role='exit' data-userid='" + userId + "'>퇴장</button></div>"
+                            + "<div></div><div class=\"d-grid gap-2\"><button id='" + userId + "' class='btn btn-outline-primary btn-sm btn-assign'>임명</button></div>"
                             + "</li>"
                     }
                 }
@@ -207,15 +212,19 @@
                 "roomId": roomId
             },
             success: function (data) {
-                userList = data;
-                var users = "";
+                userList = [];
+                let users = "";
                 for (let i = 0; i < data.length; i++) {
-                    var encodedNickname = encodeURIComponent(data[i]);
-                    var sep = encodedNickname;
-                    if (sender === encodedNickname) {
-                        users += "<li class='dropdown-item'><span class='fw-bold'>방장 : </span>" + "<span class='test-start'>" + data[i] + "</span></li>"
+                    let userInfo = data[i];
+                    let userId = userInfo.userId;
+                    let nickname = userInfo.nickname;
+
+                    userList.push(nickname);
+
+                    if (sender === userId) {
+                        users += "<li class='dropdown-item'><span class='fw-bold'>방장 : </span>" + "<span class='test-start'>" + nickname + "</span></li>"
                     } else {
-                        users += "<li class='dropdown-item'><span class='fw-bold'>일반회원 : </span>" + data[i] + "</li>"
+                        users += "<li class='dropdown-item'><span class='fw-bold'>일반회원 : </span>" + nickname + "</li>"
                     }
                     if (i !== data.length - 1) {
                         users += "<li><hr class='dropdown-divider'></li>"
@@ -291,14 +300,14 @@
     }
 
     /**
-     * nickname에 해당하는 인원이 방장이 되면 방장이 사용할 수 있는 기능들을 보여주는 함수이다.
+     * userId에 해당하는 인원이 방장이 되면 방장이 사용할 수 있는 기능들을 보여주는 함수이다.
      */
-    function giveAuthority(nickname, currentManager) {
-        if (nickname === currentManager) {
+    function giveAuthority(userId, currentManager) {
+        if (userId === currentManager) {
             $("#inviteMemberSection, #inviteUserlistSection, #deleteRoomBtn, #recentInviteSection").show();
             $("#deleteRoomSection").attr("class", "d-grid mt-3 mb-5");
         } else {
-            //console.log(nickname, currentManager);
+            //console.log(userId, currentManager);
             $("#inviteMemberSection, #inviteUserlistSection, #deleteRoomBtn, #recentInviteSection").hide();
             $("#deleteRoomSection").attr("class", "");
         }
@@ -518,11 +527,11 @@
     /**
      * 방에 혼자 있을 때 마커를 그리기 위해 사용되는 함수이다.
      */
-    function aloneInRoom(latitude, longitude, nickname) {
+    function aloneInRoom(latitude, longitude, userId) {
         removeAllMarker();
         removeAllPolyline();
         removeAllCustomOverlay();
-        addCustomOverlay(latitude, longitude, makeCustomOverlayContent(nickname));
+        addCustomOverlay(latitude, longitude, makeCustomOverlayContent(userId));
         if (mapCenterChanged === true) return;
         BoundStatus = BOUND_CHANGED;
         setBounds({latitude: latitude, longitude: longitude});
@@ -550,7 +559,7 @@
         console.log("update: {time: " + t + ", count: " + v.count + ", countPer2Sec: " + v.countPer2Sec + "}");
         $("#routeUpdateCount").text(countTxt);
         $("#routeUpdateCountPer2Sec").text(countPer2SecAvgTxt);
-        if(curTime - v.recentTime > 2000) {
+        if (curTime - v.recentTime > 2000) {
             v.recentTime = curTime;
             let recentCountPer2SecTxt = "최근 2초간 경로 업데이트 횟수: " + v.recentCount.toString();
             $("#routeUpdateCountLast2Sec").text(recentCountPer2SecTxt);
@@ -579,11 +588,12 @@
 
         let roomName = [[${room.roomName}]];
         let roomId = [[${room.roomId}]];
+        let userId = [[${session.loginMember}]].userId;
         let nickname = [[${session.loginMember}]].nickname;
 
-        giveAuthority(nickname, [[${room.ownerName}]]);
+        giveAuthority(userId, [[${room.ownerUserId}]]);
 
-        //console.log(roomName + ", " + roomId + ", " + nickname);
+        //console.log(roomName + ", " + roomId + ", " + userId);
 
         if (navigator.geolocation) {
             // GeoLocation을 이용해서 접속 위치를 얻어옵니다
@@ -593,7 +603,7 @@
 
                 if (NotInCampusMessage === NOT_SENDED && !_isMemberInCampusArea(latitude, longitude)) {
                     NotInCampusMessage = SENDED;
-                    let txt = nickname + "님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 경로가 올바르지 않을 수 있습니다.";
+                    let txt = userId + "님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 경로가 올바르지 않을 수 있습니다.";
                     bodyAlert(txt);
                 }
 
@@ -606,12 +616,12 @@
                 let v = {count: count, countPer2Sec: countPer2Sec, recentCount: recentCount, recentTime: recentTime};
 
                 //2. connection이 맺어지면 실행
-                stomp.connect({sender: nickname, roomId: roomId}, function () { // { id:nickname, roomId:roomId }는 connect 헤더에 포함되는 정보이다. SendInformationController 의 handleWebSocketConnectListener 함수에서 사용된다.
+                stomp.connect({sender: userId, roomId: roomId}, function () { // { id:userId, roomId:roomId }는 connect 헤더에 포함되는 정보이다. SendInformationController 의 handleWebSocketConnectListener 함수에서 사용된다.
                     //console.log("STOMP Connection");
-                    if ([[${room.ownerName}]] !== nickname) {
+                    if ([[${room.ownerUserId}]] !== userId) {
                         $('#inviteUserlistSection').hide();
                     }
-                    let owner = [[${room.ownerName}]];
+                    let owner = [[${room.ownerUserId}]];
                     //3. subscribe(path, callback)으로 메세지를 받을 수 있음
                     stomp.subscribe("/sub/service2/room/" + roomId, function (chat) {
                         let content = JSON.parse(chat.body);
@@ -629,7 +639,7 @@
 
                         //console.log("owner 출력 : " + owner);
                         //console.log("sender 출력 : " + sender);
-                        if (owner === nickname) {
+                        if (owner === userId) {
                             //console.log("방장 userlist");
                             getUserList(owner); //userlist 업데이트(방장)
                         } else {
@@ -644,7 +654,7 @@
 
                         if (manager != null) {
                             owner = manager;
-                            giveAuthority(nickname, manager);
+                            giveAuthority(userId, manager);
                         }
 
                         switch (messageType) {
@@ -659,12 +669,12 @@
                                 // console.log("Change_Owner message 전송 완료");
                                 // console.log("newOwner는 " + newOwner + "입니다.");
                                 owner = newOwner;
-                                giveAuthority(nickname, newOwner);
+                                giveAuthority(userId, newOwner);
                                 bodyAlert(message);
                                 //이전에는 subscribe message가 보내졌을 때 list 업데이트가 되었으므로
                                 //방장이 바뀌더라도 message가 보내지는 타이밍과 다르면 업데이트가 느렸음
                                 //방장을 바꾸자마자 리스트를 호출함으로써 업데이트 속도 향상
-                                if (owner === nickname) {
+                                if (owner === userId) {
                                     getUserList(owner); //userlist 업데이트(방장)
                                 } else {
                                     getUserListNormal(); //userlist 업데이트(일반유저)
@@ -672,7 +682,7 @@
                                 getInviteList(); //invitelist 업데이트
                                 break;
                             case "LEAVE":
-                                if (sender === nickname) {
+                                if (sender === userId) {
                                     leaveRoom(roomName, message);
                                 }
                                 bodyAlert(message);
@@ -692,7 +702,7 @@
                     });
 
                     //4. send(path, header, message)로 메세지를 보낼 수 있음
-                    //stomp.send('/pub/room/enter', {}, JSON.stringify({roomId: roomId, sender: nickname}));
+                    //stomp.send('/pub/room/enter', {}, JSON.stringify({roomId: roomId, sender: userId}));
 
                     let delay = 2000;
 
@@ -756,10 +766,10 @@
                         if (NotInCampusMessage === NOT_SENDED) {
                             if (!_isMemberInCampusArea(latitude, longitude)) {
                                 NotInCampusMessage = SENDED;
-                                let txt = `${nickname}님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 경로가 올바르지 않을 수 있습니다.`;
+                                let txt = `${userId}님은 현재 영남대학교 캠퍼스 외부에 있습니다. 따라서 경로가 올바르지 않을 수 있습니다.`;
                                 stomp.send('/pub/room/out-campus', {}, JSON.stringify({
                                     roomId: roomId,
-                                    sender: nickname,
+                                    sender: userId,
                                     message: txt
                                 }));
                             } else {
@@ -769,7 +779,7 @@
                         let msg = JSON.stringify({latitude: latitude, longitude: longitude});
                         stomp.send('/pub/room/route', {}, JSON.stringify({
                             roomId: roomId,
-                            sender: nickname,
+                            sender: userId,
                             message: msg
                         }));
                     }
@@ -779,12 +789,13 @@
 
                 $('#userlist').on('click', '[data-role="exit"]', function () {
                     //퇴장 버튼을 눌렀을 때 실행되는 함수
-                    var exitNickname = $(this).data('nickname');
+                    var exitUserId = $(this).data('userid');
+                    console.log("exit userId: " + exitUserId);
                     //alert(nickname + " 사용자의 퇴장 처리를 합니다.");
-                    stomp.send('/pub/room/leaveRoomNickname', {}, JSON.stringify({
+                    stomp.send('/pub/room/leaveRoomUserId', {}, JSON.stringify({
                         roomId: roomId,
-                        sender: exitNickname,
-                        message: exitNickname + "이 방에서 강제 퇴장되었습니다."
+                        sender: exitUserId,
+                        message: exitUserId + "이 방에서 강제 퇴장되었습니다."
                     }));
                 });
 
@@ -793,7 +804,7 @@
                     //console.log(newOwner + " 임명 버튼이 클릭되었습니다");
                     stomp.send('/pub/room/changeOwner', {}, JSON.stringify({
                         roomId: roomId,
-                        sender: nickname,
+                        sender: userId,
                         message: "방의 방장이 바뀌었어요!",
                         owner: newOwner
                     }));
@@ -802,10 +813,10 @@
                 $("#button-send").on("click", function (e) {
                     let msg = document.getElementById("msg");
 
-                    console.log(nickname + ":" + msg.value);
+                    console.log(userId + ":" + msg.value);
                     stomp.send('/pub/room/message', {}, JSON.stringify({
                         roomId: roomId,
-                        sender: nickname,
+                        sender: userId,
                         message: msg.value
                     }));
                     msg.value = '';
@@ -821,7 +832,7 @@
                     console.log("delete room");
                     stomp.send('/pub/room/delete', {}, JSON.stringify({
                         roomId: roomId,
-                        sender: nickname,
+                        sender: userId,
                         message: null
                     }));
                 });

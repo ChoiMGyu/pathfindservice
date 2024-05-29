@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 서비스 클래스
- * 최근 수정 일자 : 2024.05.19(일)
+ * 최근 수정 일자 : 2024.05.29(수)
  */
 package com.pathfind.system.service;
 
@@ -31,7 +31,7 @@ public class MemberServiceImpl implements MemberService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
-    public List<Member> findByUserID(Member member) {
+    public List<Member> findByUserId(Member member) {
         return memberRepository.findByUserID(member.getUserId());
     }
 

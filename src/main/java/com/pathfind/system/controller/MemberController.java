@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 관련 페이지 렌더링을 하는 controller
- * 최근 수정 일자 : 2024.05.28(화)
+ * 최근 수정 일자 : 2024.05.29(수)
  */
 package com.pathfind.system.controller;
 
@@ -130,7 +130,7 @@ public class MemberController {
         }
 
         Member member = Member.createMember(form.getUserId(), null, null, null, null);
-        if (form.getUserId() != null && !memberService.findByUserID(member).isEmpty()) {
+        if (form.getUserId() != null && !memberService.findByUserId(member).isEmpty()) {
             result.rejectValue("userId", "UserId.exist");
         }
 
@@ -598,7 +598,7 @@ public class MemberController {
         String regex = "(?=.*[0-9])(?=.*[a-zA-Z])(?=.*\\W)(?=\\S+$).{8,20}";
         Pattern pattern = Pattern.compile(regex);
 
-        List<Member> memberList = memberService.findByUserID(((Member) session.getAttribute(SessionConst.LOGIN_MEMBER)));
+        List<Member> memberList = memberService.findByUserId(((Member) session.getAttribute(SessionConst.LOGIN_MEMBER)));
 
         if(memberList.isEmpty()) {
             return "redirect:/";
