@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 검색 기능 구현 클래스
- * 최근 수정 일자 : 2024.05.28(화)
+ * 최근 수정 일자 : 2024.05.30(목)
  */
 package com.pathfind.system.service;
 
@@ -12,9 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -59,9 +57,12 @@ public class ObjectsServiceImpl implements ObjectsService{
         if(redisUtil.getDataSortedSet(RedisValue.OBJECTS_NAME_SET, RedisValue.GET_ALL_DATA).isEmpty()) {
             redisUtil.setDataSortedSet(RedisValue.OBJECTS_NAME_SET, objectsRepository.findAllObjectsName());
         }
-        List<String> result = redisUtil.getDataSortedSet(RedisValue.OBJECTS_NAME_SET, searchWord);
+        List<String> result = new ArrayList<>(redisUtil.getDataSortedSet(RedisValue.OBJECTS_NAME_SET, searchWord));
         String finalSearchWord = searchWord;
-        result.sort(Comparator.comparingInt(a -> a.indexOf(finalSearchWord)));
+
+        Comparator<String> comparingIndexOf = Comparator.comparingInt(a -> a.indexOf(finalSearchWord));
+        result.sort(comparingIndexOf.thenComparing(Comparator.naturalOrder()));
+
         List<String> response = new ArrayList<>();
         for(int i = 0; i < Math.min(10, result.size()); i++) {
             response.add(result.get(i));
