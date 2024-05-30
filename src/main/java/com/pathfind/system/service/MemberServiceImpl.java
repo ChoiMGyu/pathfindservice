@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 서비스 클래스
- * 최근 수정 일자 : 2024.05.29(수)
+ * 최근 수정 일자 : 2024.05.30(목)
  */
 package com.pathfind.system.service;
 
@@ -165,7 +165,9 @@ public class MemberServiceImpl implements MemberService {
         }
         List<String> result = redisUtil.getDataSortedSet(RedisValue.NICKNAME_SET, searchWord);
         //logger.info("result: {}", result);
-        result.sort(Comparator.comparingInt(a -> a.indexOf(searchWord)));
+        Comparator<String> comparingIndexOf = Comparator.comparingInt(a -> a.indexOf(searchWord));
+        result.sort(comparingIndexOf.thenComparing(Comparator.naturalOrder()));
+
         List<String> response = new ArrayList<>();
         for(int i = 0; i < Math.min(5,result.size()); i++) {
             response.add(result.get(i));
