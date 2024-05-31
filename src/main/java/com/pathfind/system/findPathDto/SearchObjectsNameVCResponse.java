@@ -11,4 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 public class SearchObjectsNameVCResponse {
     public List<String> objectsNameList;
+//    public int currentPage;
+//    public int totalPages;
 }
