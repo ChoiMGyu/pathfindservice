@@ -66,9 +66,12 @@ public class ObjectsServiceImpl implements ObjectsService{
         if(redisUtil.getDataSortedSet(RedisValue.OBJECTS_NAME_SET, RedisValue.GET_ALL_DATA).isEmpty()) {
             redisUtil.setDataSortedSet(RedisValue.OBJECTS_NAME_SET, objectsRepository.findAllObjectsName());
         }
-        List<String> result = redisUtil.getDataSortedSet(RedisValue.OBJECTS_NAME_SET, searchWord);
+        List<String> result = new ArrayList<>(redisUtil.getDataSortedSet(RedisValue.OBJECTS_NAME_SET, searchWord));
         String finalSearchWord = searchWord;
-        result.sort(Comparator.comparingInt(a -> a.indexOf(finalSearchWord)));
+
+        Comparator<String> comparingIndexOf = Comparator.comparingInt(a -> a.indexOf(finalSearchWord));
+        result.sort(comparingIndexOf.thenComparing(Comparator.naturalOrder()));
+
         List<String> response = new ArrayList<>();
         for(int i = 0; i < Math.min(10, result.size()); i++) {
             response.add(result.get(i));

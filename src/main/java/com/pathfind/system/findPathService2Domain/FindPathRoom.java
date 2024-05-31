@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -20,8 +21,8 @@ public class FindPathRoom {
     private String roomId; //방 식별 아이디
     private String roomName; //방 이름
     private String ownerUserId; //방장 이름
-    private ArrayList<String> invitedMember; //초대 회원(아이디)
-    private ArrayList<RoomMemberInfo> curMember; //현재 방에 존재하는 회원
+    private List<UserInfo> invitedMember; //초대 회원(아이디)
+    private List<RoomMemberInfo> curMember; //현재 방에 존재하는 회원
     private LocalDateTime roomDeletionTime; //방 삭제 시간
     private LocalDateTime roomExpirationTime; // 방 만료 시간
     private TransportationType transportationType; // 이동 수단
@@ -60,7 +61,7 @@ public class FindPathRoom {
         //방의 초대 정원을 확인하는 함수
         //방에 들어가지 못하는 상황
         //방에 들어갈 수 있는 상황
-        return getInvitedMember().size() + 1 <= RoomValue.ROOM_MAX_MEMBER_NUM;
+        return getInvitedMember().size() + getCurMemberNum() + 1 <= RoomValue.ROOM_MAX_MEMBER_NUM;
     }
 
     public boolean chkRoomCurCnt() {
@@ -82,14 +83,14 @@ public class FindPathRoom {
     }
 
 
-    public void pushNewMember(String userId) {
+    public void pushNewMember(String userId, String nickname) {
         //초대 리스트에 회원을 넣는 메소드
         if (!chkRoomInviteCnt()) {
-            throw new CustomException(ErrorCode.ROOM_EXCEEDED, "방에 초대 가능한 인원은 최대 4명 입니다.");
+            throw new CustomException(ErrorCode.ROOM_EXCEEDED, "방에 초대 가능한 인원은 현재 인원을 포함해 최대 5명 입니다.");
         }
         //초대된 인원을 관리하는 리스트는 초대된 인원을 관리하는 리스트일뿐이다 -> 회원의 이름만 저장하면 초대 리스트의 역할은 충족한 것이다
         //초대된 인원이 방장 or 일반 회원인지, 위치와 가까운 정점 아이디, 이동 수단은 방에 입장할 때 결정을 해주면 된다
-        getInvitedMember().add(userId);
+        getInvitedMember().add(new UserInfo(userId, nickname));
     }
 
     public void enterRoom(String userId, String nickname, RoomMemberType roomMemberType, MemberLatLng location, Long closestVertexId) {
@@ -100,9 +101,9 @@ public class FindPathRoom {
         }
         RoomMemberInfo roomMemberInfo = new RoomMemberInfo(userId, nickname, roomMemberType, location, closestVertexId);
         getCurMember().add(roomMemberInfo);
-        if(checkMemberInvited(userId)) {
+        if (checkMemberInvited(userId)) {
             //초대 멤버 리스트에 포함되어 있을 경우
-            invitedMember.remove(userId);
+            removeInvitedMemberByUserId(userId);
         }
         if (getCurMember().size() > 1) { // getCurMember().size()가 1보다 크다는 말은 현재 방에 접속한 인원이 적어도 한 명 이상이라는 것이므로 방 삭제 시간을 RoomValue.ROOM_DELETE_CANCEL로 바꾼다.
             changeRoomDeletionTime(RoomValue.ROOM_DELETE_CANCEL);
@@ -111,9 +112,9 @@ public class FindPathRoom {
 
     public RoomMemberInfo findMemberByUserId(String userId) {
         //현재 방에 존재하고 있는 인원을 찾을 때
-        if(curMember.isEmpty()) return null;
-        for(RoomMemberInfo roomMemberInfo : getCurMember()) {
-            if(roomMemberInfo.getUserId().equals(userId)) return roomMemberInfo;
+        if (curMember.isEmpty()) return null;
+        for (RoomMemberInfo roomMemberInfo : getCurMember()) {
+            if (roomMemberInfo.getUserId().equals(userId)) return roomMemberInfo;
         }
         return null;
     }
@@ -126,26 +127,26 @@ public class FindPathRoom {
 
     public void leaveRoomCurMember(String userId) {
         //nickname에 맞는 회원을 현재 방에서 삭제하는 메소드
-        if(curMember.isEmpty()) return;
-        if(!curMember.contains(findMemberByUserId(userId))) {
+        if (curMember.isEmpty()) return;
+        if (!curMember.contains(findMemberByUserId(userId))) {
             //nickname에 맞는 회원이 현재 방에 없을 때
             return;
         }
-        if(curMember.size() == 2) {
+        if (curMember.size() == 2) {
             changeRoomDeletionTime(LocalDateTime.now().plusMinutes(RoomValue.ROOM_DELETION_TIME));
         }
         curMember.remove(findMemberByUserId(userId));
-        if(!getCurMember().isEmpty()) changeOwnerUserId(getCurMember().get(0).getUserId());
+        if (!getCurMember().isEmpty()) changeOwnerUserId(getCurMember().get(0).getUserId());
     }
 
     public void leaveRoomInviteMember(String userId) {
         //nickname에 맞는 회원을 초대 회원 리스트에서 삭제하는 메소드
-        if(invitedMember.isEmpty()) return;
-        if(!invitedMember.contains(userId)) {
+        if (invitedMember.isEmpty()) return;
+        if (!containsInviteMemberByUserId(userId)) {
             //nickname에 맞는 회원이 현재 방에 없을 때
             return;
         }
-        invitedMember.remove(userId);
+        removeInvitedMemberByUserId(userId);
     }
 
     public RoomMemberInfo getOwner() {
@@ -155,7 +156,7 @@ public class FindPathRoom {
 
     public String getOwnerNickname() {
         for (RoomMemberInfo memberInfo : curMember) {
-            if(memberInfo.getUserId().equals(ownerUserId)) {
+            if (memberInfo.getUserId().equals(ownerUserId)) {
                 return memberInfo.getNickname();
             }
         }
@@ -172,7 +173,7 @@ public class FindPathRoom {
     }
 
     public boolean checkMemberInvited(String userId) {
-        return invitedMember.contains(userId);
+        return containsInviteMemberByUserId(userId);
     }
 
     public boolean checkMemberCur(String userId) {
@@ -185,5 +186,13 @@ public class FindPathRoom {
 
     public LocalDateTime getRoomRemainingTime() {
         return getRoomDeletionTime().isAfter(getRoomExpirationTime()) ? getRoomExpirationTime() : getRoomDeletionTime();
+    }
+
+    public void removeInvitedMemberByUserId(String userId) {
+        invitedMember = invitedMember.stream().filter(userInfo -> !userInfo.getUserId().equals(userId)).toList();
+    }
+
+    public boolean containsInviteMemberByUserId(String userId) {
+        return invitedMember.stream().anyMatch(userInfo -> userInfo.getUserId().equals(userId));
     }
 }
