@@ -9,7 +9,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class UserInfo {
+public class UserInfoVCResponse {
     private String userId;
     private String nickname;
 }
