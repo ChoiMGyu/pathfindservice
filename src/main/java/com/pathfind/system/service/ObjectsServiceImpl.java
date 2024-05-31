@@ -1,19 +1,25 @@
 /*
  * 클래스 기능 : 검색 기능 구현 클래스
- * 최근 수정 일자 : 2024.05.28(화)
+ * 최근 수정 일자 : 2024.05.31(금)
  */
 package com.pathfind.system.service;
 
 import com.pathfind.system.domain.Objects;
+import com.pathfind.system.findPathDto.PageObject;
+import com.pathfind.system.findPathDto.SearchObjectsPageCSResponse;
+import com.pathfind.system.repository.ObjectsPageRepository;
 import com.pathfind.system.repository.ObjectsRepository;
+import com.sun.tools.jconsole.JConsoleContext;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 
 @Service
@@ -23,6 +29,7 @@ public class ObjectsServiceImpl implements ObjectsService{
 
     private static final Logger logger = LoggerFactory.getLogger(ObjectsServiceImpl.class);
 
+    private final ObjectsPageRepository objectPageRepository;
     private final ObjectsRepository objectsRepository;
     private final RedisUtil redisUtil;
 
@@ -67,5 +74,40 @@ public class ObjectsServiceImpl implements ObjectsService{
             response.add(result.get(i));
         }
         return response;
+    }
+
+    public Page<PageObject> paging(String searchWord, SearchObjectsPageCSResponse searchObjectsPageCSResponse) {
+        searchWord = searchWord.toUpperCase();
+        logger.info("Find objects name list by search word. search word: {}", searchWord);
+        if(redisUtil.getDataSortedSet(RedisValue.OBJECTS_NAME_SET, RedisValue.GET_ALL_DATA).isEmpty())
+        {
+            redisUtil.setDataSortedSet(RedisValue.OBJECTS_NAME_SET, objectsRepository.findAllObjectsName());
+        }
+        List<String> result = redisUtil.getDataSortedSet(RedisValue.OBJECTS_NAME_SET, searchWord);
+        String finalSearchWord = searchWord;
+        result.sort(Comparator.comparingInt(a -> a.indexOf(finalSearchWord)));
+
+        List<PageObject> pageObjects = new LinkedList<>();
+        for(int i = 0; i < result.size(); i++) {
+            logger.info("result의 이름: " + result.get(i));
+            List<Objects> object = objectsRepository.findByCorrectName(result.get(i));
+            if(object.isEmpty()) {
+                logger.info("에러발생!");
+            }
+            double longitude = object.get(0).getRoadVertex().getLongitude();
+            double latitude = object.get(0).getRoadVertex().getLatitude();
+//            logger.info("service 계층에서 호출된 object name : " + object.get(0).getName());
+//            logger.info("service 계층에서 호출된 object latitude : " + object.get(0).getRoadVertex().getLatitude());
+//            logger.info("service 계층에서 호출된 object longitude : " + object.get(0).getRoadVertex().getLongitude());
+            PageObject temp = new PageObject(object.get(0).getName(), longitude, latitude);
+            pageObjects.add(temp);
+        }
+        Pageable pageable = PageRequest.of(searchObjectsPageCSResponse.getPage(), searchObjectsPageCSResponse.getSize());
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), pageObjects.size());
+        Page<PageObject> objectPage = new PageImpl<>(pageObjects.subList(start, end), pageable, pageObjects.size());
+
+        return objectPage;
     }
 }

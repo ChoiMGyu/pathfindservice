@@ -1,14 +1,12 @@
 /*
  * 클래스 기능 : 검색기능을 수행하는 controller
- * 최근 수정 일자 : 2024.05.28(화)
+ * 최근 수정 일자 : 2024.05.31(금)
  */
 package com.pathfind.system.controller;
 
 import com.pathfind.system.domain.ObjectAddress;
 import com.pathfind.system.domain.Objects;
-import com.pathfind.system.findPathDto.SearchObjectsNameVCResponse;
-import com.pathfind.system.findPathDto.SearchPlaceVCRequest;
-import com.pathfind.system.findPathDto.SearchPlaceVCResponse;
+import com.pathfind.system.findPathDto.*;
 import com.pathfind.system.findPathService2Dto.SearchNicknameVCResponse;
 import com.pathfind.system.repository.ObjectsRepository;
 import com.pathfind.system.service.MemberService;
@@ -17,6 +15,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -69,5 +69,16 @@ public class SearchController {
             logger.info("{}", s);
         }
         return new SearchObjectsNameVCResponse(objectsNameList);
+    }
+
+    @GetMapping("/searchObjectsPage")
+    public ResponseEntity<Page<PageObject>> paging(@RequestParam("searchWord") String searchWord,
+                                               SearchObjectsPageCSResponse searchObjectsPageCSResponse) {
+        logger.info("searchController 호출");
+        logger.info("Search objects name list like: {}", searchWord);
+
+        Page<PageObject> paging = objectsService.paging(searchWord, searchObjectsPageCSResponse);
+
+        return ResponseEntity.ok(paging);
     }
 }

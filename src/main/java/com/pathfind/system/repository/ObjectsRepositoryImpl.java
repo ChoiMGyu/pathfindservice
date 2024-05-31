@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 오브젝트 리포지토리 구현 클래스
- * 최근 수정 일자 : 2024.05.28(화)
+ * 최근 수정 일자 : 2024.05.31(금)
  */
 package com.pathfind.system.repository;
 
@@ -38,6 +38,15 @@ public class ObjectsRepositoryImpl implements ObjectsRepository {
                         " join fetch o.objectAddress" +
                         " where TRIM(o.name) like :name", Objects.class)
                 .setParameter("name", "%" + name.trim() + "%")
+                .getResultList();
+    }
+
+    @Override
+    public List<Objects> findByCorrectName(String name) {
+        logger.info("name : {}", name);
+        return em.createQuery("select o from Objects o" +
+                        " where TRIM(o.name) like :name", Objects.class)
+                .setParameter("name", name.trim())
                 .getResultList();
     }
 

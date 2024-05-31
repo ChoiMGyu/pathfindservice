@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 오브젝트 리포지토리 인터페이스
- * 최근 수정 일자 : 2024.05.28(화)
+ * 최근 수정 일자 : 2024.05.31(금)
  */
 package com.pathfind.system.repository;
 
@@ -16,4 +16,6 @@ public interface ObjectsRepository {
     public List<Objects> findByAddress(String address);
 
     public List<String> findAllObjectsName();
+
+    public List<Objects> findByCorrectName(String name);
 }

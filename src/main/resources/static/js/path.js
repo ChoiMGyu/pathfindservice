@@ -88,6 +88,32 @@ function addMarker(latitude, longitude) {
 }
 
 /**
+ * 페이징 할 때 마커를 찍는 함수이다
+ */
+function addMarkerPage(latitude, longitude, isCustom) {
+    let marker;
+
+    if (isCustom) {
+        var imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png', // 마커이미지의 주소입니다
+            imageSize = new kakao.maps.Size(64, 69), // 마커이미지의 크기입니다
+            imageOption = {offset: new kakao.maps.Point(27, 69)}; // 마커이미지의 옵션입니다. 마커의 좌표와 일치시킬 이미지 안에서의 좌표를 설정합니다.
+
+        var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption),
+            markerPosition = new kakao.maps.LatLng(latitude, longitude); // 마커가 표시될 위치입니다
+
+        marker = new kakao.maps.Marker({
+            position: markerPosition,
+            image: markerImage // 마커이미지 설정
+        });
+    }
+    else {
+        marker = new kakao.maps.Marker({position: new kakao.maps.LatLng(latitude, longitude)});
+    }
+    drawMarker(marker);
+    markers.push(marker);
+}
+
+/**
  * 마커를 지도에 그리는 함수이다.
  */
 function drawMarker(marker) {
@@ -191,18 +217,6 @@ function findPlace() {
             $("#pathInfoSection").hide();
             removeAllPolyline();
 
-            // 마커가 표시될 위치입니다
-            //var markerPosition  = new kakao.maps.LatLng(latitude, longitude);
-
-            // 마커를 생성합니다
-            // var marker = new kakao.maps.Marker({
-            //     position: markerPosition
-            // });
-            //var marker = addMarker(markerPosition);
-
-            // 마커가 지도 위에 표시되도록 설정합니다
-            //marker.setMap(map);
-
             //마커를 생성하면서 마커를 배열에 넣음
             setBounds(response);
             addMarker(response.latitude, response.longitude);
@@ -223,6 +237,12 @@ function findPlace() {
             if (response.objectType === BUILDING) $("#searchAddress").text(response.address).show();
             else $("#searchAddress").hide();
             $("#searchDescription").text(response.description);
+
+            $("#pageInfoSection").show();
+            $("#homeButton").show();
+            //console.log("searchContent는 다음과 같음 : " + searchContent);
+            $("#searchContent").text("더 많은 정보");
+            loadPage(0, searchContent, response.name);
             /*====================================================================================================*/
         },
         error: function (xhr, status, error) {
@@ -240,6 +260,88 @@ function findPlace() {
         }
     });
 }
+
+/**
+ * searchWord를 검색했을 때 pageNumber의 페이지를 불러오는 함수이다.
+ * 페이징 할 때 사용하는 함수이다.
+ */
+function loadPage(pageNumber, searchWord, responseName) {
+    var pageSize = 3; // 한 페이지에 보이는 데이터 개수
+    var pageGroupSize = 4; // 페이지 그룹 단위
+
+    //console.log("loadPage가 searchWord : " + searchWord + "로 호출되었음");
+    $.get('/searchObjectsPage', { searchWord: searchWord, page: pageNumber, size: pageSize }, function (pageList) {
+        //console.log("페이징 컨트롤러 호출됨");
+        removeAllMarker();
+        if (pageList.content.length > 0) {
+            var contentHtml = '';
+            pageList.content.forEach(function(item) {
+                contentHtml += '<p>' + item.name + '</p>';
+                // console.log("item의 name: " + item.name);
+                // console.log("item의 latitude: " + item.latitude);
+                // console.log("item의 longitude: " + item.longitude);
+                addMarkerPage(item.latitude, item.longitude, item.name === responseName);
+            });
+            setBoundsPage();
+            var paginationHtml = contentHtml + '<ul class="pagination">';var totalPages = pageList.totalPages; //전체 페이지 수
+            var startPageGroup = Math.floor(pageNumber / pageGroupSize) * pageGroupSize + 1;
+            //현재 페이지 그룹의 시작 페이지 번호
+
+            var endPageGroup = Math.min(startPageGroup + pageGroupSize - 1, totalPages);
+            //현재 페이지 그룹의 끝 페이지 번호, 단 마지막 페이지를 초과하는 경우 totalPages로 설정
+
+            // console.log("pageNumber : " + pageNumber);
+            // console.log("pageSize : " + pageSize);
+            // console.log("totalPages : " + totalPages);
+            // console.log("startPageGroup : " + startPageGroup);
+            // console.log("endPageGroup : " + endPageGroup);
+
+            if (pageNumber > 0) {
+                paginationHtml += '<li class="page-item"><a class="page-link" href="#" data-page="' + (pageNumber - 1) + '">&lt;</a></li>';
+            } else {
+                paginationHtml += '<li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true">&lt;</a></li>';
+            }
+
+            for (var page = startPageGroup; page <= endPageGroup; page++) {
+                paginationHtml += '<li class="page-item ' + (page === pageNumber + 1 ? 'active' : '') + '"><a class="page-link" href="#" data-page="' + (page - 1) + '">' + page + '</a></li>';
+            }
+
+            if (pageNumber < totalPages - 1) {
+                paginationHtml += '<li class="page-item"><a class="page-link" href="#" data-page="' + (pageNumber + 1) + '">&gt;</a></li>';
+            } else {
+                paginationHtml += '<li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true">&gt;</a></li>';
+            }
+
+            paginationHtml += '</ul>';
+            $('#pagination-container').html(paginationHtml);
+
+            // 페이지 링크 클릭 이벤트 핸들러
+            $('.page-link').on('click', function (e) {
+                e.preventDefault();
+                var selectedPage = $(this).data('page');
+                loadPage(selectedPage, searchWord, responseName);
+                removeAllMarker();
+            });
+        } else {
+            $('#pagination-container').html('<p>No results found</p>');
+        }
+    });
+}
+
+/**
+ * 페이지에 나온 결과의 마커들을 한 화면에서 보게 해주는 함수이다.
+ */
+function setBoundsPage() {
+    console.log("페이징에 의한 setBounds");
+
+    var bounds = new kakao.maps.LatLngBounds();
+
+    markers.forEach(function(marker) {
+        bounds.extend(marker.getPosition());
+    });
+    map.setBounds(bounds);
+}
+
 
 // 최근 검색 객체를 생성하는 함수이다.
 function makeRecentSearch(search, transportation, start, end) {
@@ -681,8 +783,10 @@ function setSearchEndPoint() {
 function goToHome() {
     $("#searchRequestForm").val("");
     $("#searchInfoSection").hide();
+    $("#pageInfoSection").hide();
     $("#findPathSection").show();
     $("#recentSearchSection").show();
+    removeAllMarker();
 }
 
 /**
@@ -712,7 +816,7 @@ function searchObjectsName() {
     $("#searchRequestForm").on("input", function (e) {
         if (previousObjectsNameInput === $('#searchRequestForm').val()) return;
         previousObjectsNameInput = $('#searchRequestForm').val();
-        //if(e.keyCode === 65 && e.ctrlKey) return;
+
         if ($("#searchRequestForm").val() === "") {
             $("#objectsNameSearchList").children().remove();
             return;
@@ -726,21 +830,22 @@ function searchObjectsName() {
                 searchWord: $("#searchRequestForm").val()
             },
             success: function (response) {
-                //console.log(response);
                 let objectsNameList = response.objectsNameList;
                 $("#objectsNameSearchList").children().remove();
                 objectsNameList.forEach(objectsName => {
-                    if (objectsNameList.length !== 1 || objectsName !== $("#searchRequestForm").val()) $("#objectsNameSearchList").append(
-                        "<button type='button' class='list-group-item list-group-item-action' onclick='$(\"#searchRequestForm\").val(\"" + objectsName + "\"); $(\"#objectsNameSearchList\").hide();'>" +
-                        objectsName +
-                        "</button>"
-                    )
-                })
+                    if (objectsNameList.length !== 1 || objectsName !== $("#searchRequestForm").val()) {
+                        $("#objectsNameSearchList").append(
+                            "<button type='button' class='list-group-item list-group-item-action' onclick='$(\"#searchRequestForm\").val(\"" + objectsName + "\"); $(\"#objectsNameSearchList\").hide();'>" +
+                            objectsName +
+                            "</button>"
+                        );
+                    }
+                });
             },
             error: function (error) {
                 console.log(error);
             }
-        })
+        });
     });
 }
 
