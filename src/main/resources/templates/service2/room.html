@@ -161,6 +161,21 @@
 
     let roomStartTime = new Date();
 
+    /**
+     * 지도의 중심이 변했는지 파악한다. 최단 경로를 인원마다 중심에 배치하는데 사용된다.
+     */
+    kakao.maps.event.addListener(map, 'center_changed', function () {
+        //console.log("Bound status: " + BoundStatus + ", map center changed: " + mapCenterChanged);
+        if (BoundStatus === BOUND_CHANGED) {
+            BoundStatus = BOUND_NOT_CHANGED;
+            return;
+        }
+        mapCenterChanged = true;
+        clearInterval(mapCenterChangedTimer);
+        mapCenterChangedTimer = setInterval(() => mapCenterChanged = false, 4000);
+        //alert('center changed!');
+    });
+
     function getUserList(sender) {
         //현재 방에 있는 인원을 출력하는 함수(방장)
         //var $userlist = $("#userlist"); //jquery id가 "userlist"인 object 가져오기
@@ -431,7 +446,7 @@
                     $("#searchList").children().remove();
                     nicknameList.forEach(nickname => {
                         if (nicknameList.length !== 1 || nickname !== $("#nickname").val()) $("#searchList").append(
-                            "<button type='button' class='list-group-item list-group-item-action' onclick='$(\"#nickname\").val(\"" + nickname + "\"); $(\"#searchList\").hide();'>" +
+                            "<button type='button' class='list-group-item list-group-item-action' onclick='$(\"#nickname\").val(\"" + nickname + "\"); $(\"#searchList\").children().remove();'>" +
                             nickname +
                             "</button>"
                         )
