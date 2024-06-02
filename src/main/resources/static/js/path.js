@@ -162,7 +162,7 @@ function removeAllCustomOverlay() {
 
 // JavaScript 코드
 // findPlace 함수 정의
-function findPlace() {
+/*function findPlace() {
     // 입력된 값을 가져와서 query 변수에 저장
     console.log("findPlace() 함수 호출됨");
     $("#searchPlaceSection").attr('class', 'mt-3 mb-5');
@@ -202,32 +202,31 @@ function findPlace() {
             removeAllPolyline();
 
             //마커를 생성하면서 마커를 배열에 넣음
-            setBounds(response);
-            addMarker(response.latitude, response.longitude);
+            /!*setBounds(response);
+            addMarker(response.latitude, response.longitude);*!/
 
-            /*====================================================================================================*/
-            /*최근 검색 추가*/
+            /!*====================================================================================================*!/
+            /!*최근 검색 추가*!/
             addRecentSearch(SEARCH);
-            /*====================================================================================================*/
+            /!*====================================================================================================*!/
 
 
-            /*====================================================================================================*/
-            /*검색 정보 제공*/
+            /!*====================================================================================================*!/
+            /!*검색 정보 제공*!/
             $("#findPathSection").hide();
             $("#pathInfoSection").hide();
             $("#recentSearchSection").hide();
-            $("#searchInfoSection").show();
+            /!*$("#searchInfoSection").show();
             $("#searchName").text(response.name);
             if (response.objectType === BUILDING) $("#searchAddress").text(response.address).show();
             else $("#searchAddress").hide();
-            $("#searchDescription").text(response.description);
+            $("#searchDescription").text(response.description);*!/
 
             $("#pageInfoSection").show();
             $("#homeButton").show();
             //console.log("searchContent는 다음과 같음 : " + searchContent);
-            $("#searchContent").text("더 많은 정보");
-            loadPage(0, searchContent, response.name);
-            /*====================================================================================================*/
+            loadPage(0);
+            /!*====================================================================================================*!/
         },
         error: function (xhr, status, error) {
             // 에러 처리
@@ -243,29 +242,88 @@ function findPlace() {
             });
         }
     });
+}*/
+
+/**
+ * 검색 결과의 설명 부분을 클릭하면 클릭된 건물이나 랜드마크의 마커를 커스텀 마커로 변경하는 함수이다.
+ */
+function changeToCustomMarker(latitude, longitude) {
+    //removeAllMarker();
+    markers.forEach(function (marker) {
+        let latLng = marker.getPosition();
+        //console.log("getLat: " + latLng.getLat().toFixed(10) + ", latitude: " + latitude.toFixed(10));
+        //console.log("getLng: " + latLng.getLng().toFixed(10) + ", longitude: " + longitude.toFixed(10));
+        marker.setImage(null);
+        if (latLng.getLat().toFixed(10) === latitude.toFixed(10) && latLng.getLng().toFixed(10) === longitude.toFixed(10)) {
+            var imageSrc = '/img/location-pin.png', // 마커이미지의 주소입니다
+                imageSize = new kakao.maps.Size(64, 69), // 마커이미지의 크기입니다
+                imageOption = {offset: new kakao.maps.Point(27, 69)}; // 마커이미지의 옵션입니다. 마커의 좌표와 일치시킬 이미지 안에서의 좌표를 설정합니다.
+
+            var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption);
+            marker.setImage(markerImage);
+        }
+    });
 }
 
 /**
  * searchWord를 검색했을 때 pageNumber의 페이지를 불러오는 함수이다.
  * 페이징 할 때 사용하는 함수이다.
  */
-function loadPage(pageNumber, searchWord, responseName) {
+function loadPage(pageNumber) {
+    // 입력된 값을 가져와서 query 변수에 저장
+    console.log("loadPage() 함수 호출됨");
+    $("#searchPlaceSection").attr('class', 'mt-3 mb-5');
+    resetPlaceError();
+    if (!isPlaceEmpty()) return;
+    var searchContent = $("#searchRequestForm").val();
+    console.log("검색 내용:", searchContent);
+    resetPathError();
     var pageSize = 3; // 한 페이지에 보이는 데이터 개수
     var pageGroupSize = 4; // 페이지 그룹 단위
+    var firstResult = true;
 
     //console.log("loadPage가 searchWord : " + searchWord + "로 호출되었음");
-    $.get('/searchObjectsPage', {searchWord: searchWord, page: pageNumber, size: pageSize}, function (pageList) {
+    $.get('/searchObjectsPage', {searchWord: searchContent, page: pageNumber, size: pageSize}, function (pageList) {
         //console.log("페이징 컨트롤러 호출됨");
-        removeAllMarker();
         if (pageList.content.length > 0) {
-            var contentHtml = '';
+            removeAllMarker();
+            removeAllPolyline();
+            /*====================================================================================================*/
+            /*최근 검색 추가*/
+            addRecentSearch(SEARCH);
+            /*====================================================================================================*/
+
+
+            /*====================================================================================================*/
+            /*검색 정보 제공*/
+            $("#findPathSection").hide();
+            $("#pathInfoSection").hide();
+            $("#recentSearchSection").hide();
+            $("#pageInfoSection").show();
+            $("#homeButton").show();
+            /*====================================================================================================*/
+
+            var contentHtml = '<ul id="searchInfo" class="list-unstyled">';
             pageList.content.forEach(function (item) {
-                contentHtml += '<p>' + item.name + '</p>';
+                contentHtml += '<hr>';
+                contentHtml += '<li onclick="changeToCustomMarker(' + item.latitude + ', ' + item.longitude + ');">';
+                contentHtml += '    <h6><b>' + item.name + '</b></h6>';
+                if (item.objectType === BUILDING) contentHtml += '  <address>' + item.address + '</address>';
+                contentHtml += '    <p>' + item.description + '</p>';
+                contentHtml += '    <div class="d-flex justify-content-center">';
+                contentHtml += '        <button class="btn btn-outline-primary me-1" type="button" onclick="setSearchStartPoint(\'' + item.name + '\')">출발</button>';
+                contentHtml += '        <button class="btn btn-primary" type="button" onclick="setSearchEndPoint(\'' + item.name + '\')">도착</button>';
+                contentHtml += '    </div>';
+                contentHtml += '</li>';
                 // console.log("item의 name: " + item.name);
                 // console.log("item의 latitude: " + item.latitude);
                 // console.log("item의 longitude: " + item.longitude);
-                addMarkerPage(item.latitude, item.longitude, item.name === responseName);
+                addMarker(item.latitude, item.longitude);
+                if (firstResult) firstResult = false;
             });
+            contentHtml += '<hr>';
+
+
             setBoundsPage();
             var paginationHtml = contentHtml + '<ul class="pagination">';
             var totalPages = pageList.totalPages; //전체 페이지 수
@@ -304,12 +362,27 @@ function loadPage(pageNumber, searchWord, responseName) {
             $('.page-link').on('click', function (e) {
                 e.preventDefault();
                 var selectedPage = $(this).data('page');
-                loadPage(selectedPage, searchWord, responseName);
+                loadPage(selectedPage);
                 removeAllMarker();
             });
         } else {
             $('#pagination-container').html('<p>No results found</p>');
+            resetPlaceError();
+            $("#searchRequestForm").attr('class', "form-control fieldError").focus();
+            $("#searchPlaceError").text('검색 내용이 존재하지 않습니다').show();
         }
+    }).fail(function (xhr, status, error) {
+        // 에러 처리
+        console.error("에러 발생:", error);
+        //var searchContent = document.getElementById("searchRequestForm").value;
+
+        let isEnd = false;
+        error.responseJSON.find(function (err) {
+            if (err.field !== "searchContent") return;
+            isEnd = true;
+            $("#searchPlaceError").text(err.message).show();
+            $("#searchRequestForm").attr('class', "form-control fieldError").focus();
+        });
     });
 }
 
@@ -405,7 +478,8 @@ function showRecentSearchList() {
 function searchAgain(search, transportation, start, end) {
     if (search !== null) {
         $("#searchRequestForm").val(search);
-        findPlace();
+        //findPlace();
+        loadPage(0);
     } else {
         selectTransportation(transportation);
         $("#transportation").val(transportation);
@@ -754,14 +828,14 @@ function changeStartEnd() {
 }
 
 // 검색 결과에서 출발 버튼을 누르면 해당 검색 결과가 출발지로 설정되는 함수이다.
-function setSearchStartPoint() {
-    $("#startPoint").val($("#searchRequestForm").val());
+function setSearchStartPoint(value) {
+    $("#startPoint").val(value);
     goToHome();
 }
 
 // 검색 결과에서 도착 버튼을 누르면 해당 검색 결과가 도착지로 설정되는 함수이다.
-function setSearchEndPoint() {
-    $("#endPoint").val($("#searchRequestForm").val());
+function setSearchEndPoint(value) {
+    $("#endPoint").val(value);
     goToHome();
 }
 
@@ -772,6 +846,7 @@ function goToHome() {
     $("#pageInfoSection").hide();
     $("#findPathSection").show();
     $("#recentSearchSection").show();
+    $("#homeButton").hide();
     removeAllMarker();
 }
 
