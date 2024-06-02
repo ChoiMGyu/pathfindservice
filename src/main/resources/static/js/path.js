@@ -22,21 +22,6 @@ var options = {
 
 var map = new kakao.maps.Map(container, options);
 
-/**
- * 지도의 중심이 변했는지 파악한다. 최단 경로를 인원마다 중심에 배치하는데 사용된다.
- */
-kakao.maps.event.addListener(map, 'center_changed', function () {
-    //console.log("Bound status: " + BoundStatus + ", map center changed: " + mapCenterChanged);
-    if (BoundStatus === BOUND_CHANGED) {
-        BoundStatus = BOUND_NOT_CHANGED;
-        return;
-    }
-    mapCenterChanged = true;
-    clearInterval(mapCenterChangedTimer);
-    mapCenterChangedTimer = setInterval(() => mapCenterChanged = false, 4000);
-    //alert('center changed!');
-});
-
 function selectTransportation(transportation) {
     if (transportation === '자동차') {
         $("#carBtn").attr('class', 'form-control btn btn-primary');
@@ -105,8 +90,7 @@ function addMarkerPage(latitude, longitude, isCustom) {
             position: markerPosition,
             image: markerImage // 마커이미지 설정
         });
-    }
-    else {
+    } else {
         marker = new kakao.maps.Marker({position: new kakao.maps.LatLng(latitude, longitude)});
     }
     drawMarker(marker);
@@ -270,12 +254,12 @@ function loadPage(pageNumber, searchWord, responseName) {
     var pageGroupSize = 4; // 페이지 그룹 단위
 
     //console.log("loadPage가 searchWord : " + searchWord + "로 호출되었음");
-    $.get('/searchObjectsPage', { searchWord: searchWord, page: pageNumber, size: pageSize }, function (pageList) {
+    $.get('/searchObjectsPage', {searchWord: searchWord, page: pageNumber, size: pageSize}, function (pageList) {
         //console.log("페이징 컨트롤러 호출됨");
         removeAllMarker();
         if (pageList.content.length > 0) {
             var contentHtml = '';
-            pageList.content.forEach(function(item) {
+            pageList.content.forEach(function (item) {
                 contentHtml += '<p>' + item.name + '</p>';
                 // console.log("item의 name: " + item.name);
                 // console.log("item의 latitude: " + item.latitude);
@@ -283,7 +267,8 @@ function loadPage(pageNumber, searchWord, responseName) {
                 addMarkerPage(item.latitude, item.longitude, item.name === responseName);
             });
             setBoundsPage();
-            var paginationHtml = contentHtml + '<ul class="pagination">';var totalPages = pageList.totalPages; //전체 페이지 수
+            var paginationHtml = contentHtml + '<ul class="pagination">';
+            var totalPages = pageList.totalPages; //전체 페이지 수
             var startPageGroup = Math.floor(pageNumber / pageGroupSize) * pageGroupSize + 1;
             //현재 페이지 그룹의 시작 페이지 번호
 
@@ -336,7 +321,7 @@ function setBoundsPage() {
 
     var bounds = new kakao.maps.LatLngBounds();
 
-    markers.forEach(function(marker) {
+    markers.forEach(function (marker) {
         bounds.extend(marker.getPosition());
     });
     map.setBounds(bounds);
@@ -600,6 +585,7 @@ function findPath() {
         type: "get",
         url: "/path?" + graphRequestForm,
         success: function (response) {
+            $(".offcanvas").offcanvas('hide');
             console.log(response);
             let route = [];
             route.push(response.path);
@@ -790,52 +776,61 @@ function goToHome() {
 }
 
 /**
- * 웹 페이지의 클릭 위치에 따라 objects 입력 창 밑의 objects name search list의 표시 여부를 변경하는 함수이다.
+ * 웹 페이지의 클릭 위치에 따라 $inputForm 입력 창 밑의 $searchList의 표시 여부를 변경하는 함수이다.
  */
-function changeObjectsNameSearchListDisplayType() {
+function changeAutoCompleteListDisplayType($inputForm, $searchList) {
     // searchPlaceSection이 아닌 다른 곳을 클릭하면 objects 자동 완성을 숨기는 기능을 한다.
     $(document).click(function () {
-        let objectsName = $("#searchRequestForm");
-        if (!objectsName.is(event.target) && !objectsName.has(event.target).length && !$("#searchRequestForm").is(":focus")) {
-            $("#objectsNameSearchList").hide();
+        let objectsName = $($inputForm);
+        if (!objectsName.is(event.target) && !objectsName.has(event.target).length && !objectsName.is(":focus")) {
+            //console.log("click: " + $inputForm);
+            $($searchList).hide();
+        }
+    });
+
+    $(document).focusin(function () {
+        let objectsName = $($inputForm);
+        if (!objectsName.is(event.target) && !objectsName.has(event.target).length && !objectsName.is(":focus") && !$($searchList).children().is(":focus")) {
+            //console.log("focus: " + $inputForm);
+            $($searchList).hide();
         }
     });
 
     // objects name에 해당하는 인풋 태그가 포커스되면 닉네임 자동 완성을 표시하는 기능을 한다.
-    $("#searchRequestForm").on("focus", function () {
-        $("#objectsNameSearchList").show();
+    $($inputForm).on("focus", function () {
+        $($searchList).show();
     })
 }
 
 /**
- * objects name에 해당하는 인풋 태그의 value가 달라지면 서버로부터 objects 자동 완성 리스트를 요청하고 objects 자동 완성 목록을 생성하는 함수이다.
+ * $inputForm에 해당하는 인풋 태그의 value가 달라지면 서버로부터 objects 자동 완성 리스트를 요청하고 objects 자동 완성 목록을 생성하는 함수이다.
  */
-function searchObjectsName() {
+function changeAutoCompleteList($inputForm, $searchList, $error) {
     let previousObjectsNameInput = "";
 
-    $("#searchRequestForm").on("input", function (e) {
-        if (previousObjectsNameInput === $('#searchRequestForm').val()) return;
-        previousObjectsNameInput = $('#searchRequestForm').val();
+    $($inputForm).on("input", function (e) {
+        if (previousObjectsNameInput === $($inputForm).val()) return;
+        previousObjectsNameInput = $($inputForm).val();
 
-        if ($("#searchRequestForm").val() === "") {
-            $("#objectsNameSearchList").children().remove();
+        if ($($inputForm).val() === "") {
+            $($searchList).children().remove();
             return;
         }
-        $("#searchPlaceError").hide();
-        $("#searchRequestForm").attr('class', "form-control");
+        $($error).hide();
+        $($inputForm).attr('class', "form-control");
         $.ajax({
             type: "GET",
             url: "/searchObjectsName",
             data: {
-                searchWord: $("#searchRequestForm").val()
+                searchWord: $($inputForm).val()
             },
             success: function (response) {
                 let objectsNameList = response.objectsNameList;
-                $("#objectsNameSearchList").children().remove();
+                $($searchList).children().remove();
                 objectsNameList.forEach(objectsName => {
-                    if (objectsNameList.length !== 1 || objectsName !== $("#searchRequestForm").val()) {
-                        $("#objectsNameSearchList").append(
-                            "<button type='button' class='list-group-item list-group-item-action' onclick='$(\"#searchRequestForm\").val(\"" + objectsName + "\"); $(\"#objectsNameSearchList\").hide();'>" +
+                    if (objectsNameList.length !== 1 || objectsName !== $($inputForm).val()) {
+                        $($searchList).append(
+                            "<button type='button' class='list-group-item list-group-item-action' onclick='$(\"" + $inputForm + "\").val(\"" + objectsName + "\"); $(\"" + $searchList + "\").children().remove();' tabindex='0'>" +
                             objectsName +
                             "</button>"
                         );
@@ -852,5 +847,9 @@ function searchObjectsName() {
 $("#findPathSection").show();
 $("#recentSearchSection").show();
 showRecentSearchList();
-changeObjectsNameSearchListDisplayType();
-searchObjectsName();
+changeAutoCompleteListDisplayType("#searchRequestForm", "#objectsNameSearchList");
+changeAutoCompleteList("#searchRequestForm", "#objectsNameSearchList", "#searchPlaceError");
+changeAutoCompleteListDisplayType("#startPoint", "#startPointAutoCompleteList");
+changeAutoCompleteList("#startPoint", "#startPointAutoCompleteList", "#findPathError");
+changeAutoCompleteListDisplayType("#endPoint", "#endPointAutoCompleteList");
+changeAutoCompleteList("#endPoint", "#endPointAutoCompleteList", "#findPathError");

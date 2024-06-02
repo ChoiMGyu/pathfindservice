@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
-<header class="header" style="margin: 0;" th:fragment="bodyHeader(session.loginMember)">
+<header class="header m-0 p-0" style="margin: 0;" th:fragment="bodyHeader(session.loginMember)">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
             <section id="navbarWebSiteNameSection">
@@ -52,7 +52,6 @@
 
     <th:block th:if="${session.loginMember != null}">
         <script type="text/javascript" src="/js/bodyHeader.js"></script>
-        <script type="text/javascript" src="/js/bootstrap.bundle.js"></script>
         <script type="text/javascript">
             function logout() {
                 console.log("logout 버튼 클릭됨");
@@ -72,4 +71,5 @@
             }
         </script>
     </th:block>
+    <script type="text/javascript" src="/js/bootstrap.bundle.js"></script>
 </header>
