@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 검색 기능 구현 클래스
- * 최근 수정 일자 : 2024.05.31(금)
+ * 최근 수정 일자 : 2024.06.02(일)
  */
 package com.pathfind.system.service;
 
@@ -46,15 +46,15 @@ public class ObjectsServiceImpl implements ObjectsService{
         //만약에 Repository에서 반환된 List의 결과가 Null일 경우 특수한 값을 반환 해야함
         //logger.info("byName : {}, byAddress : {} ", byName.get(0).getId(), byAddress.get(0).getId());
         if(!byName.isEmpty()) {
-            logger.info("이름으로 검색했을 때 결과를 반환하였습니다");
+            //logger.info("이름으로 검색했을 때 결과를 반환하였습니다");
             return byName.get(0).getId();
         }
         else if(!byAddress.isEmpty()) {
-            logger.info("주소로 검색했을 때 결과를 반환하였습니다");
+            //logger.info("주소로 검색했을 때 결과를 반환하였습니다");
             return byAddress.get(0).getId();
         }
         else {
-            logger.info("검색 결과가 없습니다");
+            //logger.info("검색 결과가 없습니다");
             return -1L;
         }
     }
@@ -81,24 +81,34 @@ public class ObjectsServiceImpl implements ObjectsService{
 
     public Page<PageObject> paging(String searchWord, SearchObjectsPageCSResponse searchObjectsPageCSResponse) {
         searchWord = searchWord.toUpperCase();
-        logger.info("Find objects name list by search word. search word: {}", searchWord);
+        // logger.info("Find objects name list by search word. search word: {}", searchWord);
         if(redisUtil.getDataSortedSet(RedisValue.OBJECTS_NAME_SET, RedisValue.GET_ALL_DATA).isEmpty())
         {
             redisUtil.setDataSortedSet(RedisValue.OBJECTS_NAME_SET, objectsRepository.findAllObjectsName());
         }
-        List<String> result = redisUtil.getDataSortedSet(RedisValue.OBJECTS_NAME_SET, searchWord);
+        List<String> result = new ArrayList<>(redisUtil.getDataSortedSet(RedisValue.OBJECTS_NAME_SET, searchWord));
         String finalSearchWord = searchWord;
-        result.sort(Comparator.comparingInt(a -> a.indexOf(finalSearchWord)));
+
+        Comparator<String> comparingIndexOf = Comparator.comparingInt(a -> a.indexOf(finalSearchWord));
+        result.sort(comparingIndexOf.thenComparing(Comparator.naturalOrder()));
 
         List<PageObject> pageObjects = new LinkedList<>();
         for(int i = 0; i < result.size(); i++) {
-            logger.info("result의 이름: " + result.get(i));
+//            logger.info("result의 이름: " + result.get(i));
+//            logger.info("findByCorrectName 접근 전");
+//            logger.info("================================");
             List<Objects> object = objectsRepository.findByCorrectName(result.get(i));
             if(object.isEmpty()) {
                 logger.info("에러발생!");
             }
+//            logger.info("================================");
+//            logger.info("findByCorrectName 접근 후");
+//            logger.info("레퍼지토리 접근 후 서비스 계층에서 RoadVertex 접근 전");
+//            logger.info("================================");
             double longitude = object.get(0).getRoadVertex().getLongitude();
             double latitude = object.get(0).getRoadVertex().getLatitude();
+//            logger.info("================================");
+//            logger.info("레퍼지토리 접근 후 서비스 계층에서 RoadVertex 접근 후");
 //            logger.info("service 계층에서 호출된 object name : " + object.get(0).getName());
 //            logger.info("service 계층에서 호출된 object latitude : " + object.get(0).getRoadVertex().getLatitude());
 //            logger.info("service 계층에서 호출된 object longitude : " + object.get(0).getRoadVertex().getLongitude());
