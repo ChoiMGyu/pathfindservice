@@ -1,4 +1,8 @@
-package jpabook.jpashop;
+/*
+ * 클래스 기능 : SQL 포맷을 설정하는 configuration 클래스
+ * 최근 수정 일자 : 2024.05.31(금)
+ */
+package com.pathfind.system.config;
 
 import com.p6spy.engine.logging.Category;
 import com.p6spy.engine.spy.P6SpyOptions;
