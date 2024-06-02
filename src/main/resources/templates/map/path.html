@@ -18,24 +18,24 @@
         <div class="h-100 offcanvas-body">
             <section id="searchPlaceSection" class="mt-3 mb-5">
                 <div class="form-group">
-                    <h6><b>검색</b></h6>
+                    <h5><b>검색</b></h5>
                     <div class="input-group">
                         <div class="d-inline-block col-8 position-relative">
                             <div class="input-group">
-                                <input class="form-control" type="search" id="searchRequestForm" name="searchRequestForm" th:object="${searchRequest}" placeholder="장소, 구조물, 주소 검색" aria-label="Search">
+                                <input class="form-control" type="search" id="searchRequestForm" name="searchRequestForm" th:object="${searchRequest}" placeholder="장소, 구조물, 주소 검색" aria-label="Search" autocomplete="off">
                                 <div style="display: none"></div>
                             </div>
                             <div id="objectsNameSearchList" class="list-group position-absolute w-100 p-0 z-3">
                             </div>
                         </div>
-                        <button class="d-inline-block col-4 btn btn-outline-primary" type="button" onclick="findPlace()">Search</button>
+                        <button class="d-inline-block col-4 btn btn-outline-primary" type="button" onclick="loadPage(0);//findPlace()">Search</button>
                     </div>
                     <small class="text-danger" style="margin: 0; display:none;" id="searchPlaceError"></small>
                 </div>
             </section>
 
             <section id="findPathSection" class="mb-5" style="display: none">
-                <h6><b>길찾기</b></h6>
+                <h5><b>길찾기</b></h5>
                 <form id="graphRequestForm" role="form" action="" th:object="${graphRequest}" method="get">
                     <div class="form-group">
                         <label th:for="transportation" style="display:none;">이동 수단</label>
@@ -58,7 +58,7 @@
                                     <div class="d-inline-block col-9 position-relative">
                                         <div class="input-group">
                                             <div style="display: none"></div>
-                                            <input id="startPoint" type="text" class="form-control m-0" placeholder="출발지를 입력하세요." aria-label="출발지를 입력하세요" aria-describedby="input start point">
+                                            <input id="startPoint" type="text" class="form-control m-0" placeholder="출발지를 입력하세요." aria-label="출발지를 입력하세요" aria-describedby="input start point" autocomplete="off">
                                             <div style="display: none"></div>
                                         </div>
                                         <div id="startPointAutoCompleteList" class="list-group position-absolute w-100 p-0 z-3">
@@ -77,7 +77,7 @@
                                     <div class="d-inline-block col-9 position-relative">
                                         <div class="input-group">
                                             <div style="display: none"></div>
-                                            <input id="endPoint" type="text" class="form-control m-0" placeholder="도착지를 입력하세요." aria-label="도착지를 입력하세요." aria-describedby="input end point">
+                                            <input id="endPoint" type="text" class="form-control m-0" placeholder="도착지를 입력하세요." aria-label="도착지를 입력하세요." aria-describedby="input end point" autocomplete="off">
                                             <div style="display: none"></div>
                                         </div>
                                         <div id="endPointAutoCompleteList" class="list-group position-absolute w-100 p-0 z-3">
@@ -99,7 +99,7 @@
             </section>
 
             <section id="pathInfoSection" class="mb-5" style="display: none">
-                <h6><b>최적 경로</b></h6>
+                <h5><b>최적 경로</b></h5>
                 <div id="pathInfo" class="p-2 text-start bg-body-secondary rounded-3">
                     <div>
                         <strong id="time" class="mx-auto text-dark"></strong>
@@ -111,31 +111,15 @@
             </section>
 
             <section id="recentSearchSection" class="mb-5" style="display: none">
-                <h6><b>최근 검색</b></h6>
+                <h5><b>최근 검색</b></h5>
                 <ul id="recentSearch" class="p-2 text-start bg-body-secondary rounded-3" style="display: none">
                 </ul>
             </section>
 
-            <section id="searchInfoSection" style="display: none">
-                <div class="mb-5">
-                    <hr>
-                    <h6><b id="searchName"></b></h6>
-                    <address style="display: none; font-style: normal;" id="searchAddress"></address>
-                    <p id="searchDescription"></p>
-                    <div class="d-flex justify-content-center">
-                        <button class="btn btn-outline-primary me-1" type="button" onclick="setSearchStartPoint()">출발</button>
-                        <button class="btn btn-primary" type="button" onclick="setSearchEndPoint()">도착</button>
-                    </div>
-                    <hr>
-                </div>
-            </section>
-
             <section id="pageInfoSection" style="display: none;">
                 <div class="mb-5">
-                    <hr>
-                    <h6><b>다른 장소</b></h6>
+                    <h5><b>검색 결과</b></h5>
                     <div id="pagination-container"></div>
-                    <hr>
                 </div>
             </section>
 

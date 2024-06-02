@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 검색기능을 수행하는 controller
- * 최근 수정 일자 : 2024.05.31(금)
+ * 최근 수정 일자 : 2024.06.03(월)
  */
 package com.pathfind.system.controller;
 
@@ -51,7 +51,7 @@ public class SearchController {
         ObjectAddress objectAddress = objects.getObjectAddress();
         double longitude = objects.getRoadVertex().getLongitude();
         double latitude = objects.getRoadVertex().getLatitude();
-        return new SearchPlaceVCResponse(objects.getName(), objects.getDescription(), objectAddress.getAddress(), objects.getObjectType(), latitude, longitude, objects.getRoadVertex().getId() - 1, objects.getSidewalkVertex().getId() - 1);
+        return new SearchPlaceVCResponse(objects.getName(), objects.getDescription(), objectAddress == null ? null : objectAddress.getAddress(), objects.getObjectType(), latitude, longitude, objects.getRoadVertex().getId() - 1, objects.getSidewalkVertex().getId() - 1);
     }
 
     @GetMapping("/searchNickname")
@@ -72,12 +72,11 @@ public class SearchController {
     }
 
     @GetMapping("/searchObjectsPage")
-    public ResponseEntity<Page<PageObject>> paging(@RequestParam("searchWord") String searchWord,
-                                               SearchObjectsPageCSResponse searchObjectsPageCSResponse) {
+    public ResponseEntity<Page<SearchPlaceVCResponse>> paging(@RequestParam("searchWord") String searchWord, SearchObjectsPageCSResponse searchObjectsPageCSResponse) {
         logger.info("searchController 호출");
         logger.info("Search objects name list like: {}", searchWord);
 
-        Page<PageObject> paging = objectsService.paging(searchWord, searchObjectsPageCSResponse);
+        Page<SearchPlaceVCResponse> paging = objectsService.paging(searchWord, searchObjectsPageCSResponse);
 
         return ResponseEntity.ok(paging);
     }

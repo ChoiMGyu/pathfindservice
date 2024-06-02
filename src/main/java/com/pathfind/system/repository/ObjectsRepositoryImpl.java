@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 오브젝트 리포지토리 구현 클래스
- * 최근 수정 일자 : 2024.06.02(일)
+ * 최근 수정 일자 : 2024.06.03(월)
  */
 package com.pathfind.system.repository;
 
@@ -18,14 +18,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ObjectsRepositoryImpl implements ObjectsRepository {
 
-    private static final Logger logger = LoggerFactory.getLogger(FindPathRepositoryImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final EntityManager em;
 
     @Override
     public Objects findById(Long id) {
         return em.createQuery("select o from Objects o" +
-                " join fetch o.objectAddress" +
+                " left join fetch o.objectAddress" +
                 " where o.id = :id", Objects.class)
                 .setParameter("id", id)
                 .getSingleResult();
@@ -35,7 +35,7 @@ public class ObjectsRepositoryImpl implements ObjectsRepository {
     public List<Objects> findByName(String name) {
         logger.info("name : {}", name);
         return em.createQuery("select o from Objects o" +
-                        " join fetch o.objectAddress oa" +
+                        " left join fetch o.objectAddress oa" +
                         " join fetch o.roadVertex" +
                         " join fetch o.sidewalkVertex" +
                         " where TRIM(o.name) like :name", Objects.class)
@@ -47,6 +47,7 @@ public class ObjectsRepositoryImpl implements ObjectsRepository {
     public List<Objects> findByCorrectName(String name) {
         logger.info("name : {}", name);
         return em.createQuery("select o from Objects o" +
+                        " left join fetch o.objectAddress oa" +
                         " join fetch o.roadVertex" +
                         " join fetch o.sidewalkVertex" +
                         " where TRIM(o.name) like :name", Objects.class)
