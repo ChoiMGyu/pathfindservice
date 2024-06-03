@@ -75,24 +75,20 @@ function addMarker(latitude, longitude) {
 /**
  * 페이징 할 때 마커를 찍는 함수이다
  */
-function addMarkerPage(latitude, longitude, isCustom) {
+function addMarkerPage(latitude, longitude) {
     let marker;
 
-    if (isCustom) {
-        var imageSrc = '/img/location-pin.png', // 마커이미지의 주소입니다
-            imageSize = new kakao.maps.Size(64, 69), // 마커이미지의 크기입니다
-            imageOption = {offset: new kakao.maps.Point(27, 69)}; // 마커이미지의 옵션입니다. 마커의 좌표와 일치시킬 이미지 안에서의 좌표를 설정합니다.
+    var imageSrc = '/img/location-pin.png', // 마커이미지의 주소입니다
+        imageSize = new kakao.maps.Size(64, 69), // 마커이미지의 크기입니다
+        imageOption = {offset: new kakao.maps.Point(27, 69)}; // 마커이미지의 옵션입니다. 마커의 좌표와 일치시킬 이미지 안에서의 좌표를 설정합니다.
 
-        var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption),
-            markerPosition = new kakao.maps.LatLng(latitude, longitude); // 마커가 표시될 위치입니다
+    var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption),
+        markerPosition = new kakao.maps.LatLng(latitude, longitude); // 마커가 표시될 위치입니다
 
-        marker = new kakao.maps.Marker({
-            position: markerPosition,
-            image: markerImage // 마커이미지 설정
-        });
-    } else {
-        marker = new kakao.maps.Marker({position: new kakao.maps.LatLng(latitude, longitude)});
-    }
+    marker = new kakao.maps.Marker({
+        position: markerPosition,
+        image: markerImage // 마커이미지 설정
+    });
     drawMarker(marker);
     markers.push(marker);
 }
@@ -303,6 +299,7 @@ function loadPage(pageNumber) {
             $("#homeButton").show();
             /*====================================================================================================*/
 
+            var firstItem = true;
             var contentHtml = '<ul id="searchInfo" class="list-unstyled">';
             pageList.content.forEach(function (item) {
                 contentHtml += '<hr>';
@@ -318,7 +315,14 @@ function loadPage(pageNumber) {
                 // console.log("item의 name: " + item.name);
                 // console.log("item의 latitude: " + item.latitude);
                 // console.log("item의 longitude: " + item.longitude);
-                addMarker(item.latitude, item.longitude);
+                //addMarker(item.latitude, item.longitude);
+                if(firstItem) {
+                    addMarkerPage(item.latitude, item.longitude);
+                    firstItem = false;
+                }
+                else {
+                    addMarker(item.latitude, item.longitude);
+                }
                 if (firstResult) firstResult = false;
             });
             contentHtml += '<hr>';
