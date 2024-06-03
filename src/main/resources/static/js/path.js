@@ -279,7 +279,7 @@ function loadPage(pageNumber) {
     console.log("검색 내용:", searchContent);
     resetPathError();
     var pageSize = 3; // 한 페이지에 보이는 데이터 개수
-    var pageGroupSize = 4; // 페이지 그룹 단위
+    var pageGroupSize = 5; // 페이지 그룹 단위
     var firstResult = true;
 
     //console.log("loadPage가 searchWord : " + searchWord + "로 호출되었음");
@@ -325,7 +325,7 @@ function loadPage(pageNumber) {
 
 
             setBoundsPage();
-            var paginationHtml = contentHtml + '<ul class="pagination">';
+            var paginationHtml = contentHtml + '<ul class="pagination justify-content-center">';
             var totalPages = pageList.totalPages; //전체 페이지 수
             var startPageGroup = Math.floor(pageNumber / pageGroupSize) * pageGroupSize + 1;
             //현재 페이지 그룹의 시작 페이지 번호

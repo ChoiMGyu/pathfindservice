@@ -30,3 +30,18 @@
     left: 50%;
     margin-left: -0.6rem;
 }
+
+.offcanvas-body {
+    overflow-y: scroll;
+}
+
+/* 크롬, 사파리, 오페라 기준 */
+.offcanvas-body::-webkit-scrollbar {
+    display: none;
+}
+
+/* 파이어폭스, 익스플로러, 엣지 */
+.offcanvas-body {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}

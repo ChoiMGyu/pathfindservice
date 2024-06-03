@@ -38,8 +38,8 @@ public class ObjectsRepositoryImpl implements ObjectsRepository {
                         " left join fetch o.objectAddress oa" +
                         " join fetch o.roadVertex" +
                         " join fetch o.sidewalkVertex" +
-                        " where TRIM(o.name) like :name", Objects.class)
-                .setParameter("name", "%" + name.trim() + "%")
+                        " where TRIM(o.name) = :name", Objects.class)
+                .setParameter("name", name.trim())
                 .getResultList();
     }
 
