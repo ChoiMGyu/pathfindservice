@@ -39,10 +39,4 @@ out/
 ### application.yml ###
 application.yml
 
-EmailConfig.java
-
-MailSendServiceImpl.java
-
-apikey.js
-
 keystore.p12

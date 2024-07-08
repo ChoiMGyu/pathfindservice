@@ -129,10 +129,7 @@
     <div id="map"></div>
 </div>
 <div style="height: 5%;" th:replace="~{fragments/footer :: footer}"/>
-<script id="apikey" type="text/javascript"
-        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=36d7d56dffc065ea26aa515b442d5b6f"></script>
-<script type="text/javascript" src="/js/apikey.js"></script>
+<script id="apikey" type="text/javascript" th:src="${@environment.getProperty('api-key.kakao-map-api')}"></script>
 <script type="text/javascript" src="/js/path.js"></script>
-<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=36d7d56dffc065ea26aa515b442d5b6f&libraries=services,clusterer,drawing"></script>
 </body>
 </html>
