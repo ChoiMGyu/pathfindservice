@@ -13,7 +13,6 @@ let mapCenterChanged;
 let BoundStatus;
 let mapCenterChangedTimer;
 
-const MAP_API = config.apikey;
 var container = document.getElementById('map');
 var options = {
     center: new kakao.maps.LatLng(35.8330177, 128.7532086),
