@@ -1,6 +1,6 @@
 /*
- * 클래스 기능 : 예외가 발생했을 때 JSON 형태로 내용을 확인
- * 최근 수정 일자 : 2024.02.09(금)
+ * 클래스 기능 : 클라이언트에게 예외를 반환할 때 사용하는 error dto 클래스
+ * 최근 수정 일자 : 2024.07.20(토)
  */
 package com.pathfind.system.exception;
 
@@ -9,8 +9,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class ErrorResult {
+public class ErrorVCResponse {
     private String code;
-    private String field;
     private String message;
 }

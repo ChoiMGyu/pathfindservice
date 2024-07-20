@@ -1,9 +1,12 @@
 /*
  * 클래스 기능 : 예외 발생했을 때 응답을 처리하는 클래스
- * 최근 수정 일자 : 2024.05.19(일)
+ * 최근 수정 일자 : 2024.07.20(토)
  */
 package com.pathfind.system.exception;
 
+import com.pathfind.system.registerDto.EmailVCRequest;
+import com.pathfind.system.registerDto.NicknameVCRequest;
+import com.pathfind.system.registerDto.UserIdVCRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -27,24 +30,43 @@ public class ExControllerAdvice {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<List<ErrorResult>> handleValidException(MethodArgumentNotValidException e) {
+    public ResponseEntity<List<ErrorVCResponse>> handleValidException(MethodArgumentNotValidException e) {
+        if (e.getBindingResult().getTarget() instanceof UserIdVCRequest) {
+            return handleValidationException(new ValidationException(UserIdCheckErrorCode.INVALID_INPUT_VALUE));
+        }
+        else if (e.getBindingResult().getTarget() instanceof NicknameVCRequest) {
+            return handleValidationException(new ValidationException(NicknameCheckErrorCode.INVALID_INPUT_VALUE));
+        }
+        else if (e.getBindingResult().getTarget() instanceof EmailVCRequest) {
+            return handleValidationException(new ValidationException(EmailCheckErrorCode.INVALID_INPUT_VALUE));
+        }
+
         ErrorCode errorCode = ErrorCode.INVALID_INPUT_VALUE;
         BindingResult bindingResult = e.getBindingResult();
 
-        List<ErrorResult> response = new ArrayList<>();
+        List<ErrorVCResponse> response = new ArrayList<>();
         for (FieldError err : bindingResult.getFieldErrors()) {
-            response.add(new ErrorResult(errorCode.getCode(), err.getField(), err.getDefaultMessage()));
+            logger.info("{}", err.getDefaultMessage());
+            response.add(new ErrorVCResponse(errorCode.getCode(), err.getDefaultMessage()));
         }
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(CustomException.class)
-    public ResponseEntity<List<ErrorResult>> handleCustomException(CustomException e) {
-        ErrorCode errorCode = ErrorCode.ROOM_EXCEEDED;
-        List<ErrorResult> response = new ArrayList<>();
-        response.add(new ErrorResult(errorCode.getCode(), null, e.getMessage()));
+    public ResponseEntity<List<ErrorVCResponse>> handleCustomException(CustomException e) {
+        BasicErrorCode errorCode = e.getErrorCode();
+        List<ErrorVCResponse> response = new ArrayList<>();
+        response.add(new ErrorVCResponse(errorCode.getCode(), e.getMessage()));
         return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<List<ErrorVCResponse>> handleValidationException(ValidationException e) {
+        BasicErrorCode errorCode = e.getErrorCode();
+        List<ErrorVCResponse> response = new ArrayList<>();
+        response.add(new ErrorVCResponse(errorCode.getCode(), e.getMessage()));
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 
 /*    @ResponseStatus(HttpStatus.BAD_REQUEST)
