@@ -1,6 +1,6 @@
 /*
- * 클래스 기능 : 중복 확인 시 사용하는 exception class
- * 최근 수정 일자 : 2024.07.20(토)
+ * 클래스 기능 : validation 실패 시 사용하는 exception class
+ * 최근 수정 일자 : 2024.07.21(일)
  */
 package com.pathfind.system.exception;
 
