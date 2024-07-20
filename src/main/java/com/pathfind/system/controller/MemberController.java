@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 관련 페이지 렌더링을 하는 controller
- * 최근 수정 일자 : 2024.05.29(수)
+ * 최근 수정 일자 : 2024.07.20(토)
  */
 package com.pathfind.system.controller;
 
@@ -108,6 +108,7 @@ public class MemberController {
 
         return "members/registerForm";
     }
+/*
 
     // 아이디 유효성, 중복 확인 여부를 검사하는 함수이다.
     @PostMapping(value = "/userIdChk")
@@ -139,9 +140,11 @@ public class MemberController {
         if (result.hasErrors()) {
             form.setUserIdCheck(false);
             session.setAttribute(SessionConst.SUBMIT_MEMBER, form);
-            /*logger.info("getRemoteURI: {}", request.getRequestURI());
+            */
+/*logger.info("getRemoteURI: {}", request.getRequestURI());
             logger.info("getHeader: {}", request.getHeader("REFERER"));
-            logger.info("getRequestURL: {}", request.getRequestURL());*/
+            logger.info("getRequestURL: {}", request.getRequestURL());*//*
+
             rttr.addFlashAttribute(BindingResult.MODEL_KEY_PREFIX + "submitForm", result);
             return "redirect:" + path;
         }
@@ -235,6 +238,7 @@ public class MemberController {
         return "redirect:" + path;
     }
 
+*/
     // 이메일 인증번호를 보내는 함수이다.
     @PostMapping("/emailNumberSend")
     public String emailNumberSend(SubmitForm form, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {

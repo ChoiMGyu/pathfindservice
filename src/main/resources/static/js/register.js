@@ -25,36 +25,90 @@ function validationChk() {
     form.submit();
 }*/
 
-// 아이디 중복 여부 및 유효성 확인을 서버에서 진행할 수 있도록 form을 전송하는 함수
+// 아이디 중복 여부 및 유효성 확인을 서버에서 진행할 수 있도록 ajax를 사용해 userId를 전송하는 함수
 function userIdChk() {
-    if(!isUserIdEmpty()) return false;
-    let form = document.getElementById("submitForm");
-    form.action = "/members/userIdChk";
-    form.submit();
+    resetError();
+    if (!isUserIdEmpty()) return false;
+    let userId = $("#userId").serialize();
+    console.log(userId);
+    $.ajax({
+        type: "GET",
+        url: "/api/registration/check/user-id?" + userId,
+        success: function (response) {
+            console.log(response);
+            $("#userIdCheck").prop('checked',true);
+            bodyAlert(response.message);
+        },
+        error: function (error) {
+            // 에러 처리
+            //console.error("에러 발생:", error);
+            error.responseJSON.find(function (err) {
+                console.log(err);
+                $("#userIdError").text(err.message).show();
+                $("#userId").attr('class', "form-control fieldError").focus();
+            });
+        }
+    });
 }
 
 // 닉네임 중복 여부 및 유효성 확인을 서버에서 진행할 수 있도록 form을 전송하는 함수
 function nicknameChk() {
-    if(!isNicknameEmpty()) return false;
-    let form = document.getElementById("submitForm");
-    form.action = "/members/nicknameChk";
-    form.submit();
+    resetError();
+    if (!isNicknameEmpty()) return false;
+    let nickname = $("#nickname").serialize();
+    console.log(nickname);
+    $.ajax({
+        type: "GET",
+        url: "/api/registration/check/nickname?" + nickname,
+        success: function (response) {
+            console.log(response);
+            $("#nicknameCheck").prop('checked',true);
+            bodyAlert(response.message);
+        },
+        error: function (error) {
+            // 에러 처리
+            //console.error("에러 발생:", error);
+            error.responseJSON.find(function (err) {
+                console.log(err);
+                $("#nicknameError").text(err.message).show();
+                $("#nickname").attr('class', "form-control fieldError").focus();
+            });
+        }
+    });
 }
 
 // 이메일 중복 여부 및 유효성 확인을 서버에서 진행할 수 있도록 form을 전송하는 함수
 function emailChk() {
-    if(!isEmailEmpty()) return false;
-    let form = document.getElementById("submitForm");
-    form.action = "/members/emailChk";
-    form.submit();
+    resetError();
+    if (!isEmailEmpty()) return false;
+    let email = $("#email").serialize();
+    console.log(email);
+    $.ajax({
+        type: "GET",
+        url: "/api/registration/check/email?" + email,
+        success: function (response) {
+            console.log(response);
+            $("#emailCheck").prop('checked',true);
+            bodyAlert(response.message);
+        },
+        error: function (error) {
+            // 에러 처리
+            //console.error("에러 발생:", error);
+            error.responseJSON.find(function (err) {
+                console.log(err);
+                $("#emailError").text(err.message).show();
+                $("#email").attr('class', "form-control fieldError").focus();
+            });
+        }
+    });
 }
 
 // 회원 가입 양식 제출 전 양식이 올바른지 확인하는 함수
 function checkBeforeSubmit() {
     $("#registerSubmit").on('click', function () {
         return (isUserIdEmpty() && isUserIdCheck() && isNicknameEmpty() && isNicknameCheck()
-        && isEmailEmpty() && isEmailCheck() && isEmailNumberSend() && isEmailNumberEmpty()
-        && isEmailNumberCheck() && isPasswordEmpty() && isPasswordConfirmEmpty() && isPasswordSame());
+            && isEmailEmpty() && isEmailCheck() && isEmailNumberSend() && isEmailNumberEmpty()
+            && isEmailNumberCheck() && isPasswordEmpty() && isPasswordConfirmEmpty() && isPasswordSame());
     });
 }
 

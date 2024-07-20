@@ -1,5 +1,5 @@
 /*
- * 클래스 기능 : 예외 발생 enum 클래스
+ * 클래스 기능 : 회원 가입 시 아이디 검증 관련 에러 코드 enum class
  * 최근 수정 일자 : 2024.07.20(토)
  */
 package com.pathfind.system.exception;
@@ -9,9 +9,9 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum ErrorCode implements BasicErrorCode {
-    INVALID_INPUT_VALUE(409, "INVALID_INPUT", "올바른 값을 입력하지 않은 경우"),
-    ROOM_EXCEEDED(403, "-403", "방 최대 인원인 5명보다 많은 사람을 초대하는 경우");
+public enum UserIdCheckErrorCode implements BasicErrorCode {
+    INVALID_INPUT_VALUE(409, "USER_ID_INVALID", "아이디는 5~12자 영문 대 소문자, 숫자를 사용하세요."),
+    ID_ALREADY_EXISTS(409, "USER_ID_EXIST", "이미 존재하는 아이디입니다.");
 
     private final int status;
     private final String code;

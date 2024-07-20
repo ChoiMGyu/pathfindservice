@@ -1,12 +1,13 @@
 /*
  * 클래스 기능 : swagger config 클래스이다.
- * 최근 수정 일자 : 2024.07.18(목)
+ * 최근 수정 일자 : 2024.07.20(토)
  */
 package com.pathfind.system.config;
 
 import com.pathfind.system.customAnnotation.ApiErrorCode;
 import com.pathfind.system.exception.BasicErrorCode;
 import com.pathfind.system.exception.ErrorReason;
+import com.pathfind.system.exception.ErrorVCResponse;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
@@ -65,8 +66,9 @@ public class SwaggerConfig {
                         basicErrorCode -> {
                             try {
                                 ErrorReason errorReason = basicErrorCode.getErrorReason();
+                                ErrorVCResponse errorVCResponse = basicErrorCode.getErrorVCResponse();
                                 return ExampleHolder.builder()
-                                        .holder(getSwaggerExample(errorReason))
+                                        .holder(getSwaggerExample(errorVCResponse))
                                         .code(errorReason.getStatus())
                                         .name(errorReason.getCode())
                                         .build();
@@ -96,10 +98,10 @@ public class SwaggerConfig {
         }
     }
 
-    private Example getSwaggerExample(ErrorReason errorReason) {
+    private Example getSwaggerExample(ErrorVCResponse errorVCResponse) {
         //ErrorResponse 는 클라이언트한 실제 응답하는 공통 에러 응답 객체입니다.
         Example example = new Example();
-        example.setValue(errorReason);
+        example.setValue(errorVCResponse);
         return example;
     }
 
