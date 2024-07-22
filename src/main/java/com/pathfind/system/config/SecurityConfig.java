@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : Spring security config class
- * 최근 수정 일자 : 2024.05.24(금)
+ * 최근 수정 일자 : 2024.07.22(월)
  */
 package com.pathfind.system.config;
 
@@ -31,6 +31,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(CsrfConfigurer::disable) //개발 단계에서는 주석해제, 배포에서는 주석처리
                 .authorizeHttpRequests(authorize -> authorize
                         .anyRequest().permitAll()
                 )

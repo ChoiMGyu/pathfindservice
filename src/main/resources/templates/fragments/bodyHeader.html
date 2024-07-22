@@ -10,7 +10,7 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <section id="notificationSection" class="text-end">
-                <input type="hidden" id="_csrf" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+<!--                <input type="hidden" id="_csrf" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>-->
                 <th:block sec:authorize="isAuthenticated()"><!--th:if="${session.loginMember != null}">-->
                     <nav class="navbar navbar-expand-lg navbar-light bg-light">
                         <div class="container-fluid">

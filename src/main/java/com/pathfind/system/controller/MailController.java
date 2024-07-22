@@ -1,11 +1,11 @@
 /*
  * 클래스 기능 : 이메일 인증 절차를 위한 이메일 전송과 인증 절차를 수행하는 컨트롤러
- * 최근 수정 일자 : 2024.01.09(화)
+ * 최근 수정 일자 : 2024.07.22(월)
  */
 package com.pathfind.system.controller;
 
 import com.pathfind.system.memberDto.EmailCheckDto;
-import com.pathfind.system.memberDto.EmailRequestDto;
+import com.pathfind.system.memberDto.EmailNumVCRequest;
 import com.pathfind.system.service.MailSendService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class MailController {
     private final MailSendService mailService;
 
     @PostMapping("/mailSend")
-    public String mailSend(@RequestBody @Valid EmailRequestDto emailDto){
+    public String mailSend(@RequestBody @Valid EmailNumVCRequest emailDto){
         //이메일 인증을 수행하기 위해 이메일 인증 요청 메일을 사용자에게 전송
         //System.out.println("이메일 인증 이메일 :"+emailDto.getEmail());
         logger.info("이메일 인증 이메일 : " + emailDto.getEmail());

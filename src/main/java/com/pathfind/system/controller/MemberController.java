@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원 관련 페이지 렌더링을 하는 controller
- * 최근 수정 일자 : 2024.07.20(토)
+ * 최근 수정 일자 : 2024.07.22(월)
  */
 package com.pathfind.system.controller;
 
@@ -240,69 +240,69 @@ public class MemberController {
 
 */
     // 이메일 인증번호를 보내는 함수이다.
-    @PostMapping("/emailNumberSend")
-    public String emailNumberSend(SubmitForm form, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {
-        logger.info("member email number send");
-
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            return "redirect:/members/login";
-        }
-
-        if (Objects.equals(form.getEmail(), "")) {
-            result.rejectValue("email", "Empty.email");
-        }
-        if (!result.hasFieldErrors("email") && !form.isEmailCheck()) {
-            result.rejectValue("email", "Empty.email.check");
-        }
-
-        String path = getPath(request);
-
-        if (result.hasErrors()) {
-            form.setEmailNumberSend(false);
-            form.setEmailNumberCheck(false);
-            session.setAttribute(SessionConst.SUBMIT_MEMBER, form);
-            rttr.addFlashAttribute(BindingResult.MODEL_KEY_PREFIX + "submitForm", result);
-            return "redirect:" + path;
-        }
-
-        mailSendService.joinEmail(form.getEmail());
-        form.setEmailNumberSend(true);
-        form.setEmailNumberCheck(false);
-        form.setTimeCount(1800L); // 인증번호 유효 기간: 30분
-        session.setAttribute(SessionConst.SUBMIT_MEMBER, form);
-        rttr.addFlashAttribute("message", "해당 이메일로 인증번호 발송이 완료되었습니다. 확인 부탁드립니다.");
-
-        return "redirect:" + path;
-    }
+//    @PostMapping("/emailNumberSend")
+//    public String emailNumberSend(SubmitForm form, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {
+//        logger.info("member email number send");
+//
+//        HttpSession session = request.getSession(false);
+//        if (session == null) {
+//            return "redirect:/members/login";
+//        }
+//
+//        if (Objects.equals(form.getEmail(), "")) {
+//            result.rejectValue("email", "Empty.email");
+//        }
+//        if (!result.hasFieldErrors("email") && !form.isEmailCheck()) {
+//            result.rejectValue("email", "Empty.email.check");
+//        }
+//
+//        String path = getPath(request);
+//
+//        if (result.hasErrors()) {
+//            form.setEmailNumberSend(false);
+//            form.setEmailNumberCheck(false);
+//            session.setAttribute(SessionConst.SUBMIT_MEMBER, form);
+//            rttr.addFlashAttribute(BindingResult.MODEL_KEY_PREFIX + "submitForm", result);
+//            return "redirect:" + path;
+//        }
+//
+//        mailSendService.joinEmail(form.getEmail());
+//        form.setEmailNumberSend(true);
+//        form.setEmailNumberCheck(false);
+//        form.setTimeCount(1800L); // 인증번호 유효 기간: 30분
+//        session.setAttribute(SessionConst.SUBMIT_MEMBER, form);
+//        rttr.addFlashAttribute("message", "해당 이메일로 인증번호 발송이 완료되었습니다. 확인 부탁드립니다.");
+//
+//        return "redirect:" + path;
+//    }
 
     // 사용자로부터 입력받은 인증번호와 Redis의 인증번호가 동일한지 여부를 검사하는 함수이다.
-    @PostMapping("/emailNumberChk")
-    public String emailNumberChk(SubmitForm form, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {
-        logger.info("member email number check");
-
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            return "redirect:/members/login";
-        }
-
-        emailNumberValidation(form, result); // 사용자가 보낸 인증번호의 유효성, Redis 인증번호와의 동일성 여부를 판단한다.
-
-        String path = getPath(request);
-
-        if (result.hasErrors()) {
-            form.setEmailNumberCheck(false);
-            session.setAttribute(SessionConst.SUBMIT_MEMBER, form);
-            rttr.addFlashAttribute(BindingResult.MODEL_KEY_PREFIX + "submitForm", result);
-            return "redirect:" + path;
-        }
-
-        form.setEmailNumberCheck(true);
-        session.setAttribute(SessionConst.SUBMIT_MEMBER, form);
-        rttr.addFlashAttribute("message", "이메일 인증이 완료되었습니다.");
-
-        return "redirect:" + path;
-    }
+//    @PostMapping("/emailNumberChk")
+//    public String emailNumberChk(SubmitForm form, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {
+//        logger.info("member email number check");
+//
+//        HttpSession session = request.getSession(false);
+//        if (session == null) {
+//            return "redirect:/members/login";
+//        }
+//
+//        emailNumberValidation(form, result); // 사용자가 보낸 인증번호의 유효성, Redis 인증번호와의 동일성 여부를 판단한다.
+//
+//        String path = getPath(request);
+//
+//        if (result.hasErrors()) {
+//            form.setEmailNumberCheck(false);
+//            session.setAttribute(SessionConst.SUBMIT_MEMBER, form);
+//            rttr.addFlashAttribute(BindingResult.MODEL_KEY_PREFIX + "submitForm", result);
+//            return "redirect:" + path;
+//        }
+//
+//        form.setEmailNumberCheck(true);
+//        session.setAttribute(SessionConst.SUBMIT_MEMBER, form);
+//        rttr.addFlashAttribute("message", "이메일 인증이 완료되었습니다.");
+//
+//        return "redirect:" + path;
+//    }
 
     // 회원 가입을 진행하여 데이터베이스에 회원 정보를 저장하는 함수이다.
     @PostMapping("/register")
