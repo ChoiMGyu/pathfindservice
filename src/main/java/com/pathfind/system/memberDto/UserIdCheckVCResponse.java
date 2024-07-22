@@ -2,7 +2,7 @@
  * 클래스 기능 : 아이디 유효성 검증 통과 여부를 반환하는데 쓰이는 dto 클래스
  * 최근 수정 일자 : 2024.07.20(토)
  */
-package com.pathfind.system.registerDto;
+package com.pathfind.system.memberDto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

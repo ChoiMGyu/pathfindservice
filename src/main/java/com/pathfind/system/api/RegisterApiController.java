@@ -13,6 +13,11 @@ import com.pathfind.system.memberDto.EmailNumVCRequest;
 import com.pathfind.system.memberDto.EmailNumVCResponse;
 import com.pathfind.system.registerDto.*;
 import com.pathfind.system.service.MailSendService;
+import com.pathfind.system.exception.EmailCheckErrorCode;
+import com.pathfind.system.exception.NicknameCheckErrorCode;
+import com.pathfind.system.exception.UserIdCheckErrorCode;
+import com.pathfind.system.exception.ValidationException;
+import com.pathfind.system.memberDto.*;
 import com.pathfind.system.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -80,7 +85,7 @@ public class RegisterApiController {
             throw new ValidationException(EmailCheckErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
-        return new EmailCheckVCResponse(true, CheckSuccess.EMAIL);
+        return new EmailCheckVCResponse(true,CheckSuccess.EMAIL);
     }
 
     @Operation(summary = "이메일로 인증 번호 전송", description = "회원 가입 시 중복 확인을 거친 이메일의 유효성 여부를 확인하고 그 이메일로 인증 번호를 전송합니다.")
