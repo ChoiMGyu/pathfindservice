@@ -4,9 +4,9 @@
  */
 package com.pathfind.system.exception;
 
-import com.pathfind.system.registerDto.EmailVCRequest;
-import com.pathfind.system.registerDto.NicknameVCRequest;
-import com.pathfind.system.registerDto.UserIdVCRequest;
+import com.pathfind.system.memberDto.EmailVCRequest;
+import com.pathfind.system.memberDto.NicknameVCRequest;
+import com.pathfind.system.memberDto.UserIdVCRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;

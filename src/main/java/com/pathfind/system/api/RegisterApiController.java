@@ -10,7 +10,7 @@ import com.pathfind.system.exception.EmailCheckErrorCode;
 import com.pathfind.system.exception.NicknameCheckErrorCode;
 import com.pathfind.system.exception.UserIdCheckErrorCode;
 import com.pathfind.system.exception.ValidationException;
-import com.pathfind.system.registerDto.*;
+import com.pathfind.system.memberDto.*;
 import com.pathfind.system.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
