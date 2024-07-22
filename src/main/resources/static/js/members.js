@@ -1,92 +1,101 @@
+//@Valid message를 보여주는 함수
+function displayErrors(errors) {
+    // 모든 오류 메시지 초기화
+    $(".text-danger").hide();
+
+    // 오류를 필드에 표시
+    errors.forEach(function(error) {
+        // 필드에 따라 ID를 설정 (예: emailError, userIdError 등)
+        let fieldErrorId = error.code+ "Error";
+        $("#" + fieldErrorId).text(error.description).show();
+    });
+}
+
 // 이메일 인증번호 전송 함수
 function checkEmail() {
     if(location.pathname.includes('Password')) {
-        //console.log(location.pathname);
         if (!isEmailEmpty() || !isUserIdEmailCheck()) return false;
     }
     else {
         if (!isEmailEmpty() || !isEmailCheck()) return false;
     }
-    let form = document.getElementById("submitForm");
-    form.action = "/members/emailNumberSend";
-    form.submit();
-    /*    if(!isEmailEmpty() || !isChkEmpty(message)) return false;
-        $.ajax({
-            type: "post",
-            url: "/mailSend",
-            dataType: "json",
-            async: false,
-            contentType: "application/json; charset-utf-8",
-            data: JSON.stringify({"email": $("#email").val()}),
-            success: function (data) {
-                showMessage('해당 이메일로 인증번호 발송이 완료되었습니다. 확인 부탁드립니다.');
-                //console.log("data : " + data);
-                emailConfirm = 0;
-                //$("#emailNumberTxt").html("<span id='emconfirmchk'>인증번호</span>")
-                $("#emailNumber").val(null).attr('class', 'form-control');
-                $("#numberSend").attr('value', 'Y').text('재전송');
-                $("#emailNumberSend").prop('checked', true);
-                //chkEmailNumber(data);
-                //$("#numberSend").text('재전송');
 
-                clearInterval(countdown);
-                seconds = 60 * 30; // 30분(1800초)
+    const email = $("#email").val();
+    const emailCheck = $("#emailCheck").is(":checked");
 
-                updateCountdown();
-                // 1초마다 카운트다운 업데이트
-                countdown = setInterval(updateCountdown, 1000);
-            },
-            error: function(e) {
-                alert("인증번호 전송에 실패했습니다. 다시 시도해 주시기 바랍니다.");
+    console.log("email : " + email);
+    console.log("emailCheck : " + emailCheck);
+
+    if (!emailCheck) {
+        $("#emailError").text("이메일 중복 확인을 해주세요.").show();
+        return;
+    }
+
+    $.ajax({
+        url: '/api/registration/emailNumberSend',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ email: email, emailCheck: emailCheck }),
+        success: function(response) {
+            if (response.authNumber) {
+                console.log('인증번호가 발송되었습니다.');
+                console.log('Verification Code:', response.authNumber);
+                console.log("response.timeCount : " + response.timeCount);
+                $("#emailNumberSend").prop("checked", true); //이메일 인증번호 전송 완료
+                $("#timeCount").val(response.timeCount); //인증번호 유효시간 설정
+                countDown(); //타이머를 시작
+                bodyAlert(response.message);
+                resetError();
             }
-        })*/
-}
-
-function countDown() {
-    document.addEventListener("DOMContentLoaded", function () {
-        if ($("#emailNumberSend").is(":checked") === true) {
-            $("#numberSend").text('재전송');
-
-            clearInterval(countdown);
-            seconds = $("#timeCount").val();//60 * 30; // 30분(1800초)
-
-            updateCountdown();
-            // 1초마다 카운트다운 업데이트
-            countdown = setInterval(updateCountdown, 1000);
+        },
+        error: function(xhr, status, error) {
+            //console.error('Error:', error);
+            if (xhr.responseJSON) {
+                //console.log("xhr.responseJSON");
+                // 오류 메시지가 배열 형태로 되어 있는지 확인
+                if (Array.isArray(xhr.responseJSON)) {
+                    //console.log("isArray");
+                    // 여러 오류 메시지가 있는 경우, 첫 번째 메시지만 표시하거나 모든 메시지를 표시
+                    if (xhr.responseJSON.length > 0) {
+                        //console.log("length");
+                        let firstError = xhr.responseJSON[0]; // 첫 번째 오류 메시지
+                        console.log(firstError);
+                        $("#verificationCodeError").text(firstError.message).show();
+                    }
+                } else {
+                    // 오류 메시지가 배열이 아닌 경우, 단일 객체로 가정하고 처리
+                    //console.log("not isArray");
+                    let err = xhr.responseJSON;
+                    $("#verificationCodeError").text(err.message).show();
+                }
+            } else {
+                //console.log("else");
+                // xhr.responseJSON이 없는 경우 기본 오류 메시지 표시
+                $("#verificationCodeError").text("서버 오류가 발생했습니다.").show();
+            }
         }
     });
 }
 
-// 이메일 인증 번호와 사용자가 기입한 번호가 일치하는지 확인하는데 쓰이는 함수이다.
-/*function chkEmailNumber(data) {
-    $("#numberCheck").on("click", function () {
-/!*        if (data != $("#emailNumber").val()) {
-            //$("#emailconfirmTxt").html("<span id='emconfirmchk'>인증 실패</span>");
-            showMessage('인증번호가 다릅니다.', 'alert alert-danger alert-dismissible fade show mt-3');
-            $("#emailNumber").attr('class', 'form-control fieldError');
-        } else {
-            //$("#emailconfirmTxt").html("<span id='emconfirmchk'>인증 완료</span>");
-            showMessage('인증 완료되었습니다.', 'alert alert-info alert-dismissible fade show mt-3');
-            $("#emailNumber").attr('class', 'form-control');
-            $("#emailNumberCheck").prop('checked', true);
-            $('#time').text("");
-            //emailConfirm = 1;
-            document.getElementById("emailForm").submit();
-        }*!/
-        emailNumberChk();
-    })
-}*/
-
 var seconds; // 남은 시간 변수
 var countdown; // 카운트다운을 관리하는 변수
 
+function countDown() {
+    if ($("#emailNumberSend").is(":checked") === true) {
+        $("#numberSend").text('재전송');
+
+        clearInterval(countdown);
+        seconds = $("#timeCount").val();//60 * 30; // 30분(1800초)
+
+        updateCountdown();
+        // 1초마다 카운트다운 업데이트
+        countdown = setInterval(updateCountdown, 1000);
+    }
+}
+
 // 시간을 업데이트하고 화면에 표시하는 함수
 function updateCountdown() {
-    /*    if ($("#emailNumberCheck").is(":checked")) {
-            return;
-        }*/
     if (seconds >= 0) {
-        //console.log(seconds);
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
         if (!$("#emailNumberCheck").is(":checked")) $('#time').text(`${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`);
@@ -94,7 +103,7 @@ function updateCountdown() {
     } else {
         clearInterval(countdown);
         $("#emailNumber").attr('class', "form-control fieldError").focus();
-        if (!document.getElementById("thEmailNumberError")) $('#emailNumberError').text('인증번호 유효시간이 만료되었습니다.').show();
+        $('#verificationCodeError').text('인증 번호 유효 시간이 초과되어 다시 인증 번호를 발급해 주세요.').show();
     }
 }
 
@@ -148,7 +157,7 @@ function resetError() {
     if (document.getElementById("userIdError")) $('#userIdError').hide();
     if (document.getElementById("nicknameError")) $('#nicknameError').hide();
     if (document.getElementById("emailError")) $('#emailError').hide();
-    if (document.getElementById("emailNumberError")) $('#emailNumberError').hide();
+    if (document.getElementById("verificationCodeError")) $('#verificationCodeError').hide();
     if (document.getElementById("passwordError")) $('#passwordError').hide();
     if (document.getElementById("thPasswordError")) $('#thPasswordError').hide();
     if (document.getElementById("passwordConfirmError")) $('#passwordConfirmError').hide();
@@ -213,21 +222,21 @@ function isEmailCheck() {
 function isEmailNumberSend() {
     if ($("#emailNumberSend").is(":checked") === false) {
         resetError();
-        $('#emailNumberError').text('먼저 인증번호 발급을 해주세요.').show();
+        $('#verificationCodeError').text('먼저 인증번호 발급을 해주세요.').show();
         return false;
     }
     return true;
 }
 
-function isEmailNumberEmpty() {
-    if ($("#emailNumber").val() === "") {
-        resetError();
-        $("#emailNumber").attr('class', "form-control fieldError").focus();
-        $('#emailNumberError').text('인증번호를 입력해 주세요.').show();
-        return false;
-    }
-    return true;
-}
+// function isEmailNumberEmpty() {
+//     if ($("#emailNumber").val() === "") {
+//         resetError();
+//         $("#emailNumber").attr('class', "form-control fieldError").focus();
+//         $('#emailNumberError').text('인증번호를 입력해 주세요.').show();
+//         return false;
+//     }
+//     return true;
+// }
 
 function isEmailNumberCheck() {
     if ($("#emailNumberCheck").is(":checked") === false) {
@@ -286,11 +295,67 @@ function isPasswordSame() {
 
 // 이메일 인증 번호 확인을 서버에서 진행할 수 있도록 form을 전송하는 함수
 function emailNumberChk() {
-    if($("#emailNumberCheck").is(":checked") === true || !isEmailNumberSend() || !isEmailNumberEmpty()) return false;
-    let form = document.getElementById("submitForm");
-    document.getElementById("timeCount").value = seconds;
-    form.action = "/members/emailNumberChk";
-    form.submit();
-}
+    if(!isEmailNumberSend()){
+        //console.log("return됨");
+        return false;
+    }
+    if(!isEmailNumberSend()){
+        //console.log("return됨 2");
+        return false;
+    }
+    if(seconds <= 0) {
+        console.log("여기 진입");
+        updateCountdown();
+        return false;
+    }
+    // 이메일과 인증 번호 값 가져오기
+    const email = $("#email").val();
+    const authNum = $("#emailNumber").val();
+    console.log("인증번호 확인 : " + authNum);
 
-countDown();
+    // AJAX 요청 보내기
+    $.ajax({
+        url: '/api/registration/emailNumberChk', // 요청할 URL
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ email: email, authNum: authNum }), // 요청 데이터
+        success: function(response) {
+            console.log("success 인증번호 일치 여부 : " + response.emailNumberCheck);
+            if (response.emailNumberCheck) {
+                bodyAlert(response.message);
+                resetError();
+                console.log('인증 번호가 일치합니다.');
+            } else {
+                console.log('인증 번호가 일치하지 않습니다.');
+            }
+        },
+        error: function(xhr, status, error) {
+            //console.error('Error:', error);
+
+            // xhr.responseJSON이 있는지 확인
+            if (xhr.responseJSON) {
+                //console.log("xhr.responseJSON");
+                // 오류 메시지가 배열 형태로 되어 있는지 확인
+                if (Array.isArray(xhr.responseJSON)) {
+                    //console.log("isArray");
+                    // 여러 오류 메시지가 있는 경우, 첫 번째 메시지만 표시하거나 모든 메시지를 표시
+                    if (xhr.responseJSON.length > 0) {
+                        //console.log("length");
+                        let firstError = xhr.responseJSON[0]; // 첫 번째 오류 메시지
+                        console.log(firstError);
+                        $("#verificationCodeError").text(firstError.message).show();
+                    }
+                } else {
+                    // 오류 메시지가 배열이 아닌 경우, 단일 객체로 가정하고 처리
+                    //console.log("not isArray");
+                    let err = xhr.responseJSON;
+                    $("#verificationCodeError").text(err.message).show();
+                }
+            } else {
+                //console.log("else");
+                // xhr.responseJSON이 없는 경우 기본 오류 메시지 표시
+                $("#verificationCodeError").text("서버 오류가 발생했습니다.").show();
+            }
+        }
+    });
+}

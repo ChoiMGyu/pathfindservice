@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원정보 엔티티
- * 최근 수정 일자 : 2024.05.20(월)
+ * 최근 수정 일자 : 2024.07.20(금)
  */
 package com.pathfind.system.domain;
 
@@ -16,6 +16,12 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 @Entity
+//@Table(
+//        name = "MemberUniqueConstraint",
+//        uniqueConstraints = {
+//                @UniqueConstraint(columnNames = {"userId", "nickname", "email"})
+//        }
+//)
 @Getter
 @EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -26,16 +32,16 @@ public class Member {
     @Column(name = "member_id")
     private Long id; //Member 테이블 PK
 
-    @Column(length = 12, nullable = false, unique = true)
+    @Column(length = 12, nullable = false)
     private String userId; //아이디
 
     @Column(nullable = false)
     private String password; //비밀번호 // 변경 가능
 
-    @Column(length = 12, nullable = false, unique = true)
+    @Column(length = 12, nullable = false)
     private String nickname; //닉네임 // 변경 가능
 
-    @Column(length = 45, nullable = false, unique = true)
+    @Column(length = 45, nullable = false)
     private String email; //이메일
 
     @Column(nullable = false)
@@ -45,7 +51,7 @@ public class Member {
     private LocalDate lastConnect; //최근접속일 // 변경 가능
 
     @OneToOne(fetch = FetchType.LAZY) //OneToOne은 기본 Eager
-    @JoinColumn(name = "check_id", unique = true)
+    @JoinColumn(name = "check_id")
     private Check check; //일대일 연관관계 매핑
 
     //==정적 팩토리 메서드==//

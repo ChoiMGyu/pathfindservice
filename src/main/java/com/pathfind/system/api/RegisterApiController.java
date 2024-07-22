@@ -1,16 +1,18 @@
 /*
  * 클래스 기능 : 회원 가입 API Controller
- * 최근 수정 일자 : 2024.07.20(토)
+ * 최근 수정 일자 : 2024.07.22(월)
  */
 package com.pathfind.system.api;
 
 import com.pathfind.system.customAnnotation.ApiErrorCode;
 import com.pathfind.system.domain.Member;
-import com.pathfind.system.exception.EmailCheckErrorCode;
-import com.pathfind.system.exception.NicknameCheckErrorCode;
-import com.pathfind.system.exception.UserIdCheckErrorCode;
-import com.pathfind.system.exception.ValidationException;
+import com.pathfind.system.exception.*;
+import com.pathfind.system.memberDto.EmailChkVCRequest;
+import com.pathfind.system.memberDto.EmailChkVCResponse;
+import com.pathfind.system.memberDto.EmailNumVCRequest;
+import com.pathfind.system.memberDto.EmailNumVCResponse;
 import com.pathfind.system.registerDto.*;
+import com.pathfind.system.service.MailSendService;
 import com.pathfind.system.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -27,9 +29,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/registration/*")
 public class RegisterApiController {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private static final Logger logger = LoggerFactory.getLogger(RegisterApiController.class);
 
     private final MemberService memberService;
+
+    private final MailSendService mailSendService;
 
     // 아이디 유효성, 중복 확인 여부를 검사하는 함수이다.
     @Operation(summary = "유저 아이디 유효성 검증, 중복 여부 확인", description = "회원 가입 시 유저 아이디 유효성, 중복 여부를 확인하고 그 결과를 반환합니다.")
@@ -76,6 +80,29 @@ public class RegisterApiController {
             throw new ValidationException(EmailCheckErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
-        return new EmailCheckVCResponse(true,CheckSuccess.EMAIL);
+        return new EmailCheckVCResponse(true, CheckSuccess.EMAIL);
+    }
+
+    @Operation(summary = "이메일로 인증 번호 전송", description = "회원 가입 시 중복 확인을 거친 이메일의 유효성 여부를 확인하고 그 이메일로 인증 번호를 전송합니다.")
+    @PostMapping("emailNumberSend")
+    public EmailNumVCResponse emailNumberSend(@RequestBody @Valid EmailNumVCRequest request) {
+        logger.info("이메일 인증 번호 발급 api 호출");
+        //emailNumberValidation();
+        String authNumber = mailSendService.joinEmail(request.getEmail());
+        //logger.info("authNumber : " + authNumber);
+        return new EmailNumVCResponse(authNumber, 1L, CheckSuccess.AUTHENTICATION_NUM);
+    }
+
+
+    @Operation(summary = "인증 번호 동일성 여부 검사", description = "회원 가입 시 이메일로 전송된 인증 번호와 입력한 인증 번호가 동일한지 확인하고 그 결과를 반환합니다.")
+    @ApiErrorCode(AuthenticationChkErrorCode.class)
+    @PostMapping("emailNumberChk")
+    public EmailChkVCResponse emailNumberChk(@RequestBody @Valid EmailChkVCRequest request) {
+        logger.info("이메일 인증 번호를 확인 api 호출");
+        boolean chk = mailSendService.CheckAuthNum(request.getEmail(), request.getAuthNum());
+        if(!chk) {
+            throw new ValidationException(AuthenticationChkErrorCode.NOT_SAME);
+        }
+        return new EmailChkVCResponse(chk, CheckSuccess.AUTHENTICATION_CHK);
     }
 }

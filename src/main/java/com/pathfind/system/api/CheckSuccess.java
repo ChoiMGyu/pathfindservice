@@ -8,4 +8,7 @@ public abstract class CheckSuccess {
     public static final String USER_ID = "아이디 중복 확인을 통과하였습니다.";
     public static final String NICKNAME = "닉네임 중복 확인을 통과하였습니다.";
     public static final String EMAIL = "이메일 중복 확인을 통과하였습니다.";
+
+    public static final String AUTHENTICATION_NUM = "인증 번호를 발급하였습니다.";
+    public static final String AUTHENTICATION_CHK = "인증 번호 확인을 통과하였습니다.";
 }
