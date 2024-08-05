@@ -24,6 +24,4 @@ public class EmailChkVCRequest {
     @NotEmpty(message = "인증 번호를 입력해주세요.", groups = NotEmptyGroup.class)
     @Pattern(regexp = "^[0-9]*$", message = "인증번호는 숫자만 입력해주세요.", groups = PatternGroup.class)
     private String authNum; //입력받은 인증번호
-
-    private Long seconds;
 }

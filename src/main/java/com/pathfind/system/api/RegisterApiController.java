@@ -28,10 +28,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.concurrent.TimeUnit;
 
 @Tag(name = "회원 가입 API", description = "회원 가입 시 사용되는 API")
 @RestController
@@ -48,6 +52,9 @@ public class RegisterApiController {
     private final RedisUtil redisUtil;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
 
     // 아이디 유효성, 중복 확인 여부를 검사하는 함수이다.
     @Operation(summary = "유저 아이디 유효성 검증, 중복 여부 확인", description = "회원 가입 시 유저 아이디 유효성, 중복 여부를 확인하고 그 결과를 반환합니다.")
@@ -117,7 +124,8 @@ public class RegisterApiController {
     @PostMapping("emailNumberChk")
     public EmailChkVCResponse emailNumberChk(@RequestBody @Validated(ValidationSequence.class) EmailChkVCRequest request) {
         logger.info("이메일 인증 번호를 확인 api 호출");
-        if(request.getSeconds() <= 0) {
+        Long expireDuration = redisTemplate.getExpire(request.getEmail(), TimeUnit.SECONDS);
+        if(expireDuration == null || expireDuration <= 0) {
             //인증 번호 유효 시간이 초과되었음
             throw new ValidationException(AuthenticationChkErrorCode.TIME_OUT);
         }
