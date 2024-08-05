@@ -50,6 +50,7 @@ function checkNickname() {
 
 // 이메일 중복 여부 및 유효성 확인을 서버에서 진행할 수 있도록 form을 전송하는 함수
 function checkEmail() {
+    disableEmailNumberSection();
     let email = $("#email").val();
     console.log("checkEmail js 호출됨");
 
