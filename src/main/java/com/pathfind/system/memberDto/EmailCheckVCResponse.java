@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 이메일 유효성 검증 통과 여부를 반환하는데 쓰이는 dto 클래스
- * 최근 수정 일자 : 2024.07.20(토)
+ * 최근 수정 일자 : 2024.08.03(토)
  */
 package com.pathfind.system.memberDto;
 
@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-@Schema(name = "EmailVCResponse", description = "유저 이메일 유효성 검증 통과 여부 반환에 쓰이는 dto")
+@Schema(name = "EmailCheckVCResponse", description = "유저 이메일 유효성 검증 통과 여부 반환에 쓰이는 dto")
 @Data
 @AllArgsConstructor
 public class EmailCheckVCResponse {

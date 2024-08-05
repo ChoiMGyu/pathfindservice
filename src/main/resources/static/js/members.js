@@ -14,11 +14,67 @@ function emailNumberSend() {
                 $("#timeCount").val(response.timeCount); //인증번호 유효시간 설정
                 countDown(); //타이머를 시작
                 bodyAlert(response.message);
+                $('#emailNumber').attr("disabled", false);
                 $('#numberCheck').prop('disabled', false);
                 $("#email").attr('class', "form-control");
             }
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
+            $('#emailNumber').attr("disabled", true);
+            $('#numberCheck').attr("disabled", true);
+            hideBodyAlert();
+            //console.error('Error:', error);
+            if (xhr.responseJSON) {
+                // 오류 메시지가 배열 형태로 되어 있는지 확인
+                if (Array.isArray(xhr.responseJSON)) {
+                    // 여러 오류 메시지가 있는 경우, 첫 번째 메시지만 표시하거나 모든 메시지를 표시
+                    if (xhr.responseJSON.length > 0) {
+                        let firstError = xhr.responseJSON[0]; // 첫 번째 오류 메시지
+                        console.log("emailNumberSend: " + firstError);
+                        $("#emailError").text(firstError.message).show();
+                        $("#email").attr('class', "form-control fieldError").focus();
+                    }
+                } else {
+                    // 오류 메시지가 배열이 아닌 경우, 단일 객체로 가정하고 처리
+                    let err = xhr.responseJSON;
+                    $("#emailError").text(err.message).show();
+                    $("#email").attr('class', "form-control fieldError").focus();
+                }
+            } else {
+                // xhr.responseJSON이 없는 경우 기본 오류 메시지 표시
+                $("#emailError").text("서버 오류가 발생했습니다.").show();
+                $("#email").attr('class', "form-control fieldError").focus();
+            }
+        }
+    });
+}
+
+// 이메일 인증번호 전송을 서버에서 진행할 수 있도록 ajax 요청하는 함수
+function ExistemailNumberSend() {
+    const email = $("#email").val();
+    console.log("emailNumberSend js 호출됨");
+
+    $.ajax({
+        url: '/api/recovery/emailNumberSend',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ email: email }),
+        success: function(response) {
+            if (response.authNumber) {
+                console.log('Verification Code:', response.authNumber);
+                $("#timeCount").val(response.timeCount); //인증번호 유효시간 설정
+                countDown(); //타이머를 시작
+                bodyAlert(response.message);
+                $('#emailNumber').attr("disabled", false);
+                $('#numberCheck').prop('disabled', false);
+                $("#email").attr('class', "form-control");
+            }
+        },
+        error: function (xhr, status, error) {
+            $('#emailNumber').attr("disabled", true);
+            $('#numberCheck').attr("disabled", true);
+            hideBodyAlert();
+            //console.error('Error:', error);
             if (xhr.responseJSON) {
                 // 오류 메시지가 배열 형태로 되어 있는지 확인
                 if (Array.isArray(xhr.responseJSON)) {
@@ -91,6 +147,7 @@ function resetError() {
     $("#email").attr('class', "form-control");
     if (document.getElementById("thEmailError")) $('#thEmailError').hide();
     if (document.getElementById("globalError")) $('#globalError').hide();
+    if (document.getElementById("memberInfoError")) $('#memberInfoError').hide();
     if (document.getElementById("thGlobalError")) $('#thGlobalError').hide();
     $("#emailNumber").attr('class', "form-control");
     if (document.getElementById("thEmailNumberError")) $('#thEmailNumberError').hide();
@@ -103,6 +160,7 @@ function resetError() {
     if (document.getElementById("passwordError")) $('#passwordError').hide();
     if (document.getElementById("thPasswordError")) $('#thPasswordError').hide();
     if (document.getElementById("passwordConfirmError")) $('#passwordConfirmError').hide();
+    if (document.getElementById("verificationCodeError")) $('#verificationCodeError').hide();
 }
 
 function isEmailEmpty() {
@@ -253,4 +311,15 @@ function checkPassword() {
             }
         }
     });
+}
+
+// 이메일 인증 번호 섹션을 비활성화하는 함수이다.
+function disableEmailNumberSection() {
+    $("#verificationCodeError").hide();
+    $("#numberSend").text('인증번호 발급').attr("disabled", true);
+    $("#emailNumber").attr('class', "form-control").val("").attr("disabled", true);
+    $("#numberCheck").attr("disabled", true);
+    clearInterval(countdown);
+    $("#time").text("");
+    $("#timeCount").text("");
 }

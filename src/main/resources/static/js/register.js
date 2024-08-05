@@ -67,6 +67,7 @@ function checkEmail() {
             bodyAlert(response.message);
         },
         error: function(error) {
+            disableEmailNumberSection();
             error.responseJSON.find(function (err) {
                 console.log(err);
                 $("#emailError").text(err.message).show();
