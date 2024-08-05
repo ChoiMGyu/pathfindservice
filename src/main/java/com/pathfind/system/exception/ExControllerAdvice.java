@@ -1,17 +1,12 @@
 /*
  * 클래스 기능 : 예외 발생했을 때 응답을 처리하는 클래스
- * 최근 수정 일자 : 2024.07.22(월)
+ * 최근 수정 일자 : 2024.08.04(일)
  */
 package com.pathfind.system.exception;
 
-import com.pathfind.system.memberDto.EmailChkVCRequest;
-import com.pathfind.system.memberDto.EmailNumVCRequest;
-import com.pathfind.system.registerDto.EmailVCRequest;
-import com.pathfind.system.registerDto.NicknameVCRequest;
-import com.pathfind.system.registerDto.UserIdVCRequest;
-import com.pathfind.system.memberDto.EmailVCRequest;
-import com.pathfind.system.memberDto.NicknameVCRequest;
-import com.pathfind.system.memberDto.UserIdVCRequest;
+import com.pathfind.system.memberDto.*;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -24,11 +19,13 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -40,27 +37,17 @@ public class ExControllerAdvice {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<List<ErrorVCResponse>> handleValidException(MethodArgumentNotValidException e) {
-        if (e.getBindingResult().getTarget() instanceof UserIdVCRequest) {
-            return handleValidationException(new ValidationException(UserIdCheckErrorCode.INVALID_INPUT_VALUE));
-        }
-        else if (e.getBindingResult().getTarget() instanceof NicknameVCRequest) {
-            return handleValidationException(new ValidationException(NicknameCheckErrorCode.INVALID_INPUT_VALUE));
-        }
-        else if (e.getBindingResult().getTarget() instanceof EmailVCRequest) {
-            return handleValidationException(new ValidationException(EmailCheckErrorCode.INVALID_INPUT_VALUE));
-        }
-        else if (e.getBindingResult().getTarget() instanceof EmailChkVCRequest) {
-            logger.info("인증 번호 확인에 문제가 생김");
-            return handleValidationException(new ValidationException(AuthenticationChkErrorCode.INVALID_INPUT_VALUE));
-        }
-
-        ErrorCode errorCode = ErrorCode.INVALID_INPUT_VALUE;
         BindingResult bindingResult = e.getBindingResult();
+        if(bindingResult.hasErrors()) {
+            bindingResult
+                    .getFieldErrors()
+                    .forEach(f -> logger.info("Code: {}, Field: {}, Message : {}" ,f.getCode(), f.getField(), f.getDefaultMessage()));
+        }
 
         List<ErrorVCResponse> response = new ArrayList<>();
         for (FieldError err : bindingResult.getFieldErrors()) {
-            logger.info("{}", err.getDefaultMessage());
-            response.add(new ErrorVCResponse(errorCode.getCode(), err.getDefaultMessage()));
+            logger.info("에러 메시지 : {}", err.getDefaultMessage());
+            response.add(new ErrorVCResponse(err.getCode(), err.getDefaultMessage()));
         }
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);

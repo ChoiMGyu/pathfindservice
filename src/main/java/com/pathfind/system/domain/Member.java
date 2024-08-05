@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 회원정보 엔티티
- * 최근 수정 일자 : 2024.07.20(금)
+ * 최근 수정 일자 : 2024.08.02(금)
  */
 package com.pathfind.system.domain;
 
@@ -109,6 +109,8 @@ public class Member {
     public void changeLastConnect(LocalDate date) {
         this.lastConnect = date;
     }
+
+    public void changeCheck(Check check) {this.check = check;}
 
     public String updateToTemporaryPassword() {
         String temporaryPassword = getRandomPassword();

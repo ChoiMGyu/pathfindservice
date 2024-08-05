@@ -1,47 +1,19 @@
-/*// 아이디, 닉네임, 이메일 중복 여부 및 유효성 확인 함수
-function validationChk() {
-    let form = document.createElement("form");
-    form.name = "memberForm";
-    form.action = "/members/validationChk";
-    form.method = "post";
-    form.style.display = 'none';
-    let input1 = document.createElement("input");
-    input1.value = document.getElementById("userId").value;
-    input1.name = "userId"
-    form.appendChild(input1);
-    let input2 = document.createElement("input");
-    input2.value = document.getElementById("nickname").value;
-    input2.name = "nickname"
-    form.appendChild(input2);
-    let input3 = document.createElement("input");
-    input3.value = document.getElementById("email").value;
-    input3.name = "email"
-    form.appendChild(input3);
-    let input4 = document.createElement("input");
-    input4.value = "dummyPassword!234";
-    input4.name = "password"
-    form.appendChild(input4);
-    document.body.appendChild(form);
-    form.submit();
-}*/
-
 // 아이디 중복 여부 및 유효성 확인을 서버에서 진행할 수 있도록 ajax를 사용해 userId를 전송하는 함수
-function userIdChk() {
-    resetError();
-    if (!isUserIdEmpty()) return false;
-    let userId = $("#userId").serialize();
-    console.log(userId);
+function checkUserId() {
+    let userId = $("#userId").val();
+    console.log("checkUserId js 호출됨");
     $.ajax({
-        type: "GET",
-        url: "/api/registration/check/user-id?" + userId,
-        success: function (response) {
-            console.log(response);
-            $("#userIdCheck").prop('checked',true);
+        url: "/api/registration/check/user-id?userId=" + userId,
+        type: 'GET',
+        success: function(response) {
+            $('#userIdError').hide();
+            if ($("#userId").is(":focus")) {
+                $("#userId").blur(); // userId 필드의 포커스 해제
+            }
+            $("#userId").attr('class', "form-control");
             bodyAlert(response.message);
         },
-        error: function (error) {
-            // 에러 처리
-            //console.error("에러 발생:", error);
+        error: function(error) {
             error.responseJSON.find(function (err) {
                 console.log(err);
                 $("#userIdError").text(err.message).show();
@@ -52,22 +24,21 @@ function userIdChk() {
 }
 
 // 닉네임 중복 여부 및 유효성 확인을 서버에서 진행할 수 있도록 form을 전송하는 함수
-function nicknameChk() {
-    resetError();
-    if (!isNicknameEmpty()) return false;
-    let nickname = $("#nickname").serialize();
-    console.log(nickname);
+function checkNickname() {
+    let nickname = $("#nickname").val();
+    console.log("checkNickname js 호출됨");
     $.ajax({
-        type: "GET",
-        url: "/api/registration/check/nickname?" + nickname,
-        success: function (response) {
-            console.log(response);
-            $("#nicknameCheck").prop('checked',true);
+        url: "/api/registration/check/nickname?nickname=" + nickname,
+        type: 'GET',
+        success: function(response) {
+            $('#nicknameError').hide();
+            if ($("#nickname").is(":focus")) {
+                $("#nickname").blur(); // userId 필드의 포커스 해제
+            }
+            $("#nickname").attr('class', "form-control");
             bodyAlert(response.message);
         },
-        error: function (error) {
-            // 에러 처리
-            //console.error("에러 발생:", error);
+        error: function(error) {
             error.responseJSON.find(function (err) {
                 console.log(err);
                 $("#nicknameError").text(err.message).show();
@@ -78,22 +49,24 @@ function nicknameChk() {
 }
 
 // 이메일 중복 여부 및 유효성 확인을 서버에서 진행할 수 있도록 form을 전송하는 함수
-function emailChk() {
-    resetError();
-    if (!isEmailEmpty()) return false;
-    let email = $("#email").serialize();
-    console.log(email);
+function checkEmail() {
+    let email = $("#email").val();
+    console.log("checkEmail js 호출됨");
+
     $.ajax({
-        type: "GET",
-        url: "/api/registration/check/email?" + email,
-        success: function (response) {
-            console.log(response);
-            $("#emailCheck").prop('checked',true);
+        url: "/api/registration/check/email?email=" + email,
+        type: 'GET',
+        success: function(response) {
+            $('#emailError').hide();
+            if ($("#email").is(":focus")) {
+                $("#email").blur(); // userId 필드의 포커스 해제
+            }
+            $("#email").attr('class', "form-control");
+            $('#emailNumber').prop('disabled', false);
+            $('#numberSend').prop('disabled', false);
             bodyAlert(response.message);
         },
-        error: function (error) {
-            // 에러 처리
-            //console.error("에러 발생:", error);
+        error: function(error) {
             error.responseJSON.find(function (err) {
                 console.log(err);
                 $("#emailError").text(err.message).show();
@@ -103,18 +76,48 @@ function emailChk() {
     });
 }
 
-// 회원 가입 양식 제출 전 양식이 올바른지 확인하는 함수
-function checkBeforeSubmit() {
-    $("#registerSubmit").on('click', function () {
-        return (isUserIdEmpty() && isUserIdCheck() && isNicknameEmpty() && isNicknameCheck()
-            && isEmailEmpty() && isEmailCheck() && isEmailNumberSend() && isEmailNumberEmpty()
-            && isEmailNumberCheck() && isPasswordEmpty() && isPasswordConfirmEmpty() && isPasswordSame());
+//회원 가입 버튼을 눌러서 회원 가입을 진행하는 ajax 호출 함수
+function checkRegister() {
+    let userId = $("#userId").val();
+    let nickname = $("#nickname").val();
+    let email = $("#email").val();
+    let authNum = $("#emailNumber").val();
+    let password = $("#password").val();
+    let passwordConfirm = $("#passwordConfirm ").val();
+
+    $.ajax({
+        url: "/api/registration/register",
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ userId: userId, nickname: nickname, email: email, authNum: authNum, password: password, passwordConfirm: passwordConfirm }), // 요청 데이터
+        success: function(response) {
+            resetError();
+            if(response.registerCheck) {
+                window.location.href = "/members/registerComplete"; //회원가입 완료 페이지로 리다이렉트
+            }
+            else {
+                bodyAlert(response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            if (xhr.responseJSON) {
+                // 오류 메시지가 배열 형태로 되어 있는지 확인
+                if (Array.isArray(xhr.responseJSON)) {
+                    // 여러 오류 메시지가 있는 경우, 첫 번째 메시지만 표시하거나 모든 메시지를 표시
+                    if (xhr.responseJSON.length > 0) {
+                        let firstError = xhr.responseJSON[0]; // 첫 번째 오류 메시지
+                        console.log("첫번째 에러 메시지: " + firstError.message);
+                        bodyAlert(firstError.message);
+                    }
+                } else {
+                    // 오류 메시지가 배열이 아닌 경우, 단일 객체로 가정하고 처리
+                    let err = xhr.responseJSON;
+                    bodyAlert(err.message);
+                }
+            } else {
+                // xhr.responseJSON이 없는 경우 기본 오류 메시지 표시
+                bodyAlert("서버 오류가 발생했습니다.");
+            }
+        }
     });
 }
-
-changeUserId();
-changeNickname();
-changeEmail();
-changeEmailNumber();
-comparePassword();
-checkBeforeSubmit();
