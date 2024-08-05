@@ -1,32 +1,23 @@
 /*
  * 클래스 기능 : 예외 발생했을 때 응답을 처리하는 클래스
- * 최근 수정 일자 : 2024.08.04(일)
+ * 최근 수정 일자 : 2024.08.05(월)
  */
 package com.pathfind.system.exception;
 
-import com.pathfind.system.memberDto.*;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -47,7 +38,7 @@ public class ExControllerAdvice {
         List<ErrorVCResponse> response = new ArrayList<>();
         for (FieldError err : bindingResult.getFieldErrors()) {
             logger.info("에러 메시지 : {}", err.getDefaultMessage());
-            response.add(new ErrorVCResponse(err.getCode(), err.getDefaultMessage()));
+            response.add(new ErrorVCResponse(err.getField(), err.getCode(), err.getDefaultMessage()));
         }
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -57,7 +48,7 @@ public class ExControllerAdvice {
     public ResponseEntity<List<ErrorVCResponse>> handleCustomException(CustomException e) {
         BasicErrorCode errorCode = e.getErrorCode();
         List<ErrorVCResponse> response = new ArrayList<>();
-        response.add(new ErrorVCResponse(errorCode.getCode(), e.getMessage()));
+        response.add(new ErrorVCResponse(null, errorCode.getCode(), e.getMessage()));
         return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 
@@ -65,7 +56,7 @@ public class ExControllerAdvice {
     public ResponseEntity<List<ErrorVCResponse>> handleValidationException(ValidationException e) {
         BasicErrorCode errorCode = e.getErrorCode();
         List<ErrorVCResponse> response = new ArrayList<>();
-        response.add(new ErrorVCResponse(errorCode.getCode(), e.getMessage()));
+        response.add(new ErrorVCResponse(null, errorCode.getCode(), e.getMessage()));
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 

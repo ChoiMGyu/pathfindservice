@@ -18,6 +18,7 @@ import com.pathfind.system.exception.NicknameCheckErrorCode;
 import com.pathfind.system.exception.UserIdCheckErrorCode;
 import com.pathfind.system.exception.ValidationException;
 import com.pathfind.system.memberDto.*;
+import com.pathfind.system.service.MailSendValue;
 import com.pathfind.system.service.MemberService;
 import com.pathfind.system.service.RedisUtil;
 import com.pathfind.system.validation.ValidationSequence;
@@ -116,7 +117,7 @@ public class RegisterApiController {
         }
         String authNumber = mailSendService.joinEmail(request.getEmail());
 
-        return new EmailNumVCResponse(authNumber, 1800L, CheckMessage.AUTHENTICATION_NUM);
+        return new EmailNumVCResponse(authNumber, MailSendValue.AUTH_NUM_DURATION, CheckMessage.AUTHENTICATION_NUM);
     }
 
     @Operation(summary = "인증 번호 동일성 여부 검사", description = "회원 가입 시 이메일로 전송된 인증 번호와 입력한 인증 번호가 동일한지 확인하고 그 결과를 반환합니다.")

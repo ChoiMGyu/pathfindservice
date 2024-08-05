@@ -105,7 +105,7 @@ public class MailSendServiceImpl implements MailSendService{
             helper.setSubject(title);//이메일의 제목을 설정
             helper.setText(content,true);//이메일의 내용 설정 두 번째 매개 변수에 true를 설정하여 html 설정으로한다.
             mailSender.send(message);
-            redisUtil.setDataExpire(toMail, Integer.toString(authNumber), 60 * 30L); //추가한 사람 choi 이유) Redis에 저장되는 값이 없어서 (key,value)형태로 저장
+            redisUtil.setDataExpire(toMail, Integer.toString(authNumber), MailSendValue.AUTH_NUM_DURATION); //추가한 사람 choi 이유) Redis에 저장되는 값이 없어서 (key,value)형태로 저장
         } catch (MessagingException e) {//이메일 서버에 연결할 수 없거나, 잘못된 이메일 주소를 사용하거나, 인증 오류가 발생하는 등 오류
             // 이러한 경우 MessagingException이 발생
             e.printStackTrace();//e.printStackTrace()는 예외를 기본 오류 스트림에 출력하는 메서드
