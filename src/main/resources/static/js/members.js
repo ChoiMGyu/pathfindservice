@@ -198,7 +198,7 @@ function emailNumberChk() {
         url: '/api/registration/emailNumberChk', // 요청할 URL
         type: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify({ email: email, authNum: authNum, seconds: seconds }), // 요청 데이터
+        data: JSON.stringify({ email: email, authNum: authNum }), // 요청 데이터
         success: function(response) {
             if (response.emailNumberCheck) {
                 $('#verificationCodeError').hide();
