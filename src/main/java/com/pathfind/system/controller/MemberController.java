@@ -78,6 +78,7 @@ public class MemberController {
         }
 
         String patternEmailNumber = "^[0-9]*$";
+        logger.info("emailNumber: {}", form.getEmailNumber());
         boolean regexEmailNumber = Pattern.matches(patternEmailNumber, form.getEmailNumber());
         if (!result.hasFieldErrors("emailNumber") && !regexEmailNumber) {
             result.rejectValue("emailNumber", "Format.emailNumber");
@@ -91,20 +92,16 @@ public class MemberController {
 
     // 약관 동의 페이지를 반환하는 함수이다.
     @GetMapping(value = "/agree")
-    public String getAgree(HttpServletRequest request) {
+    public String getAgree() {
         logger.info("get register agree");
-        HttpSession session = request.getSession();
 
         return "members/agree";
     }
 
     // 회원 가입 양식 페이지를 반환하는 함수이다.
     @GetMapping(value = "/new")
-    public String getRegister(HttpServletRequest request, Model model) {
+    public String getRegister() {
         logger.info("get register form");
-
-        HttpSession session = request.getSession();
-//        addSubmitForm(model, session);
 
         return "members/registerForm";
     }
@@ -120,24 +117,34 @@ public class MemberController {
 
     // 아이디 찾기 페이지를 반환하는 함수이다.
     @GetMapping("/findUserId")
-    public String findUserId(HttpServletRequest request, Model model) {
+    public String findUserId() {
         logger.info("find userId");
-
-        HttpSession session = request.getSession();
-        addSubmitForm(model, session);
 
         return "members/findUserId";
     }
 
+    // 사용자에게 아이디를 포함한 페이지를 반환하는 함수이다.
+    @GetMapping("/returnId")
+    public String returnId(@RequestParam(name = "userId") String userId, Model model) {
+        logger.info("your user id: {}", userId);
+
+        model.addAttribute("userId", userId);
+
+        return "members/yourUserId";
+    }
+
     // 비밀번호 초기화 페이지를 반환하는 함수이다.
     @GetMapping("/findPassword")
-    public String findPassword(HttpServletRequest request, Model model) {
+    public String findPassword() {
         logger.info("find password");
 
-        HttpSession session = request.getSession();
-        addSubmitForm(model, session);
-
         return "members/findPassword";
+    }
+
+    // 비밀번호 초기화 성공 시 사용자에게 보여지는 페이지를 반환하는 함수이다.
+    @GetMapping("/yourPassword")
+    public String resetPasswordResult() {
+        return "members/yourPassword";
     }
 
     @GetMapping("/updatePassword")
@@ -159,7 +166,7 @@ public class MemberController {
 
         List<Member> memberList = memberService.findByUserId(((Member) session.getAttribute(SessionConst.LOGIN_MEMBER)));
 
-        if(memberList.isEmpty()) {
+        if (memberList.isEmpty()) {
             return "redirect:/";
         }
         Member loginMember = memberList.get(0);
@@ -197,9 +204,9 @@ public class MemberController {
     }
 
     @GetMapping("/login")
-    public String loginForm(@RequestParam(value = "error", required = false)String errorMessage, @ModelAttribute LoginForm form, BindingResult result) {
+    public String loginForm(@RequestParam(value = "error", required = false) String errorMessage, @ModelAttribute LoginForm form, BindingResult result) {
         logger.info("get loginForm");
-        if(errorMessage != null) {
+        if (errorMessage != null) {
             logger.info("Error message: {}", errorMessage);
             result.reject("loginFail", errorMessage);
         }

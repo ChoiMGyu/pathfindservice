@@ -1,6 +1,6 @@
 /*
- * 클래스 기능 : 회원 가입 시 이메일 검증 관련 에러 코드 enum class
- * 최근 수정 일자 : 2024.08.04(일)
+ * 클래스 기능 : 아이디 찾기 시 이메일 검증 관련 에러 코드 enum class
+ * 최근 수정 일자 : 2024.08.03(토)
  */
 package com.pathfind.system.exception;
 
@@ -9,10 +9,9 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum EmailCheckErrorCode implements BasicErrorCode {
-    NOT_EMPTY(400, "NotEmpty", "이메일은 필수입니다."),
-    PATTERN(400, "Pattern", "이메일 형식이 올바르지 않습니다."),
-    EMAIL_ALREADY_EXISTS(409, "EMAIL_EXIST", "이미 존재하는 이메일입니다."),
+public enum EmailExistErrorCode implements BasicErrorCode {
+    EMAIL_EMPTY(400, "NotEmpty", "이메일은 필수입니다."),
+    INVALID_INPUT_VALUE_EMAIL(400, "Pattern", "이메일 형식이 올바르지 않습니다."),
     EMAIL_NOT_EXISTS(409, "EMAIL_NOT_EXIST", "존재하지 않는 이메일입니다.");
 
     private final int status;

@@ -55,13 +55,13 @@
         <script type="text/javascript">
             function logout() {
                 console.log("logout 버튼 클릭됨");
-                const csrfToken = document.getElementById('_csrf').value;
+                // const csrfToken = document.getElementById('_csrf').value;
                 fetch('/members/logout', {
                     method: 'POST',
-                    headers: {
+                    /*headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                         'X-CSRF-TOKEN': csrfToken // CSRF 토큰 추가
-                    },
+                    },*/
                     body: ''
                 }).then(response => {
                     if (response.redirected) {

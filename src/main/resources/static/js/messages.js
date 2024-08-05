@@ -20,3 +20,7 @@ function bodyAlert(message = "") {
         $("#" + id).remove();
     }, 5000); // 5000 milliseconds (5 seconds)
 }
+
+function hideBodyAlert() {
+    $("#bodyAlertSection").empty();
+}
