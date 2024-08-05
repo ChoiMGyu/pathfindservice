@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 예외 발생 enum 클래스
- * 최근 수정 일자 : 2024.07.20(토)
+ * 최근 수정 일자 : 2024.08.02(금)
  */
 package com.pathfind.system.exception;
 
@@ -10,7 +10,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ErrorCode implements BasicErrorCode {
-    INVALID_INPUT_VALUE(409, "INVALID_INPUT", "올바른 값을 입력하지 않은 경우"),
+    INVALID_INPUT_VALUE(400, "INVALID_INPUT", "올바른 값을 입력하지 않은 경우"),
     ROOM_EXCEEDED(403, "-403", "방 최대 인원인 5명보다 많은 사람을 초대하는 경우");
 
     private final int status;

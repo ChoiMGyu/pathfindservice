@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 이메일 인증 서비스 구현체
- * 최근 수정 일자 : 2024.07.08(월)
+ * 최근 수정 일자 : 2024.08.02(금)
  */
 package com.pathfind.system.service;
 
@@ -23,6 +23,7 @@ public class MailSendServiceImpl implements MailSendService{
     private JavaMailSender mailSender;
     @Autowired
     private RedisUtil redisUtil;
+
     private int authNumber; //서버에서 만든 인증번호
 
     @Value("${api-key.sender-email}")
@@ -31,20 +32,23 @@ public class MailSendServiceImpl implements MailSendService{
     private static final Logger logger = LoggerFactory.getLogger(MailSendServiceImpl.class);
 
     public boolean CheckAuthNum(String email,String authNum){
-        logger.info("이메일 서비스 CheckAuthNum : " + email + " " + authNum);
-        if(redisUtil.getData(authNum)==null){
-            logger.info("에러 이유: 인증번호가 넘어오지 않았음!!");
+        logger.info("CheckAuthNum - email: " + email + ", authNum: " + authNum);
+        if(redisUtil.getData(email)==null){
             return false;
         }
-        else if(redisUtil.getData(authNum).equals(email)){
-            redisUtil.deleteData(authNum);
-            logger.info("서비스 성공!!");
+        else return redisUtil.getData(email).equals(authNum);
+    }
+
+    public boolean deleteEmail(String email, String authNum) {
+        if(redisUtil.getData(email)==null){
+            logger.info("deleteEmail - " + email + "이라는 키가 존재하지 않음");
+            return false;
+        }
+        if(redisUtil.getData(email).equals(authNum)) {
+            redisUtil.deleteData(email);
             return true;
         }
-        else{
-            logger.info("에러 이유: 다른 이유!!");
-            return false;
-        }
+        return false;
     }
 
     //임의의 6자리 양수를 반환합니다.
@@ -101,7 +105,7 @@ public class MailSendServiceImpl implements MailSendService{
             helper.setSubject(title);//이메일의 제목을 설정
             helper.setText(content,true);//이메일의 내용 설정 두 번째 매개 변수에 true를 설정하여 html 설정으로한다.
             mailSender.send(message);
-            redisUtil.setDataExpire(Integer.toString(authNumber), toMail, 60 * 30L); //추가한 사람 choi 이유) Redis에 저장되는 값이 없어서 (key,value)형태로 저장
+            redisUtil.setDataExpire(toMail, Integer.toString(authNumber), 60 * 30L); //추가한 사람 choi 이유) Redis에 저장되는 값이 없어서 (key,value)형태로 저장
         } catch (MessagingException e) {//이메일 서버에 연결할 수 없거나, 잘못된 이메일 주소를 사용하거나, 인증 오류가 발생하는 등 오류
             // 이러한 경우 MessagingException이 발생
             e.printStackTrace();//e.printStackTrace()는 예외를 기본 오류 스트림에 출력하는 메서드

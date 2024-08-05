@@ -1,6 +1,6 @@
 /*
  * 클래스 기능 : 이메일 인증 서비스 인터페이스
- * 최근 수정 일자 : 2024.01.13(화)
+ * 최근 수정 일자 : 2024.08.02(금)
  */
 package com.pathfind.system.service;
 
@@ -18,4 +18,7 @@ public interface MailSendService {
 
     public boolean CheckAuthNum(String email,String authNum);
     //이메일과 인증번호를 확인
+
+    public boolean deleteEmail(String email, String authNum);
+    //이메일과 인증번호를 확인하여 동일할 경우 Redis에서 이메일과 인증번호 삭제
 }
