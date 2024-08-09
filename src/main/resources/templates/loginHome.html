@@ -5,7 +5,7 @@
 </head>
 <body>
 <div class="container position-relative p-0">
-    <div th:replace="~{fragments/bodyHeader :: bodyHeader(${session.loginMember})}"></div>
+    <div th:replace="~{fragments/bodyHeader :: bodyHeader()}"></div>
     <div th:replace="~{fragments/bodyAlert :: bodyAlert(${message})}"></div>
     <div class="jumbotron bg-light p-5 rounded text-center">
         <h1 class="display-4">YU Map</h1>

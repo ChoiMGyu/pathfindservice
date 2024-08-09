@@ -1,14 +1,17 @@
 /*
  * 클래스 기능 : 커스텀 로그인 성공 핸들러
- * 최근 수정 일자 : 2024.05.19(일)
+ * 최근 수정 일자 : 2024.08.08(목)
  */
 package com.pathfind.system.handler;
 
 import com.pathfind.system.authDto.PrincipalDetails;
-import com.pathfind.system.controller.SessionConst;
 import com.pathfind.system.domain.Member;
+import com.pathfind.system.jwtDto.IssuedTokenCSResponse;
+import com.pathfind.system.service.CookieServiceImpl;
+import com.pathfind.system.service.JwtServiceImpl;
 import com.pathfind.system.service.MemberService;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -20,7 +23,6 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -30,16 +32,33 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 
     private final MemberService memberService;
 
+    private final JwtServiceImpl jwtService;
+
+    private final CookieServiceImpl cookieService;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         logger.info("Login success");
         Member member = ((PrincipalDetails) authentication.getPrincipal()).getMember();
         logger.info("userId: {}", member.getUserId());
         memberService.updateLastConnect(member.getUserId());
-        Member loginMember = Member.createMember(member.getUserId(), null, member.getNickname(), member.getEmail(), null);
-        HttpSession session = request.getSession();
-        loginMember.changeId(member.getId());
-        session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);
-        response.sendRedirect("/");
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+            for (Cookie cookie : request.getCookies()) {
+                String name = cookie.getName();
+                if (name.equals("JSESSIONID")) {
+                    cookie.setPath("/");
+                    cookie.setMaxAge(0);
+                    response.addCookie(cookie);
+                    break;
+                }
+            }
+        }
+        IssuedTokenCSResponse token = jwtService.createToken(member.getUserId());
+        cookieService.addAccessTokenCookie(response, token.getAccessToken());
+        cookieService.addRefreshTokenCookie(response, token.getRefreshToken());
+
+        if (member.getUserId().contains("_")) response.sendRedirect("/");
     }
 }

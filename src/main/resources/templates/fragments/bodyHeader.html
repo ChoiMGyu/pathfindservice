@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
-<header class="header m-0 p-0" style="margin: 0;" th:fragment="bodyHeader(session.loginMember)">
+<header class="header m-0 p-0" style="margin: 0;" th:fragment="bodyHeader()">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
             <section id="navbarWebSiteNameSection">
@@ -17,7 +17,7 @@
                             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                                 <ul class="navbar-nav ms-auto">
                                     <li class="nav-item">
-                                        <a class="navbar-brand" href="#" th:text="|${session.loginMember.nickname}님|"></a>
+                                        <a class="navbar-brand" href="#" th:text="|${#authentication.getPrincipal().getMember().getNickname()}님|"></a>
                                     </li>
                                 </ul>
                                 <ul class="navbar-nav ms-auto">
@@ -44,13 +44,13 @@
                             </div>
                         </div>
                     </nav>
-                    <div id="headerUserId" th:value="${session.loginMember.getUserId()}"></div>
+                    <div id="headerUserId" th:value="${#authentication.getPrincipal().getMember().getNickname()}"></div>
                 </th:block>
             </section>
         </div>
     </nav>
 
-    <th:block th:if="${session.loginMember != null}">
+    <th:block sec:authorize="isAuthenticated()">
         <script type="text/javascript" src="/js/bodyHeader.js"></script>
         <script type="text/javascript">
             function logout() {
@@ -63,10 +63,11 @@
                         'X-CSRF-TOKEN': csrfToken // CSRF 토큰 추가
                     },*/
                     body: ''
-                }).then(response => {
-                    if (response.redirected) {
-                        window.location.href = response.url; // 로그아웃 후 리다이렉트
-                    }
+                }).then(response =>
+                    response.redirected ? window.location.href = response.url : response.json()
+                ).then(data => {
+                    console.log(data);
+                    if(data.message) bodyAlert(data.message);
                 });
             }
         </script>

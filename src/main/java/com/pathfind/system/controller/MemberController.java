@@ -1,10 +1,9 @@
 /*
  * 클래스 기능 : 회원 관련 페이지 렌더링을 하는 controller
- * 최근 수정 일자 : 2024.07.22(월)
+ * 최근 수정 일자 : 2024.08.08(목)
  */
 package com.pathfind.system.controller;
 
-import com.pathfind.system.domain.Check;
 import com.pathfind.system.domain.Member;
 import com.pathfind.system.memberDto.*;
 import com.pathfind.system.service.MailSendService;
@@ -203,7 +202,7 @@ public class MemberController {
         return "members/updatePasswordForm";
     }
 
-    @GetMapping("/login")
+    @GetMapping("/loginForm")
     public String loginForm(@RequestParam(value = "error", required = false) String errorMessage, @ModelAttribute LoginForm form, BindingResult result) {
         logger.info("get loginForm");
         if (errorMessage != null) {
@@ -241,7 +240,7 @@ public class MemberController {
     public String getProfile(HttpServletRequest request, Model model) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            return "redirect:/members/login";
+            return "redirect:/members/loginForm";
         }
 
         Member member = (Member) session.getAttribute(SessionConst.LOGIN_MEMBER);
@@ -263,7 +262,7 @@ public class MemberController {
     public String updateNickname(MemberForm memberForm, @Valid NicknameForm nicknameForm, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            return "redirect:/members/login";
+            return "redirect:/members/loginForm";
         }
 
         Member member = (Member) session.getAttribute(SessionConst.LOGIN_MEMBER);
@@ -307,7 +306,7 @@ public class MemberController {
 
         HttpSession session = request.getSession(false);
         if (session == null) {
-            return "redirect:/members/login";
+            return "redirect:/members/loginForm";
         }
 
         addSubmitForm(model, session);
@@ -320,7 +319,7 @@ public class MemberController {
     public String updateEmail(SubmitForm form, BindingResult result, HttpServletRequest request, RedirectAttributes rttr) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            return "redirect:/members/login";
+            return "redirect:/members/loginForm";
         }
 
         emailNumberValidation(form, result);
@@ -348,7 +347,7 @@ public class MemberController {
     public String leaveNotice(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            return "redirect:/members/login";
+            return "redirect:/members/loginForm";
         }
 
         return "members/leaveNotice";
@@ -359,7 +358,7 @@ public class MemberController {
     public String leaveService(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            return "redirect:/members/login";
+            return "redirect:/members/loginForm";
         }
 
         Member member = (Member) session.getAttribute(SessionConst.LOGIN_MEMBER);
