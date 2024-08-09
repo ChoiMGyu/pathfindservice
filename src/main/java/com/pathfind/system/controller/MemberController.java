@@ -4,6 +4,7 @@
  */
 package com.pathfind.system.controller;
 
+import com.pathfind.system.domain.Check;
 import com.pathfind.system.domain.Member;
 import com.pathfind.system.memberDto.*;
 import com.pathfind.system.service.MailSendService;
@@ -107,9 +108,8 @@ public class MemberController {
 
     // 회원 가입 완료 페이지를 반환하는 함수이다.
     @GetMapping("/registerComplete")
-    public String registerComplete(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        session.invalidate();
+    public String registerComplete() {
+        logger.info("회원 가입이 성공적으로 완료되었습니다.");
 
         return "members/registerComplete";
     }
