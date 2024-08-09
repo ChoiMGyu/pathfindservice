@@ -1,35 +1,39 @@
 /*
  * 클래스 기능 : JWT 토큰 관련 서비스를 제공하는 클래스
- * 최근 수정 일자 : 2024.08.08(목)
+ * 최근 수정 일자 : 2024.08.10(토)
  */
 package com.pathfind.system.service;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.pathfind.system.jwtDto.IssuedTokenCSResponse;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
 @Service
-@RequiredArgsConstructor
 public class JwtServiceImpl {
 
-    @Value("${jwt.secretKey}")
-    private String secretKey;
+    private final SecretKey secretKey;
 
-    @Value("${jwt.access.expiration}")
-    private Long accessTokenExpirationPeriod;
+    private final Long accessTokenExpirationPeriod;
 
-    @Value("${jwt.refresh.expiration}")
-    private Long refreshTokenExpirationPeriod;
+    private final Long refreshTokenExpirationPeriod;
+
+    public JwtServiceImpl(@Value("${jwt.secretKey}") String secret, @Value("${jwt.access.expiration}") Long accessTokenExpirationPeriod, @Value("${jwt.refresh.expiration}") Long refreshTokenExpirationPeriod) {
+        secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
+        this.accessTokenExpirationPeriod = accessTokenExpirationPeriod;
+        this.refreshTokenExpirationPeriod = refreshTokenExpirationPeriod;
+    }
 
     private static final String ACCESS_TOKEN_SUBJECT = "AccessToken";
     private static final String REFRESH_TOKEN_SUBJECT = "RefreshToken";
@@ -48,44 +52,52 @@ public class JwtServiceImpl {
     }
 
     private String createAccessToken(String userId) {
-        return JWT.create()
-                .withSubject(ACCESS_TOKEN_SUBJECT)
-                .withExpiresAt(new Date(System.currentTimeMillis() + accessTokenExpirationPeriod))
-                .withClaim(USER_ID_CLAIM, userId)
-                .sign(Algorithm.HMAC512(secretKey));
+        return Jwts.builder()
+                .claim("sub", ACCESS_TOKEN_SUBJECT)
+                .claim(USER_ID_CLAIM, userId)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + accessTokenExpirationPeriod))
+                .signWith(secretKey)
+                .compact();
     }
 
     private String createRefreshToken(String userId) {
-        return JWT.create()
-                .withSubject(REFRESH_TOKEN_SUBJECT)
-                .withExpiresAt(new Date(System.currentTimeMillis() + refreshTokenExpirationPeriod))
-                .withClaim(USER_ID_CLAIM, userId)
-                .sign(Algorithm.HMAC512(secretKey));
+        return Jwts.builder()
+                .claim("sub", REFRESH_TOKEN_SUBJECT)
+                .claim(USER_ID_CLAIM, userId)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + refreshTokenExpirationPeriod))
+                .signWith(secretKey)
+                .compact();
     }
 
-    public boolean isValidToken(String token) {
-        try {
-            JWT.require(Algorithm.HMAC512(secretKey)).build().verify(token);
-            return true;
-        } catch (JWTVerificationException | IllegalArgumentException e) {
-            logger.info("isValidToken(): token is not valid!!!");
-            return false;
-        }
-    }
+//    public boolean isValidToken(String token) {
+//        try {
+//            JWT.require(Algorithm.HMAC512(secretKey)).build().verify(token);
+//
+//            return true;
+//        } catch (JwtException | IllegalArgumentException e) {
+//            logger.info("isValidToken(): token is not valid!!!");
+//            return false;
+//        }
+//    }
 
     public String getUserId(String accessToken) {
-        return JWT.decode(accessToken).getClaim(USER_ID_CLAIM).toString().replace("\"", "");
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(accessToken).getPayload().get(USER_ID_CLAIM, String.class);
     }
 
-    public LocalDateTime getExpirationDate(String token) {
-        return JWT.decode(token).getExpiresAt().toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime();
+    public String getSub(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("sub", String.class);
+    }
+
+    public Boolean isExpired(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
     }
 
     public String reIssueAccessToken(String refreshToken) {
         String userId = getUserId(refreshToken);
         logger.info("reIssueAccessToken userId: " + userId);
-        return isValidToken(refreshToken) ? createAccessToken(userId) : null;
+        //return isValidToken(refreshToken) ? createAccessToken(userId) : null;
+        return createAccessToken(userId);
     }
 }
