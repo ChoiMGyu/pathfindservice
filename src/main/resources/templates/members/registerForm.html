@@ -4,7 +4,7 @@
 <!--<meta name="csrf-token" content="{{#_csrf}}token{{/_csrf}}">-->
 <body>
 <div class="container position-relative p-0">
-    <div th:replace="~{fragments/bodyHeader :: bodyHeader(${session.loginMember})}"></div>
+    <div th:replace="~{fragments/bodyHeader :: bodyHeader()}"></div>
     <div th:replace="~{fragments/bodyAlert :: bodyAlert(${message})}"></div>
     <!--        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>-->
     <div class="form-group">

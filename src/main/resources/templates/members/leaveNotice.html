@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/header :: header}"/>
 <body>
 <div class="container">
-    <div th:replace="~{fragments/bodyHeader :: bodyHeader(${session.loginMember})}"></div>
+    <div th:replace="~{fragments/bodyHeader :: bodyHeader()}"></div>
     <div class="d-flex flex-column mb-3" style="height:100%; overflow-y: scroll;">
         <h4 class="mb-3">탈퇴 안내</h4>
         <div class="card" style="width: 100%; height:200px; overflow-y: scroll;">

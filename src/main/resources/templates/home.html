@@ -7,7 +7,7 @@
 </head>
 <body>
 <div class="container position-relative p-0 my-5">
-    <div th:replace="~{fragments/bodyHeader :: bodyHeader(${session.loginMember})}"></div>
+    <div th:replace="~{fragments/bodyHeader :: bodyHeader()}"></div>
     <div th:replace="~{fragments/bodyAlert :: bodyAlert(${message})}"></div>
     <div class="jumbotron bg-light p-5 rounded text-center">
         <h1 class="display-4">YU Map</h1>
@@ -27,7 +27,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link btn btn-lg btn-secondary"
-                           th:href="@{/members/login}">로그인</a>
+                           th:href="@{/members/loginForm}">로그인</a>
                     </li>
                 </ul>
             </div>

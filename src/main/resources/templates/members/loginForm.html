@@ -18,10 +18,11 @@
 </head>
 <body>
 <div class="container">
-    <div th:replace="~{fragments/bodyHeader :: bodyHeader(${session.loginMember})}"></div>
+    <div th:replace="~{fragments/bodyHeader :: bodyHeader()}"></div>
+    <div th:replace="~{fragments/bodyAlert :: bodyAlert(${message})}"></div>
     <div class="py-5 text-center">
         <h2>로그인</h2></div>
-    <form action="item.html" th:action th:object="${loginForm}" method="post">
+    <form action="/members/login" th:object="${loginForm}" method="post"><!-- onsubmit="return submitFormAsJSON(this)">-->
         <!--action : 목적지 url 수정해야함, th:action, action이 있으면 동적으로 생성된 url이 우선시됨(th:action이 적용됨) -->
         <!--<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>-->
         <div>
@@ -37,13 +38,14 @@
                    th:errorclass="field-error">
             <div class="field-error" th:errors="*{password}"/>
         </div>
+        <small id="loginError" class="text-danger" style="display: none"></small>
         <div th:if="${#fields.hasGlobalErrors()}">
             <p class="field-error" th:each="err : ${#fields.globalErrors()}"
                th:text="${err}">전체 오류 메시지</p></div>
         <hr class="my-4">
         <div class="row">
             <div class="col">
-                <button class="w-100 btn btn-primary btn-lg" type="submit">
+                <button id="loginFormSubmit" class="w-100 btn btn-primary btn-lg" type="button">
                     로그인
                 </button>
             </div>
@@ -95,4 +97,5 @@
     <div th:replace="~{fragments/footer :: footer}"/>
 </div> <!-- /container -->
 </body>
+<script type="text/javascript" src="/js/loginForm.js"></script>
 </html>
