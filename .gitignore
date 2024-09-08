@@ -41,4 +41,4 @@ application.yml
 
 keystore.p12
 
-geo.html
+templates/geo.html
